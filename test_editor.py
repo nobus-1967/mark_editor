@@ -54,7 +54,7 @@ class TestAppMetadata(unittest.TestCase):
         self.assertEqual(__app_name__, "Mark Editor")
 
     def test_version(self):
-        self.assertEqual(__version__, "0.1")
+        self.assertEqual(__version__, "0.3")
 
 
 class TestTkHTMLRenderer(unittest.TestCase):

@@ -6,7 +6,7 @@ AppDir:
     id: mark_editor
     name: Mark Editor
     icon: mark_editor
-    version: "0.2"
+    version: "0.3"
     exec: usr/bin/mark_editor
     exec_args: $@
 

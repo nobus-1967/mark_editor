@@ -37,7 +37,7 @@ try:
 except ImportError:
     HAS_PILLOW = False
 
-__version__ = "0.2"
+__version__ = "0.3"
 __app_name__ = "Mark Editor"
 
 
@@ -372,6 +372,7 @@ class TkHTMLRenderer(html.parser.HTMLParser):
             highlightbackground="#dee2e6",
             highlightthickness=1,
         )
+        table_frame._tb_no_autostyle = True
 
         for row_idx, row in enumerate(all_rows):
             is_header = self._table_headers and row_idx < len(self._table_headers)
@@ -401,6 +402,7 @@ class TkHTMLRenderer(html.parser.HTMLParser):
                     height=1,
                     anchor="w",
                 )
+                cell._tb_no_autostyle = True
                 cell.grid(row=row_idx, column=col_idx, sticky="nsew")
 
         for i in range(col_count):
@@ -1128,6 +1130,7 @@ class MarkEditor(tb.App):
 
         # ── left panel: editing ──
         left_frame = tb.Frame(self._paned)
+        self._editor_vbar = tb.Scrollbar(left_frame, orient=tk.VERTICAL)
         self._editor = tk.Text(
             left_frame,
             font=self.editor_font,
@@ -1139,7 +1142,10 @@ class MarkEditor(tb.App):
             borderwidth=0,
             highlightthickness=1,
             highlightbackground="#ccc",
+            yscrollcommand=self._editor_vbar.set,
         )
+        self._editor_vbar.config(command=self._editor.yview)
+        self._editor_vbar.pack(side=tk.RIGHT, fill=tk.Y)
         self._editor.pack(fill=tk.BOTH, expand=True)
 
         self._editor.bind("<<Modified>>", self._on_editor_modified)
@@ -1151,6 +1157,7 @@ class MarkEditor(tb.App):
 
         # ── right panel: quick view ──
         right_frame = tb.Frame(self._paned)
+        self._preview_vbar = tb.Scrollbar(right_frame, orient=tk.VERTICAL)
         self._preview = tk.Text(
             right_frame,
             font=self.body_font,
@@ -1163,8 +1170,14 @@ class MarkEditor(tb.App):
             highlightthickness=1,
             highlightbackground="#ccc",
             cursor="arrow",
+            bg="#ffffff",
+            fg="#212529",
+            yscrollcommand=self._preview_vbar.set,
         )
+        self._preview_vbar.config(command=self._preview.yview)
+        self._preview_vbar.pack(side=tk.RIGHT, fill=tk.Y)
         self._preview.pack(fill=tk.BOTH, expand=True)
+        self._preview._tb_no_autostyle = True
         self._configure_preview_tags()
         self._paned.add(right_frame, weight=1)
 
@@ -1741,6 +1754,7 @@ class MarkEditor(tb.App):
     def _on_quit(self) -> None:
         if not self._check_save():
             return
+        self.destroy()
 
     # ═══════════════════════════════════════════════════════════
     # Edit operations

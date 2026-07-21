@@ -7,6 +7,7 @@ APP_NAME="mark_editor"
 MAIN_FILE="mark_editor.py"
 REQUIREMENTS="requirements.txt"
 VENV_DIR="venv"
+TTK_ASSETS := $(shell $(VENV_DIR)/bin/python -c "import ttkbootstrap, os; print(os.path.join(os.path.dirname(ttkbootstrap.__file__), 'assets'))")
 
 # Create virtual environment and install dependencies
 setup:
@@ -29,7 +30,7 @@ executable:
 		--add-binary /usr/bin/pandoc:. \
 		--add-data images/mark_editor.svg:images \
 		--add-data images/mark_editor.png:images \
-		--add-data $(VENV_DIR)/lib/python3.14/site-packages/ttkbootstrap/assets:ttkbootstrap/assets \
+		--add-data $(TTK_ASSETS):ttkbootstrap/assets \
 		--hidden-import pymdownx.caret \
 		--hidden-import pymdownx.tilde \
 		--hidden-import pymdownx.mark \
