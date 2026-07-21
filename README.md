@@ -1,6 +1,6 @@
 # MARK EDITOR
 
-![mark_editor](./images/mark_editor.png)
+![mark_editor](./images/mark_editor_0_2.png)
 
 A simple Markdown editor which is based on the Python implementation of [John Gruber’s Markdown](https://daringfireball.net/projects/markdown/), [PyMdown Extensions](https://facelessuser.github.io/pymdown-extensions/), and some add-ons.
 
