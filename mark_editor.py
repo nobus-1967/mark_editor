@@ -13,8 +13,10 @@ import subprocess
 import sys
 import webbrowser
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, simpledialog
 from tkinter.font import Font
+
+import ttkbootstrap as tb
+from ttkbootstrap.dialogs import Messagebox, Querybox
 from datetime import datetime
 from typing import Optional
 
@@ -35,7 +37,7 @@ try:
 except ImportError:
     HAS_PILLOW = False
 
-__version__ = "0.1"
+__version__ = "0.2"
 __app_name__ = "Mark Editor"
 
 
@@ -102,6 +104,7 @@ class TkHTMLRenderer(html.parser.HTMLParser):
         self._base_dir = base_dir
         self._preformatted = False
         self._in_li = False
+        self._first_li = False
         self._list_stack: list[tuple[str, int]] = []
 
         self._table_rows: list[list[str]] = []
@@ -178,17 +181,22 @@ class TkHTMLRenderer(html.parser.HTMLParser):
         elif tag_lower in ("ul", "ol"):
             self._tag_stack.append(tag_lower)
             self._list_stack.append((tag_lower, 0))
+            self._first_li = True
         elif tag_lower == "li":
             if self._list_stack:
                 ltype, counter = self._list_stack[-1]
                 if ltype == "ol":
                     counter += 1
                     self._list_stack[-1] = (ltype, counter)
-                    prefix = f"\n  {counter}. "
+                    prefix = f"  {counter}. "
                 else:
-                    prefix = "\n  • "
+                    prefix = "  • "
             else:
-                prefix = "\n  - "
+                prefix = "  - "
+            if self._first_li:
+                self._first_li = False
+            else:
+                prefix = "\n" + prefix
             self._text_buffer.append(prefix)
             self._tag_stack.append("li")
             self._in_li = True
@@ -262,7 +270,7 @@ class TkHTMLRenderer(html.parser.HTMLParser):
         elif tag_lower == "p":
             self._remove_tag("p")
             if not self._in_li:
-                self._text_buffer.append("\n\n")
+                self._text_buffer.append("\n")
         elif tag_lower in ("strong", "b"):
             self._tag_stack = [t for t in self._tag_stack if not t.startswith("bold")]
         elif tag_lower in ("em", "i"):
@@ -361,13 +369,13 @@ class TkHTMLRenderer(html.parser.HTMLParser):
 
         table_frame = tk.Frame(
             self.text_widget,
-            highlightbackground="#bbb",
+            highlightbackground="#dee2e6",
             highlightthickness=1,
         )
 
         for row_idx, row in enumerate(all_rows):
             is_header = self._table_headers and row_idx < len(self._table_headers)
-            bg = "#e8e8e8" if is_header else "white"
+            bg = "#e9ecef" if is_header else "#ffffff"
             fg = "black"
             font_spec = (
                 (mono_name, mono_size, "bold") if is_header else (mono_name, mono_size)
@@ -385,7 +393,7 @@ class TkHTMLRenderer(html.parser.HTMLParser):
                     bg=bg,
                     relief="solid",
                     borderwidth=0,
-                    highlightbackground="#ccc",
+                    highlightbackground="#dee2e6",
                     highlightthickness=1,
                     padx=6,
                     pady=2,
@@ -470,7 +478,7 @@ class TkHTMLRenderer(html.parser.HTMLParser):
 # ---------------------------------------------------------------------------
 
 
-class FindDialog(tk.Toplevel):
+class FindDialog(tb.Toplevel):
     def __init__(self, parent: tk.Tk, text_widget: tk.Text) -> None:
         super().__init__(parent)
         self.title("Find")
@@ -479,26 +487,26 @@ class FindDialog(tk.Toplevel):
         self.transient(parent)
         self.grab_set()
 
-        self.use_regex = tk.BooleanVar(value=False)
+        self.use_regex = tb.BooleanVar(value=False)
 
-        tk.Label(self, text="Find:").grid(row=0, column=0, sticky="e", padx=4, pady=4)
-        self.find_var = tk.StringVar()
-        tk.Entry(self, textvariable=self.find_var, width=30).grid(
-            row=0, column=1, columnspan=2, padx=4, pady=4
-        )
-
-        tk.Checkbutton(self, text="Use regex", variable=self.use_regex).grid(
-            row=1, column=0, columnspan=2, sticky="w", padx=4, pady=2
+        tb.Label(self, text="Find:").grid(row=0, column=0, sticky="e", padx=8, pady=6)
+        self.find_var = tb.StringVar()
+        tb.Entry(self, textvariable=self.find_var, width=30).grid(
+            row=0, column=1, columnspan=2, padx=8, pady=6
         )
 
-        btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=2, column=0, columnspan=3, pady=8)
-        ttk.Button(btn_frame, text="Find Next", command=self.find_next).pack(
-            side=tk.LEFT, padx=2
+        tb.Checkbutton(self, text="Use regex", variable=self.use_regex).grid(
+            row=1, column=0, columnspan=2, sticky="w", padx=8, pady=4
         )
-        ttk.Button(btn_frame, text="Close", command=self.destroy).pack(
-            side=tk.LEFT, padx=2
-        )
+
+        btn_frame = tb.Frame(self)
+        btn_frame.grid(row=2, column=0, columnspan=3, pady=10)
+        tb.Button(
+            btn_frame, text="Find Next", command=self.find_next, bootstyle="primary"
+        ).pack(side=tk.LEFT, padx=3)
+        tb.Button(
+            btn_frame, text="Close", command=self.destroy, bootstyle="secondary"
+        ).pack(side=tk.LEFT, padx=3)
 
         self.protocol("WM_DELETE_WINDOW", self.destroy)
         self.find_var.trace_add("write", lambda *_: self._clear_highlights())
@@ -538,7 +546,7 @@ class FindDialog(tk.Toplevel):
         return False
 
 
-class ReplaceDialog(tk.Toplevel):
+class ReplaceDialog(tb.Toplevel):
     def __init__(self, parent: tk.Tk, text_widget: tk.Text) -> None:
         super().__init__(parent)
         self.title("Replace")
@@ -547,40 +555,43 @@ class ReplaceDialog(tk.Toplevel):
         self.transient(parent)
         self.grab_set()
 
-        self.use_regex = tk.BooleanVar(value=False)
+        self.use_regex = tb.BooleanVar(value=False)
 
-        tk.Label(self, text="Find:").grid(row=0, column=0, sticky="e", padx=4, pady=4)
-        self.find_var = tk.StringVar()
-        tk.Entry(self, textvariable=self.find_var, width=30).grid(
-            row=0, column=1, columnspan=2, padx=4, pady=4
-        )
-
-        tk.Label(self, text="Replace:").grid(
-            row=1, column=0, sticky="e", padx=4, pady=4
-        )
-        self.replace_var = tk.StringVar()
-        tk.Entry(self, textvariable=self.replace_var, width=30).grid(
-            row=1, column=1, columnspan=2, padx=4, pady=4
+        tb.Label(self, text="Find:").grid(row=0, column=0, sticky="e", padx=8, pady=6)
+        self.find_var = tb.StringVar()
+        tb.Entry(self, textvariable=self.find_var, width=30).grid(
+            row=0, column=1, columnspan=2, padx=8, pady=6
         )
 
-        tk.Checkbutton(self, text="Use regex", variable=self.use_regex).grid(
-            row=2, column=0, columnspan=2, sticky="w", padx=4, pady=2
+        tb.Label(self, text="Replace:").grid(
+            row=1, column=0, sticky="e", padx=8, pady=6
+        )
+        self.replace_var = tb.StringVar()
+        tb.Entry(self, textvariable=self.replace_var, width=30).grid(
+            row=1, column=1, columnspan=2, padx=8, pady=6
         )
 
-        btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=3, column=0, columnspan=3, pady=8)
-        ttk.Button(btn_frame, text="Find Next", command=self.find_next).pack(
-            side=tk.LEFT, padx=2
+        tb.Checkbutton(self, text="Use regex", variable=self.use_regex).grid(
+            row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4
         )
-        ttk.Button(btn_frame, text="Replace", command=self.replace_one).pack(
-            side=tk.LEFT, padx=2
-        )
-        ttk.Button(btn_frame, text="Replace All", command=self.replace_all).pack(
-            side=tk.LEFT, padx=2
-        )
-        ttk.Button(btn_frame, text="Close", command=self.destroy).pack(
-            side=tk.LEFT, padx=2
-        )
+
+        btn_frame = tb.Frame(self)
+        btn_frame.grid(row=3, column=0, columnspan=3, pady=10)
+        tb.Button(
+            btn_frame,
+            text="Find Next",
+            command=self.find_next,
+            bootstyle="primary-outline",
+        ).pack(side=tk.LEFT, padx=3)
+        tb.Button(
+            btn_frame, text="Replace", command=self.replace_one, bootstyle="primary"
+        ).pack(side=tk.LEFT, padx=3)
+        tb.Button(
+            btn_frame, text="Replace All", command=self.replace_all, bootstyle="success"
+        ).pack(side=tk.LEFT, padx=3)
+        tb.Button(
+            btn_frame, text="Close", command=self.destroy, bootstyle="secondary"
+        ).pack(side=tk.LEFT, padx=3)
 
         self.protocol("WM_DELETE_WINDOW", self.destroy)
         self.find_var.trace_add("write", lambda *_: self._clear_highlights())
@@ -643,14 +654,14 @@ class ReplaceDialog(tk.Toplevel):
             if count:
                 self.text_widget.delete("1.0", tk.END)
                 self.text_widget.insert("1.0", new_content)
-                messagebox.showinfo(
-                    "Replace All", f"Replaced {count} occurrence(s).", parent=self
+                Messagebox.show_info(
+                    f"Replaced {count} occurrence(s).", "Replace All", parent=self
                 )
         except re.error as e:
-            messagebox.showerror("Regex Error", str(e), parent=self)
+            Messagebox.show_error(str(e), "Regex Error", parent=self)
 
 
-class TableDialog(tk.Toplevel):
+class TableDialog(tb.Toplevel):
     def __init__(self, parent: tk.Tk) -> None:
         super().__init__(parent)
         self.title("Insert Table")
@@ -659,28 +670,28 @@ class TableDialog(tk.Toplevel):
         self.grab_set()
         self.result: Optional[str] = None
 
-        tk.Label(self, text="Columns:").grid(
-            row=0, column=0, sticky="e", padx=4, pady=4
+        tb.Label(self, text="Columns:").grid(
+            row=0, column=0, sticky="e", padx=8, pady=6
         )
-        self.cols_var = tk.IntVar(value=3)
-        tk.Spinbox(self, from_=1, to=20, textvariable=self.cols_var, width=5).grid(
-            row=0, column=1, padx=4, pady=4
-        )
-
-        tk.Label(self, text="Rows:").grid(row=1, column=0, sticky="e", padx=4, pady=4)
-        self.rows_var = tk.IntVar(value=3)
-        tk.Spinbox(self, from_=1, to=50, textvariable=self.rows_var, width=5).grid(
-            row=1, column=1, padx=4, pady=4
+        self.cols_var = tb.IntVar(value=3)
+        tb.Spinbox(self, from_=1, to=20, textvariable=self.cols_var, width=5).grid(
+            row=0, column=1, padx=8, pady=6
         )
 
-        btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=2, column=0, columnspan=2, pady=8)
-        ttk.Button(btn_frame, text="Insert", command=self._insert).pack(
-            side=tk.LEFT, padx=2
+        tb.Label(self, text="Rows:").grid(row=1, column=0, sticky="e", padx=8, pady=6)
+        self.rows_var = tb.IntVar(value=3)
+        tb.Spinbox(self, from_=1, to=50, textvariable=self.rows_var, width=5).grid(
+            row=1, column=1, padx=8, pady=6
         )
-        ttk.Button(btn_frame, text="Cancel", command=self.destroy).pack(
-            side=tk.LEFT, padx=2
-        )
+
+        btn_frame = tb.Frame(self)
+        btn_frame.grid(row=2, column=0, columnspan=2, pady=10)
+        tb.Button(
+            btn_frame, text="Insert", command=self._insert, bootstyle="primary"
+        ).pack(side=tk.LEFT, padx=3)
+        tb.Button(
+            btn_frame, text="Cancel", command=self.destroy, bootstyle="secondary"
+        ).pack(side=tk.LEFT, padx=3)
 
     def _insert(self) -> None:
         cols = self.cols_var.get()
@@ -697,7 +708,7 @@ class TableDialog(tk.Toplevel):
         self.destroy()
 
 
-class FuriganaDialog(tk.Toplevel):
+class FuriganaDialog(tb.Toplevel):
     def __init__(self, parent: tk.Tk) -> None:
         super().__init__(parent)
         self.title("Insert Furigana")
@@ -706,30 +717,30 @@ class FuriganaDialog(tk.Toplevel):
         self.grab_set()
         self.result: Optional[str] = None
 
-        tk.Label(self, text="Kanji / Text:").grid(
-            row=0, column=0, sticky="e", padx=4, pady=4
+        tb.Label(self, text="Kanji / Text:").grid(
+            row=0, column=0, sticky="e", padx=8, pady=6
         )
-        self.kanji_var = tk.StringVar()
-        tk.Entry(self, textvariable=self.kanji_var, width=25).grid(
-            row=0, column=1, padx=4, pady=4
-        )
-
-        tk.Label(self, text="Reading (ruby):").grid(
-            row=1, column=0, sticky="e", padx=4, pady=4
-        )
-        self.reading_var = tk.StringVar()
-        tk.Entry(self, textvariable=self.reading_var, width=25).grid(
-            row=1, column=1, padx=4, pady=4
+        self.kanji_var = tb.StringVar()
+        tb.Entry(self, textvariable=self.kanji_var, width=25).grid(
+            row=0, column=1, padx=8, pady=6
         )
 
-        btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=2, column=0, columnspan=2, pady=8)
-        ttk.Button(btn_frame, text="Insert", command=self._insert).pack(
-            side=tk.LEFT, padx=2
+        tb.Label(self, text="Reading (ruby):").grid(
+            row=1, column=0, sticky="e", padx=8, pady=6
         )
-        ttk.Button(btn_frame, text="Cancel", command=self.destroy).pack(
-            side=tk.LEFT, padx=2
+        self.reading_var = tb.StringVar()
+        tb.Entry(self, textvariable=self.reading_var, width=25).grid(
+            row=1, column=1, padx=8, pady=6
         )
+
+        btn_frame = tb.Frame(self)
+        btn_frame.grid(row=2, column=0, columnspan=2, pady=10)
+        tb.Button(
+            btn_frame, text="Insert", command=self._insert, bootstyle="primary"
+        ).pack(side=tk.LEFT, padx=3)
+        tb.Button(
+            btn_frame, text="Cancel", command=self.destroy, bootstyle="secondary"
+        ).pack(side=tk.LEFT, padx=3)
 
     def _insert(self) -> None:
         kanji = self.kanji_var.get()
@@ -739,7 +750,7 @@ class FuriganaDialog(tk.Toplevel):
         self.destroy()
 
 
-class HeaderLinkDialog(tk.Toplevel):
+class HeaderLinkDialog(tb.Toplevel):
     def __init__(self, parent: tk.Tk) -> None:
         super().__init__(parent)
         self.title("Header Link")
@@ -748,30 +759,30 @@ class HeaderLinkDialog(tk.Toplevel):
         self.grab_set()
         self.result: Optional[str] = None
 
-        tk.Label(self, text="Header ID:").grid(
-            row=0, column=0, sticky="e", padx=4, pady=4
+        tb.Label(self, text="Header ID:").grid(
+            row=0, column=0, sticky="e", padx=8, pady=6
         )
-        self.id_var = tk.StringVar()
-        tk.Entry(self, textvariable=self.id_var, width=25).grid(
-            row=0, column=1, padx=4, pady=4
-        )
-
-        tk.Label(self, text="Link text:").grid(
-            row=1, column=0, sticky="e", padx=4, pady=4
-        )
-        self.text_var = tk.StringVar()
-        tk.Entry(self, textvariable=self.text_var, width=25).grid(
-            row=1, column=1, padx=4, pady=4
+        self.id_var = tb.StringVar()
+        tb.Entry(self, textvariable=self.id_var, width=25).grid(
+            row=0, column=1, padx=8, pady=6
         )
 
-        btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=2, column=0, columnspan=2, pady=8)
-        ttk.Button(btn_frame, text="Insert", command=self._insert).pack(
-            side=tk.LEFT, padx=2
+        tb.Label(self, text="Link text:").grid(
+            row=1, column=0, sticky="e", padx=8, pady=6
         )
-        ttk.Button(btn_frame, text="Cancel", command=self.destroy).pack(
-            side=tk.LEFT, padx=2
+        self.text_var = tb.StringVar()
+        tb.Entry(self, textvariable=self.text_var, width=25).grid(
+            row=1, column=1, padx=8, pady=6
         )
+
+        btn_frame = tb.Frame(self)
+        btn_frame.grid(row=2, column=0, columnspan=2, pady=10)
+        tb.Button(
+            btn_frame, text="Insert", command=self._insert, bootstyle="primary"
+        ).pack(side=tk.LEFT, padx=3)
+        tb.Button(
+            btn_frame, text="Cancel", command=self.destroy, bootstyle="secondary"
+        ).pack(side=tk.LEFT, padx=3)
 
     def _insert(self) -> None:
         hid = self.id_var.get().strip()
@@ -791,9 +802,9 @@ class HeaderLinkDialog(tk.Toplevel):
 # ---------------------------------------------------------------------------
 
 
-class MarkEditor(tk.Tk):
+class MarkEditor(tb.App):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(themename="one-light")
         self.title(f"{__app_name__} - New File")
         self.geometry("1000x700")
         self.minsize(600, 400)
@@ -827,8 +838,6 @@ class MarkEditor(tk.Tk):
             icon_path = resource_path(name)
             if os.path.exists(icon_path) and HAS_PILLOW:
                 try:
-                    from PIL import ImageTk
-
                     img = Image.open(icon_path)
                     photo = ImageTk.PhotoImage(img)
                     self.iconphoto(True, photo)
@@ -846,18 +855,21 @@ class MarkEditor(tk.Tk):
         self._preview_tables: list[tk.Widget] = []
 
         # ── protocol ───────────────────────────────────────────
-        self.protocol("WM_DELETE_WINDOW", self._on_quit)
+        self.on_close(self._on_quit)
+
+        # ── equalise panels on first show ──────────────────────
+        self.after(1, self._equalize_panes)
 
     # ═══════════════════════════════════════════════════════════
     # Menu bar
     # ═══════════════════════════════════════════════════════════
 
     def _build_menu(self) -> None:
-        menubar = tk.Menu(self)
+        menubar = tb.Menu(self)
         self.config(menu=menubar)
 
         # ── File ──
-        file_menu = tk.Menu(menubar, tearoff=False)
+        file_menu = tb.Menu(menubar, tearoff=False)
         file_menu.add_command(
             label="New File", accelerator="Ctrl+N", command=self._on_new
         )
@@ -879,7 +891,7 @@ class MarkEditor(tk.Tk):
         menubar.add_cascade(label="File", menu=file_menu)
 
         # ── Edit ──
-        edit_menu = tk.Menu(menubar, tearoff=False)
+        edit_menu = tb.Menu(menubar, tearoff=False)
         edit_menu.add_command(label="Undo", accelerator="Ctrl+Z", command=self._on_undo)
         edit_menu.add_command(
             label="Redo", accelerator="Ctrl+Shift+Z", command=self._on_redo
@@ -921,7 +933,7 @@ class MarkEditor(tk.Tk):
         menubar.add_cascade(label="Edit", menu=edit_menu)
 
         # ── Format ──
-        format_menu = tk.Menu(menubar, tearoff=False)
+        format_menu = tb.Menu(menubar, tearoff=False)
         format_menu.add_command(
             label="Bold",
             accelerator="Ctrl+B",
@@ -976,11 +988,11 @@ class MarkEditor(tk.Tk):
             label="Hyperlink", accelerator="Ctrl+L", command=self._on_hyperlink
         )
         format_menu.add_command(
-            label="Footnote", accelerator="Ctrl+Shift+T", command=self._on_footnote
+            label="Footnote", accelerator="Ctrl+Shift+U", command=self._on_footnote
         )
         format_menu.add_separator()
         format_menu.add_command(
-            label="Furigana", accelerator="Ctrl+Shift+U", command=self._on_furigana
+            label="Furigana", accelerator="Ctrl+Shift+J", command=self._on_furigana
         )
         format_menu.add_command(
             label="Date and Time",
@@ -1001,7 +1013,7 @@ class MarkEditor(tk.Tk):
         menubar.add_cascade(label="Format", menu=format_menu)
 
         # ── Paragraph ──
-        para_menu = tk.Menu(menubar, tearoff=False)
+        para_menu = tb.Menu(menubar, tearoff=False)
         for i in range(1, 7):
             para_menu.add_command(
                 label=f"Heading {i}",
@@ -1058,7 +1070,36 @@ class MarkEditor(tk.Tk):
         menubar.add_cascade(label="Paragraph", menu=para_menu)
 
         # ── View ──
-        view_menu = tk.Menu(menubar, tearoff=False)
+        view_menu = tb.Menu(menubar, tearoff=False)
+        view_menu.add_command(
+            label="Toggle Theme",
+            accelerator="Ctrl+Shift+T",
+            command=self._on_toggle_theme,
+        )
+        change_menu = tb.Menu(view_menu, tearoff=False)
+        for theme in (
+            "bootstrap",
+            "catppuccin",
+            "dracula",
+            "everforest",
+            "gruvbox",
+            "minty",
+            "nord",
+            "one",
+            "pulse",
+            "pydata",
+            "sandstone",
+            "solarized",
+            "tokyo-night",
+            "united",
+            "vapor",
+        ):
+            change_menu.add_command(
+                label=theme.replace("-", " ").title(),
+                command=lambda t=theme: self._on_change_theme(t),
+            )
+        view_menu.add_cascade(label="Change Theme", menu=change_menu)
+        view_menu.add_separator()
         view_menu.add_command(
             label="Zoom In", accelerator="Ctrl++", command=self._on_zoom_in
         )
@@ -1072,7 +1113,7 @@ class MarkEditor(tk.Tk):
         menubar.add_cascade(label="View", menu=view_menu)
 
         # ── Help ──
-        help_menu = tk.Menu(menubar, tearoff=False)
+        help_menu = tb.Menu(menubar, tearoff=False)
         help_menu.add_command(label="Markdown", command=self._on_help_markdown)
         help_menu.add_command(label="About Editor", command=self._on_help_about)
         menubar.add_cascade(label="Help", menu=help_menu)
@@ -1082,20 +1123,22 @@ class MarkEditor(tk.Tk):
     # ═══════════════════════════════════════════════════════════
 
     def _build_panels(self) -> None:
-        paned = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
-        paned.pack(fill=tk.BOTH, expand=True)
+        self._paned = tb.Panedwindow(self, orient=tk.HORIZONTAL)
+        self._paned.pack(fill=tk.BOTH, expand=True)
 
         # ── left panel: editing ──
-        left_frame = ttk.Frame(paned)
+        left_frame = tb.Frame(self._paned)
         self._editor = tk.Text(
             left_frame,
             font=self.editor_font,
             wrap=tk.WORD,
             undo=True,
-            padx=6,
-            pady=6,
-            relief=tk.SUNKEN,
-            borderwidth=2,
+            padx=8,
+            pady=8,
+            relief=tk.FLAT,
+            borderwidth=0,
+            highlightthickness=1,
+            highlightbackground="#ccc",
         )
         self._editor.pack(fill=tk.BOTH, expand=True)
 
@@ -1104,36 +1147,44 @@ class MarkEditor(tk.Tk):
         self._editor.bind("<ButtonRelease-1>", self._schedule_refresh)
         self._editor.bind("<ButtonRelease-1>", self._update_status, add=True)
 
-        paned.add(left_frame, weight=1)
+        self._paned.add(left_frame, weight=1)
 
         # ── right panel: quick view ──
-        right_frame = ttk.Frame(paned)
+        right_frame = tb.Frame(self._paned)
         self._preview = tk.Text(
             right_frame,
             font=self.body_font,
             wrap=tk.WORD,
             state=tk.DISABLED,
-            padx=6,
-            pady=6,
-            relief=tk.SUNKEN,
-            borderwidth=2,
+            padx=8,
+            pady=8,
+            relief=tk.FLAT,
+            borderwidth=0,
+            highlightthickness=1,
+            highlightbackground="#ccc",
             cursor="arrow",
         )
         self._preview.pack(fill=tk.BOTH, expand=True)
         self._configure_preview_tags()
-        paned.add(right_frame, weight=1)
+        self._paned.add(right_frame, weight=1)
 
     def _build_statusbar(self) -> None:
-        self._status_var = tk.StringVar(value="Ln 1, Col 1")
-        status = tk.Label(
+        self._status_var = tb.StringVar(value="Ln 1, Col 1")
+        status = tb.Label(
             self,
             textvariable=self._status_var,
-            relief=tk.SUNKEN,
             anchor=tk.E,
-            padx=6,
+            padding=(10, 2),
             font=self.interface_font,
+            bootstyle="inverse-secondary",
         )
         status.pack(side=tk.BOTTOM, fill=tk.X)
+
+    def _equalize_panes(self) -> None:
+        self.update_idletasks()
+        w = self.winfo_width()
+        if w > 1:
+            self._paned.sashpos(0, w // 2)
 
     # ═══════════════════════════════════════════════════════════
     # Preview tag configuration
@@ -1162,13 +1213,13 @@ class MarkEditor(tk.Tk):
         pv.tag_configure("bold_italic_mono", font=(mono, 13, "bold italic"))
         pv.tag_configure("u", underline=True)
         pv.tag_configure("del", overstrike=True)
-        pv.tag_configure("mark", background="yellow")
-        pv.tag_configure("code", font=(mono, 13), background="#f5f5f5")
-        pv.tag_configure("code_header", font=(mono, 13, "bold"), background="#e8e8e8")
+        pv.tag_configure("mark", background="#fff3cd")
+        pv.tag_configure("code", font=(mono, 13), background="#f8f9fa")
+        pv.tag_configure("code_header", font=(mono, 13, "bold"), background="#e9ecef")
         pv.tag_configure(
             "pre",
             font=(mono, 13),
-            background="#f5f5f5",
+            background="#f8f9fa",
             spacing1=4,
             spacing3=4,
             lmargin1=20,
@@ -1179,14 +1230,14 @@ class MarkEditor(tk.Tk):
             font=(serif, 14, "italic"),
             lmargin1=30,
             lmargin2=30,
-            foreground="#555",
+            foreground="#6c757d",
         )
-        pv.tag_configure("link", foreground="blue", underline=True)
+        pv.tag_configure("link", foreground="#0d6efd", underline=True)
         pv.tag_configure("ul", lmargin1=20, lmargin2=20)
         pv.tag_configure("ol", lmargin1=20, lmargin2=20)
         pv.tag_configure("table", font=(mono, 12), spacing1=2, spacing3=2)
-        pv.tag_configure("hr", foreground="#ccc")
-        pv.tag_configure("img", font=(sans, 14, "bold"), foreground="#999")
+        pv.tag_configure("hr", foreground="#dee2e6")
+        pv.tag_configure("img", font=(sans, 14, "bold"), foreground="#adb5bd")
 
         for level in range(1, 7):
             sz = {1: 24, 2: 22, 3: 20, 4: 18, 5: 16, 6: 14}[level]
@@ -1248,8 +1299,9 @@ class MarkEditor(tk.Tk):
         self.bind_all("<Control-h>", lambda e: self._on_header_id())
         self.bind_all("<Control-Shift-H>", lambda e: self._on_header_link())
         self.bind_all("<Control-l>", lambda e: self._on_hyperlink())
-        self.bind_all("<Control-Shift-t>", lambda e: self._on_footnote())
-        self.bind_all("<Control-Shift-u>", lambda e: self._on_furigana())
+        self.bind_all("<Control-Shift-n>", lambda e: self._on_next_theme())
+        self.bind_all("<Control-Shift-u>", lambda e: self._on_footnote())
+        self.bind_all("<Control-Shift-j>", lambda e: self._on_furigana())
         self.bind_all("<Control-Shift-d>", lambda e: self._on_date_time())
         self.bind_all("<Control-Shift-l>", lambda e: self._on_special_mark())
         self.bind_all("<Control-Shift-f>", lambda e: self._on_clear_formatting())
@@ -1386,15 +1438,15 @@ class MarkEditor(tk.Tk):
         """If modified, ask to save. Returns True to proceed, False to cancel."""
         if not self.is_modified:
             return True
-        resp = messagebox.askyesnocancel(
-            "Save?",
+        resp = Messagebox.yesnocancel(
             "Save the opened file?",
+            "Save?",
             parent=self,
         )
-        if resp is True:  # Yes → save and proceed
+        if resp == "Yes":  # Yes → save and proceed
             self._on_save()
             return True
-        if resp is False:  # No → proceed without saving
+        if resp == "No":  # No → proceed without saving
             return True
         return False  # Cancel → abort
 
@@ -1410,7 +1462,7 @@ class MarkEditor(tk.Tk):
     def _on_open(self) -> None:
         if not self._check_save():
             return
-        path = filedialog.askopenfilename(
+        path = Querybox.get_open_filename(
             parent=self,
             filetypes=[("Markdown files", "*.md"), ("All files", "*.*")],
         )
@@ -1420,7 +1472,7 @@ class MarkEditor(tk.Tk):
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
-            messagebox.showerror("Error", f"Could not open file:\n{e}", parent=self)
+            Messagebox.show_error(f"Could not open file:\n{e}", "Error", parent=self)
             return
         self._editor.delete("1.0", tk.END)
         self._editor.insert("1.0", content)
@@ -1439,7 +1491,7 @@ class MarkEditor(tk.Tk):
             with open(self.current_file, "r", encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
-            messagebox.showerror("Error", f"Could not reopen file:\n{e}", parent=self)
+            Messagebox.show_error(f"Could not reopen file:\n{e}", "Error", parent=self)
             return
         self._editor.delete("1.0", tk.END)
         self._editor.insert("1.0", content)
@@ -1459,12 +1511,14 @@ class MarkEditor(tk.Tk):
                 self._update_title()
                 return True
             except Exception as e:
-                messagebox.showerror("Error", f"Could not save file:\n{e}", parent=self)
+                Messagebox.show_error(
+                    f"Could not save file:\n{e}", "Error", parent=self
+                )
                 return False
         return self._on_save_as()
 
     def _on_save_as(self) -> bool:
-        path = filedialog.asksaveasfilename(
+        path = Querybox.get_save_filename(
             parent=self,
             defaultextension=".md",
             filetypes=[("Markdown files", "*.md"), ("All files", "*.*")],
@@ -1477,10 +1531,10 @@ class MarkEditor(tk.Tk):
     def _on_convert(self) -> None:
         text = self._editor.get("1.0", tk.END)
         if not text.strip():
-            messagebox.showinfo("Convert", "Nothing to convert.", parent=self)
+            Messagebox.show_info("Nothing to convert.", "Convert", parent=self)
             return
 
-        path = filedialog.asksaveasfilename(
+        path = Querybox.get_save_filename(
             parent=self,
             defaultextension=".txt",
             filetypes=[
@@ -1512,16 +1566,16 @@ class MarkEditor(tk.Tk):
                 plain = html.unescape(plain) if hasattr(html, "unescape") else plain
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(plain)
-                messagebox.showinfo("Convert", "Saved as plain text.", parent=self)
+                Messagebox.show_info("Saved as plain text.", "Convert", parent=self)
             except Exception as e:
-                messagebox.showerror("Error", f"Export failed:\n{e}", parent=self)
+                Messagebox.show_error(f"Export failed:\n{e}", "Error", parent=self)
 
         elif ext == ".pdf":
             if not HAS_PYPANDOC:
-                messagebox.showerror(
-                    "Error",
+                Messagebox.show_error(
                     "pypandoc is required for PDF export.\n"
                     "Install it with: pip install pypandoc",
+                    "Error",
                     parent=self,
                 )
                 return
@@ -1673,21 +1727,20 @@ class MarkEditor(tk.Tk):
                     if os.path.exists(f):
                         os.remove(f)
                 try:
-                    messagebox.showinfo("Convert", "Saved as PDF.", parent=self)
+                    Messagebox.show_info("Saved as PDF.", "Convert", parent=self)
                 except tk.TclError:
-                    messagebox.showinfo("Convert", "Saved as PDF.")
+                    Messagebox.show_info("Saved as PDF.", "Convert")
             except Exception as e:
                 try:
-                    messagebox.showerror(
-                        "Error", f"PDF export failed:\n{e}", parent=self
+                    Messagebox.show_error(
+                        f"PDF export failed:\n{e}", "Error", parent=self
                     )
                 except tk.TclError:
-                    messagebox.showerror("Error", f"PDF export failed:\n{e}")
+                    Messagebox.show_error(f"PDF export failed:\n{e}", "Error")
 
     def _on_quit(self) -> None:
         if not self._check_save():
             return
-        self.destroy()
 
     # ═══════════════════════════════════════════════════════════
     # Edit operations
@@ -1831,11 +1884,11 @@ class MarkEditor(tk.Tk):
         text = self._editor.get(f"{line}.0", f"{line}.end")
         match = re.match(r"^(#+)\s+(.*)", text)
         if not match:
-            messagebox.showinfo(
-                "Header ID", "Cursor must be on a heading line.", parent=self
+            Messagebox.show_info(
+                "Cursor must be on a heading line.", "Header ID", parent=self
             )
             return
-        id_str = simpledialog.askstring("Header ID", "Enter custom ID:", parent=self)
+        id_str = Querybox.get_string("Enter custom ID:", "Header ID", parent=self)
         if id_str:
             self._editor.insert(f"{line}.end", f" {{#{id_str}}}")
 
@@ -1846,10 +1899,10 @@ class MarkEditor(tk.Tk):
             self._editor.insert(tk.INSERT, dlg.result)
 
     def _on_hyperlink(self) -> None:
-        text = simpledialog.askstring("Hyperlink", "Link text:", parent=self)
+        text = Querybox.get_string("Link text:", "Hyperlink", parent=self)
         if not text:
             return
-        url = simpledialog.askstring("Hyperlink", "URL:", parent=self)
+        url = Querybox.get_string("URL:", "Hyperlink", parent=self)
         if url:
             result = f"[{text}]({url})"
             try:
@@ -1859,9 +1912,7 @@ class MarkEditor(tk.Tk):
             self._editor.insert(tk.INSERT, result)
 
     def _on_footnote(self) -> None:
-        ref = simpledialog.askstring(
-            "Footnote", "Footnote reference/name:", parent=self
-        )
+        ref = Querybox.get_string("Footnote reference/name:", "Footnote", parent=self)
         if not ref:
             return
         self._editor.insert(tk.INSERT, f"[^{ref}]")
@@ -1875,9 +1926,9 @@ class MarkEditor(tk.Tk):
 
     def _on_date_time(self) -> None:
         now = datetime.now()
-        fmt = simpledialog.askstring(
-            "Date and Time",
+        fmt = Querybox.get_string(
             "Format: date, time, or date/time?",
+            "Date and Time",
             parent=self,
             initialvalue="date/time",
         )
@@ -1981,8 +2032,8 @@ class MarkEditor(tk.Tk):
         self._replace_current_line(f"* {text}")
 
     def _on_code_block(self) -> None:
-        lang = simpledialog.askstring(
-            "Code Block", "Programming language (optional):", parent=self
+        lang = Querybox.get_string(
+            "Programming language (optional):", "Code Block", parent=self
         )
         if lang is None:
             return
@@ -2010,9 +2061,9 @@ class MarkEditor(tk.Tk):
             self._editor.insert(tk.INSERT, "\n" + dlg.result + "\n")
 
     def _on_image(self) -> None:
-        alt = simpledialog.askstring("Image", "Alt text:", parent=self)
+        alt = Querybox.get_string("Alt text:", "Image", parent=self)
         alt = alt or ""
-        path = filedialog.askopenfilename(
+        path = Querybox.get_open_filename(
             parent=self,
             title="Select image file",
             filetypes=[
@@ -2075,6 +2126,37 @@ class MarkEditor(tk.Tk):
     def _on_refresh(self) -> None:
         self._refresh_preview()
 
+    def _on_toggle_theme(self) -> None:
+        self.toggle_theme()
+
+    def _on_change_theme(self, base: str) -> None:
+        self.style.theme_use(f"{base}-light")
+
+    def _on_next_theme(self) -> None:
+        bases = [
+            "bootstrap",
+            "catppuccin",
+            "dracula",
+            "everforest",
+            "gruvbox",
+            "minty",
+            "nord",
+            "one",
+            "pulse",
+            "pydata",
+            "sandstone",
+            "solarized",
+            "tokyo-night",
+            "united",
+            "vapor",
+        ]
+        current = self.style.theme
+        for i, b in enumerate(bases):
+            if current.startswith(b):
+                next_base = bases[(i + 1) % len(bases)]
+                self.style.theme_use(f"{next_base}-light")
+                return
+
     # ═══════════════════════════════════════════════════════════
     # Help operations
     # ═══════════════════════════════════════════════════════════
@@ -2083,9 +2165,9 @@ class MarkEditor(tk.Tk):
         webbrowser.open("https://daringfireball.net/projects/markdown/")
 
     def _on_help_about(self) -> None:
-        messagebox.showinfo(
-            "About Editor",
+        Messagebox.show_info(
             f"{__app_name__}, version {__version__} (2026.07)",
+            "About Editor",
             parent=self,
         )
 

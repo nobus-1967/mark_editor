@@ -58,4 +58,4 @@ Some **typographic symbols** as (tm), (c), 1/2, etc.
 
 [^1]: This is a footnote.
 
-[^date and time]: 2026-07-21 08:00
+[^date and time]: 2026-07-21 19:00
