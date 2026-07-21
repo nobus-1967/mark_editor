@@ -1,0 +1,17 @@
+version: 1
+
+AppDir:
+  path: AppDir
+  app_info:
+    id: mark_editor
+    name: Mark Editor
+    icon: mark_editor
+    version: "0.1"
+    exec: usr/bin/mark_editor
+    exec_args: $@
+
+AppImage:
+  arch: x86_64
+  update-information: None
+  sign-key: None
+  file_name: MarkEditor-x86_64.AppImage

@@ -1,0 +1,4 @@
+Markdown>=3.10.2
+pymdown-extensions>=10.21.2
+pypandoc>=1.13
+Pillow>=12.3.0
