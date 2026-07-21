@@ -29,11 +29,13 @@ executable:
 		--add-binary /usr/bin/pandoc:. \
 		--add-data images/mark_editor.svg:images \
 		--add-data images/mark_editor.png:images \
+		--add-data $(VENV_DIR)/lib/python3.14/site-packages/ttkbootstrap/assets:ttkbootstrap/assets \
 		--hidden-import pymdownx.caret \
 		--hidden-import pymdownx.tilde \
 		--hidden-import pymdownx.mark \
 		--hidden-import pymdownx.smartsymbols \
 		--hidden-import pymdownx \
+		--hidden-import PIL._tkinter_finder \
 		--name $(APP_NAME) $(MAIN_FILE)
 	@echo "Executable created in dist/$(APP_NAME)"
 
