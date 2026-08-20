@@ -1,72 +1,75 @@
+lang: en
+title: Test Page
+author: nobus-1967
+description: Test Page for markdown2html5-base converter.
+keywords: markdown, html5
+published: 2026-08-18
 
+[Test Page, created for markdown2html5-base converter (ver. 0.3.4).]: #
 Heading 1
 Heading 2
 Heading 3
 
 Heading 6: Formatting the text
-This is a paragraph. Any text may be bold, italic, underlined, strikethrough (deleted). 
-The text may also be marked (highlighted). And this is an inline code inside a regular paragraph.
-You can use superscript (X2) or subscript (H2O) symbols.
-And you can add hyperlinks like Markdown Guide, footnotes1 (LINE BREAK)
-and date/time2.
-See also other add-ons.
-Blocks of text
-Lists are ordered:
 
+This is a paragraph. Any text may be bold, italic, underlined, strikethrough (deleted).
+
+The text may also be marked (highlighted). And this is a piece of something looks like an inline code inside a regular paragraph.
+
+You can use superscript (X2) or subscript (H2O) symbols.
+
+And you can add hyperlinks like Markdown Guide, footnotes[1] (LINE BREAK) \
+and date/time.[2]
+
+See also other add-ons.
+
+Blocks of text
+
+Lists are ordered:
 First
 Second
 Third
 
 or unordered:
-
 Bird
-Cat
+Chat
 Dog
 
+Definition list:
 
+ Frau
+  : weiblicher erwachsener Mensch; Ehefrau
 This is a citation (blockquote).
 
-And code block looks like:
-python3
-print('Hello, World!')
+And code block looks like with a code language definition:
 
+print("Hello, World!")
+and without it:
 
+Some text.
 
-Header 1
-Header 2
-Header 3
+| Product  | Qty | Price |
+| :------- | :-: | ----: |
+| Apples   | 2   | $3.00 |
+| Bananas  | 3   | $1.50 |
+| Cherries | 1   | $4.00 |
+||||
+| Total    | 6   | $8.50 |
 
+Markdown Image
 
+Test Russian symbols
 
-
-Cell 1-1
-Cell 1-2
-Cell 1-3
-
-
-Cell 2-1
-Cell 2-2
-Cell 2-3
-
-
-Cell 3-1
-Cell 3-2
-Cell 3-3
-
-
-
-
+ А этот текст на русском! Ещё текст...
 
 Others
-Furigana (Japanese kanji spelling): 私わたしは日本人にほんじんです。
-Some typographic symbols as &trade;, &copy;, &frac12;, etc.
 
+Furigana (Japanese kanji spelling): はです。
 
+Some typographic symbols and emoji as (tm), (c), 1/2, --, :dnarrow:, "Hello!", <<It's me!>>, :heart:,  etc.
 
+This \not italic\ is escaped by \\.
 
-This is a footnote.&#160;&#8617;
+[1]: This is a footnote.
 
-
-2026-07-21 19:00&#160;&#8617;
-
-
+[2]: 2026-08-09 21:00
