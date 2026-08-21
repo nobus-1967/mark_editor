@@ -54,9 +54,9 @@ The main functions of the editor:
 
 - use commands from menus or shortcuts for operations;
 
-- toggle modern light and dark themes (see the List of ttkbootstrap 2.0 Themes below).
+- toggle modern light and dark themes.
 
-The editor supports all markup elements listed in [Full Markdown Functionality Reference](./markdown2html5-base.md).
+The editor supports all markup elements listed in the [Full Markdown Functionality Reference](https://github.com/nobus-1967/markdown2html5-base).
 
 
 ## CODE BASE
@@ -67,39 +67,19 @@ The editor is written as a single Python 3 file (`mark_editor.py`) using Tkinter
 
 ## STYLING (TTKBOOTSTRAP)
 
-Users can switch themes and toggle dark and light themes for all interface elements.
-
-### List of ttkbootstrap 2.0 Themes
-
-| Light               | Dark               |
-|---------------------|--------------------|
-| `bootstrap-light`   | `bootstrap-dark`   |
-| `catppuccin-light`  | `catppuccin-dark`  |
-| `dracula-light`     | `dracula-dark`     |
-| `everforest-light`  | `everforest-dark`  |
-| `gruvbox-light`     | `gruvbox-dark`     |
-| `minty-light`       | `minty-dark`       |
-| `nord-light`        | `nord-dark`        |
-| `one-light`         | `one-dark`         |
-| `pulse-light`       | `pulse-dark`       |
-| `pydata-light`      | `pydata-dark`      |
-| `sandstone-light`   | `sandstone-dark`   |
-| `solarized-light`   | `solarized-dark`   |
-| `tokyo-night-light` | `tokyo-night-dark` |
-| `united-light`      | `united-dark`      |
-| `vapor-light`       | `vapor-dark`       |
+Users can switch themes and toggle dark and light themes for all interface elements. See List of [ttkbootstrap 2.0 Themes](./ttkbootstrap-themes.md).
 
 The default theme is `bootstrap-light`. Theme settings are stored in the `~/.config/mark_editor/theme.json` file.
 
-### FILE FORMATS {#file-formats}
+## FILE FORMATS
 
-The Editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see [Full Markdown Functionality Reference](./markdown2html5-base.md).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the [Full Markdown Functionality Reference](https://github.com/nobus-1967/markdown2html5-base).
 
 Editor's Markdown format supports basic and extended Markdown syntax of Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
 ## FONTS
 
-The Editor requires Google's Noto family fonts and Symbola font for its interface and output:
+The Editor requires Google's Noto font family and Symbola font for its interface and output:
 
 - Noto Sans for the interface (menus and dialog boxes);
 
@@ -136,4 +116,4 @@ Users can add this metadata to the beginning of a document using the special dia
 
 ## HOW IT WORKS
 
-See Test_Page in [Markdown](./test_page/Test_Page.md), [HTML5 with CSS3](./test_page/Test_Page.html), [PDF](./test_page/Test_Page.pdf) and [TXT](./test_page/Test_Page.txt).
+See Test_Page in [Markdown](../test_page/Test_Page.md), [HTML5 with CSS3](../test_page/Test_Page.html), [PDF](../test_page/Test_Page.pdf) and [TXT](../test_page/Test_Page.txt).

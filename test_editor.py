@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.4.0."""
+"""Tests for Mark Editor 0.4.1."""
 
 import os
 import sys
@@ -14,6 +14,7 @@ from mark_editor import (
     APP_NAME,
     DEFAULT_THEME,
     RELEASE,
+    TEMP_HTML,
     THEMES,
     VERSION,
     MarkEditor,
@@ -31,7 +32,7 @@ class TestAppMetadata(unittest.TestCase):
         self.assertEqual(APP_NAME, "Mark Editor")
 
     def test_version(self):
-        self.assertEqual(VERSION, "0.4.0")
+        self.assertEqual(VERSION, "0.4.1")
 
     def test_release(self):
         self.assertEqual(RELEASE, "2026.08")
@@ -255,6 +256,22 @@ class TestEditor(unittest.TestCase):
             self.app._save_to(tmp)
         self.assertEqual(tmp.read_text(encoding="utf-8"), "hello world")
         self.assertFalse(self.app.is_modified)
+
+    def test_quick_view_without_css(self):
+        self.app._editor.insert("1.0", "# Hello")
+        with unittest.mock.patch("mark_editor.webbrowser.open"):
+            self.app._on_quick_view()
+        html = (ensure_cache_dir() / TEMP_HTML).read_text(encoding="utf-8")
+        self.assertIn("<h1>", html)
+        self.assertNotIn("<style>", html)
+
+    def test_quick_view_with_css(self):
+        self.app._editor.insert("1.0", "# Hello")
+        with unittest.mock.patch("mark_editor.webbrowser.open"):
+            self.app._on_quick_view_css()
+        html = (ensure_cache_dir() / TEMP_HTML).read_text(encoding="utf-8")
+        self.assertIn("<h1>", html)
+        self.assertIn("<style>", html)
 
 
 class TestDialogs(unittest.TestCase):

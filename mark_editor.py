@@ -30,7 +30,7 @@ from ttkbootstrap.dialogs import Messagebox, Querybox
 # ═══════════════════════════════════════════════════════════════════════
 
 APP_NAME = "Mark Editor"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 RELEASE = "2026.08"
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
@@ -998,7 +998,12 @@ class MarkEditor(tb.App):
         )
         view_menu.add_separator()
         view_menu.add_command(
-            label="Quick View", accelerator="Ctrl+Shift+V", command=self._on_quick_view
+            label="Quick View", accelerator="Ctrl+Alt+V", command=self._on_quick_view
+        )
+        view_menu.add_command(
+            label="Quick View CSS",
+            accelerator="Ctrl+Alt+C",
+            command=self._on_quick_view_css,
         )
         menubar.add_cascade(label="View", menu=view_menu)
 
@@ -1157,7 +1162,8 @@ class MarkEditor(tb.App):
         self.bind_all("<Control-plus>", lambda e: self._on_zoom_in())
         self.bind_all("<Control-minus>", lambda e: self._on_zoom_out())
         self.bind_all("<Control-Shift-t>", lambda e: self._on_toggle_theme())
-        self.bind_all("<Control-Shift-v>", lambda e: self._on_quick_view())
+        self.bind_all("<Control-Alt-v>", lambda e: self._on_quick_view())
+        self.bind_all("<Control-Alt-c>", lambda e: self._on_quick_view_css())
 
     # ── Title bar & status ────────────────────────────────────────────
 
@@ -1756,11 +1762,17 @@ class MarkEditor(tb.App):
         self._update_line_numbers()
 
     def _on_quick_view(self) -> None:
+        self._quick_view(include_css=False)
+
+    def _on_quick_view_css(self) -> None:
+        self._quick_view(include_css=True)
+
+    def _quick_view(self, include_css: bool) -> None:
         cache_dir = ensure_cache_dir()
         html_path = cache_dir / TEMP_HTML
         content = self._editor.get("1.0", "end-1c")
         try:
-            html = self.converter.convert(content, include_css=True)
+            html = self.converter.convert(content, include_css=include_css)
             html_path.write_text(html, encoding="utf-8")
         except Exception as exc:
             Messagebox.show_error(str(exc), title="Quick View", parent=self)
