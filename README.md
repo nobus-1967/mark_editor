@@ -56,7 +56,7 @@ The main functions of the editor:
 
 - toggle modern light and dark themes.
 
-The editor supports all markup elements listed in the [Full Markdown Functionality Reference](./markdown2html5-base).
+The editor supports all markup elements listed in the [Full Markdown Functionality Reference](./markdown2html5-base.md).
 
 
 ## CODE BASE
@@ -73,7 +73,7 @@ The default theme is `bootstrap-light`. Theme settings are stored in the `~/.con
 
 ## FILE FORMATS
 
-The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the [Full Markdown Functionality Reference](./markdown2html5-base).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the [Full Markdown Functionality Reference](./markdown2html5-base.md).
 
 Editor's Markdown format supports basic and extended Markdown syntax of Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
