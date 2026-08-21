@@ -2,10 +2,9 @@
 
 ![mark_editor](./images/mark_editor_0_4.png)
 
-A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, [ruby annotations for phonetic guides](#furigana) and other [add-ons](#add-ons). Fonts for the editor's interface and output are defined in the [Fonts section](#fonts). The editor can save and export files in some [formats](#file-formats).
+A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, ruby annotations for phonetic guides and other add-ons.
 
-
-## FUNCTIONS {#functions}
+## FUNCTIONS
 
 The main functions of the editor:
 
@@ -55,7 +54,7 @@ The main functions of the editor:
 
 - use commands from menus or shortcuts for operations;
 
-- toggle modern light and dark themes (see the [List of ttkbootstrap 2.0 themes](#ttkbootstrap-themes)).
+- toggle modern light and dark themes (see the List of ttkbootstrap 2.0 Themes below).
 
 The editor supports all markup elements listed in [Full Markdown Functionality Reference](./markdown2html5-base.md).
 
@@ -70,7 +69,7 @@ The editor is written as a single Python 3 file (`mark_editor.py`) using Tkinter
 
 Users can switch themes and toggle dark and light themes for all interface elements.
 
-### List of ttkbootstrap 2.0 Themes {#ttkbootstrap-themes}
+### List of ttkbootstrap 2.0 Themes
 
 | Light               | Dark               |
 |---------------------|--------------------|
@@ -98,25 +97,25 @@ The Editor can save files in its own version of Markdown (.md) format and export
 
 Editor's Markdown format supports basic and extended Markdown syntax of Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
-## FONTS {#fonts}
+## FONTS
 
-The Editor requires Google's Noto fonts and Symbola font for its interface and output:
+The Editor requires Google's Noto family fonts and Symbola font for its interface and output:
 
 - Noto Sans for the interface (menus and dialog boxes);
 
-- Noto Sans Mono for text/code in the Editor panel;
+- Noto Sans Mono for text/code;
 
-- Noto Sans, Noto Serif, Noto Sans Mono, Noto Sans/Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
+- Noto Sans, Noto Serif, Noto Sans Mono, Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
 
 - Symbola for PDF output (emoji and special signs).
 
-## ADD-ONS {#add-ons}
+## ADD-ONS
 
-### Ruby Annotation/Furigana {#furigana}
+### Ruby Annotation/Furigana
 
-Ruby annotation (Japanese Furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語 | にほんご}` which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
+Ruby annotation (Japanese Furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語 | にほんご}` which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
 
-### YAML Front Matter {#yaml-front-matter}
+### YAML Front Matter
 
 YAML Front Matter is a block of metadata written in YAML placed at the very top of a text or Markdown file. It is enclosed by triple dashes (---) on the first line and a closing set of triple dashes or dots. It stores some tags (language definition for the whole document, information about author, title, publication date, short description and keywords) without showing them in the main text.
 
