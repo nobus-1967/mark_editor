@@ -30,7 +30,7 @@ from ttkbootstrap.dialogs import Messagebox, Querybox
 # ═══════════════════════════════════════════════════════════════════════
 
 APP_NAME = "Mark Editor"
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 RELEASE = "2026.08"
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
@@ -121,6 +121,20 @@ SPECIAL_SIGNS: list[tuple[str, str]] = [
     ("em dash", "---"),
     ("en dash", "--"),
     ("ellipsis", "..."),
+]
+
+# CJK language codes for the Format → CJK Codes submenu (inserted as {:code}).
+CJK_CODES: list[str] = [
+    "ja",
+    "zh-Hans",
+    "zh-CN",
+    "zh-Hans-CN",
+    "zh-TW",
+    "zh-Hant-TW",
+    "zh-HK",
+    "zh-Hant-HK",
+    "ko",
+    "ko-KR",
 ]
 
 # Font fallback chains per category (user typeface → free fonts → general).
@@ -895,6 +909,14 @@ class MarkEditor(tb.App):
             label="Special Mark", accelerator="Ctrl+Shift+L",
             command=self._on_special_mark,
         )
+        format_menu.add_separator()
+        cjk_menu = tb.Menu(menubar, tearoff=False)
+        for code in CJK_CODES:
+            cjk_menu.add_command(
+                label=code,
+                command=lambda c=code: self._insert_text(f"{{:{c}}}"),
+            )
+        format_menu.add_cascade(label="CJK Codes", menu=cjk_menu)
         emoji_menu = tb.Menu(menubar, tearoff=False)
         for code in EMOJIS:
             emoji_menu.add_command(

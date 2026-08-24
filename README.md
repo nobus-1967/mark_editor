@@ -34,6 +34,8 @@ The main functions of the editor:
 
 - add language markers;
 
+- insert CJK language codes (Japanese; Simplified Chinese; Traditional Chinese for Taiwan/Hong Kong; Korean);
+
 - insert ruby annotations (furigana in Japanese texts);
 
 - insert comments (hidden in HTML5/PDF output);
@@ -56,7 +58,7 @@ The main functions of the editor:
 
 - toggle modern light and dark themes.
 
-The editor supports all markup elements listed in the [Full Markdown Functionality Reference](./markdown2html5-base.md).
+The editor supports all markup elements listed in the [Full Markdown Functionality Reference](https://github.com/nobus-1967/markdown2html5-base).
 
 
 ## CODE BASE
@@ -67,13 +69,13 @@ The editor is written as a single Python 3 file (`mark_editor.py`) using Tkinter
 
 ## STYLING (TTKBOOTSTRAP)
 
-Users can switch themes and toggle dark and light themes for all interface elements. See List of [ttkbootstrap 2.0 Themes](./ttkbootstrap-themes.md).
+Users can switch themes and toggle dark and light themes for all interface elements. See the [List of ttkbootstrap 2.0 Themes](./ttkbootstrap-themes.md).
 
 The default theme is `bootstrap-light`. Theme settings are stored in the `~/.config/mark_editor/theme.json` file.
 
 ## FILE FORMATS
 
-The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the [Full Markdown Functionality Reference](./markdown2html5-base.md).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the [Full Markdown Functionality Reference](https://github.com/nobus-1967/markdown2html5-base).
 
 Editor's Markdown format supports basic and extended Markdown syntax of Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
@@ -93,7 +95,7 @@ The Editor requires Google's Noto font family and Symbola font for its interface
 
 ### Ruby Annotation/Furigana
 
-Ruby annotation (Japanese Furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語 | にほんご}` which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
+Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語 | にほんご}` which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
 
 ### YAML Front Matter
 
