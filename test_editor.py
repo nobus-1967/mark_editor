@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.4.2."""
+"""Tests for Mark Editor 0.5.0."""
 
 import os
 import sys
@@ -12,18 +12,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from mark_editor import (
     APP_NAME,
+    CJK_FONT_TAGS,
     DEFAULT_THEME,
+    FONT_FAMILIES,
     RELEASE,
     TEMP_HTML,
     THEMES,
     VERSION,
     MarkEditor,
     ensure_cache_dir,
-    font_installed,
     load_theme,
-    resolve_font,
     save_theme,
-    tkfont_families,
 )
 
 
@@ -32,54 +31,50 @@ class TestAppMetadata(unittest.TestCase):
         self.assertEqual(APP_NAME, "Mark Editor")
 
     def test_version(self):
-        self.assertEqual(VERSION, "0.4.2")
+        self.assertEqual(VERSION, "0.5.0")
 
     def test_release(self):
         self.assertEqual(RELEASE, "2026.08")
 
     def test_themes(self):
-        self.assertIn("bootstrap-light", THEMES)
-        self.assertIn("bootstrap-dark", THEMES)
-        self.assertEqual(DEFAULT_THEME, "bootstrap-light")
+        self.assertIn("light", THEMES)
+        self.assertIn("dark", THEMES)
+        self.assertEqual(DEFAULT_THEME, "light")
 
 
-class TestFontUtils(unittest.TestCase):
-    def setUp(self):
-        try:
-            import tkinter as tk
+class TestFontFamilies(unittest.TestCase):
+    def test_categories_present(self):
+        for category in (
+            "sans",
+            "mono",
+            "symbola",
+            "cjk_ja",
+            "cjk_cn",
+            "cjk_tw",
+            "cjk_hk",
+            "cjk_kr",
+        ):
+            self.assertIn(category, FONT_FAMILIES)
+            self.assertIsInstance(FONT_FAMILIES[category], str)
+            self.assertTrue(FONT_FAMILIES[category])
 
-            self.root = tk.Tk()
-            self.root.withdraw()
-        except Exception:
-            self.skipTest("Tkinter not available")
+    def test_known_families(self):
+        self.assertEqual(FONT_FAMILIES["sans"], "Noto Sans")
+        self.assertEqual(FONT_FAMILIES["mono"], "Noto Sans Mono")
+        self.assertEqual(FONT_FAMILIES["cjk_ja"], "Noto Sans Mono CJK JP")
+        self.assertEqual(FONT_FAMILIES["cjk_cn"], "Noto Sans Mono CJK SC")
+        self.assertEqual(FONT_FAMILIES["cjk_kr"], "Noto Sans Mono CJK KR")
 
-    def tearDown(self):
-        if hasattr(self, "root"):
-            self.root.destroy()
-
-    def test_font_families_list(self):
-        families = tkfont_families()
-        self.assertIsInstance(families, list)
-        self.assertTrue(len(families) > 0)
-
-    def test_font_installed_unknown(self):
-        result = font_installed("__nonexistent_font_xyz__")
-        self.assertFalse(result)
-
-    def test_font_installed_system(self):
-        result = font_installed("Courier")
-        self.assertIsInstance(result, bool)
-
-    def test_resolve_font_returns_string(self):
-        family = resolve_font("sans")
-        self.assertIsInstance(family, str)
-        self.assertTrue(len(family) > 0)
-
-    def test_resolve_font_categories(self):
-        for category in ("sans", "serif", "mono"):
-            family = resolve_font(category)
-            self.assertIsInstance(family, str)
-            self.assertTrue(len(family) > 0)
+    def test_language_tag_map(self):
+        self.assertEqual(CJK_FONT_TAGS["ja"], "cjk_ja")
+        for lang in ("zh-Hans", "zh-CN", "zh-Hans-CN"):
+            self.assertEqual(CJK_FONT_TAGS[lang], "cjk_cn")
+        for lang in ("zh-TW", "zh-Hant-TW"):
+            self.assertEqual(CJK_FONT_TAGS[lang], "cjk_tw")
+        for lang in ("zh-HK", "zh-Hant-HK"):
+            self.assertEqual(CJK_FONT_TAGS[lang], "cjk_hk")
+        for lang in ("ko", "ko-KR"):
+            self.assertEqual(CJK_FONT_TAGS[lang], "cjk_kr")
 
 
 class TestThemeStorage(unittest.TestCase):
@@ -100,8 +95,8 @@ class TestThemeStorage(unittest.TestCase):
         me.THEME_FILE = self._orig_theme_file
 
     def test_save_and_load_theme(self):
-        save_theme("one-dark")
-        self.assertEqual(load_theme(), "one-dark")
+        save_theme("dark")
+        self.assertEqual(load_theme(), "dark")
 
     def test_load_default_when_missing(self):
         self.assertEqual(load_theme(), DEFAULT_THEME)
@@ -126,6 +121,16 @@ class TestEditor(unittest.TestCase):
     """Behavioural tests that instantiate the real application."""
 
     def setUp(self):
+        import mark_editor as me
+
+        # Redirect config and cache to temp dirs so the tests never
+        # touch real user data.
+        self._orig = (me.CONFIG_DIR, me.THEME_FILE, me.CACHE_DIR)
+        tmp = Path(tempfile.mkdtemp())
+        me.CONFIG_DIR = tmp / ".config"
+        me.THEME_FILE = me.CONFIG_DIR / "theme.json"
+        me.CACHE_DIR = tmp / ".cache"
+
         try:
             self.app = MarkEditor()
             self.app.update_idletasks()
@@ -134,11 +139,14 @@ class TestEditor(unittest.TestCase):
             self.skipTest("Tkinter display not available")
 
     def tearDown(self):
+        import mark_editor as me
+
         if hasattr(self, "app"):
             try:
                 self.app.destroy()
             except Exception:
                 pass
+        me.CONFIG_DIR, me.THEME_FILE, me.CACHE_DIR = self._orig
 
     def test_title(self):
         self.assertIn(APP_NAME, self.app.title())
@@ -213,10 +221,65 @@ class TestEditor(unittest.TestCase):
         self.app._on_zoom_out()
         self.assertEqual(self.app.editor_font_size, size)
 
+    def test_language_fonts_tagged_region(self):
+        import tkinter as tk
+
+        ed = self.app._editor
+        try:
+            ed.delete("1.0", tk.END)
+            ed.insert("1.0", "{:ja}\nこんにちは\n{:}\nafter")
+            self.app._apply_language_fonts()
+            ranges = ed.tag_ranges("cjk_ja")
+            self.assertEqual(len(ranges), 2)
+            self.assertEqual(ed.get(ranges[0], ranges[1]), "こんにちは\n")
+            # block form for another language
+            ed.delete("1.0", tk.END)
+            ed.insert("1.0", "{:zh-Hans}\n中文\n{:}\nafter")
+            self.app._apply_language_fonts()
+            ranges = ed.tag_ranges("cjk_cn")
+            self.assertEqual(len(ranges), 2)
+            self.assertEqual(ed.get(ranges[0], ranges[1]), "中文\n")
+            # unclosed marker applies only to the next line
+            ed.delete("1.0", tk.END)
+            ed.insert("1.0", "intro\n{:ko-KR}\n한국어\ntail")
+            self.app._apply_language_fonts()
+            ranges = ed.tag_ranges("cjk_kr")
+            self.assertEqual(len(ranges), 2)
+            self.assertEqual(ed.get(ranges[0], ranges[1]), "한국어")
+            ed.delete("1.0", tk.END)
+            self.app._apply_language_fonts()
+        finally:
+            ed.edit_modified(False)
+
+    def test_cjk_codes_menu(self):
+        mb = self.app.nametowidget(self.app.cget("menu"))
+        fmt = None
+        for i in range(1, mb.index("end") + 1):
+            if mb.entrycget(i, "label") == "Format":
+                fmt = mb.nametowidget(mb.entrycget(i, "menu"))
+                break
+        self.assertIsNotNone(fmt)
+        idx = None
+        for i in range(1, fmt.index("end") + 1):
+            if fmt.type(i) == "cascade" and fmt.entrycget(i, "label") == "CJK Codes":
+                idx = i
+                break
+        self.assertIsNotNone(idx)
+        self.assertEqual(fmt.type(idx - 1), "separator")
+        self.assertEqual(fmt.entrycget(idx + 1, "label"), "Emoji Shortcodes")
+        cjk_menu = fmt.nametowidget(fmt.entrycget(idx, "menu"))
+        self.assertEqual(cjk_menu.index("end"), 9)
+        cjk_menu.invoke(1)
+        self.assertIn("{:zh-Hans}", self.app._editor.get("1.0", "end"))
+
     def test_toggle_theme(self):
-        current = self.app.style.theme_use()
+        import mark_editor as me
+
+        start = me.load_theme()
+        expected = "dark" if start == "light" else "light"
         self.app._on_toggle_theme()
-        self.assertNotEqual(self.app.style.theme_use(), current)
+        self.assertEqual(me.load_theme(), expected)
+        self.assertTrue(self.app._restart_requested)
 
     def test_modified_flag(self):
         self.app._editor.insert("1.0", "x")
@@ -231,7 +294,9 @@ class TestEditor(unittest.TestCase):
         self.assertEqual(numbers, "1\n2\n3\n4")
 
     def test_md_to_plain(self):
-        text = self.app._md_to_plain("# Title\n\nSome **bold** and [link](https://x.com).")
+        text = self.app._md_to_plain(
+            "# Title\n\nSome **bold** and [link](https://x.com)."
+        )
         self.assertIn("Title", text)
         self.assertIn("Some bold and link.", text)
 
@@ -252,7 +317,7 @@ class TestEditor(unittest.TestCase):
     def test_save_to(self):
         tmp = Path(tempfile.mkdtemp()) / "doc.md"
         self.app._editor.insert("1.0", "hello world")
-        with unittest.mock.patch("mark_editor.Messagebox.show_info"):
+        with unittest.mock.patch("mark_editor.CTkMessagebox"):
             self.app._save_to(tmp)
         self.assertEqual(tmp.read_text(encoding="utf-8"), "hello world")
         self.assertFalse(self.app.is_modified)
@@ -277,9 +342,9 @@ class TestEditor(unittest.TestCase):
 class TestDialogs(unittest.TestCase):
     def _root(self):
         try:
-            import ttkbootstrap as tb
+            import customtkinter as ctk
 
-            root = tb.Window()
+            root = ctk.CTk()
             root.withdraw()
             return root
         except Exception:

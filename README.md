@@ -1,6 +1,6 @@
 # Mark Editor
 
-![mark_editor](./images/mark_editor_0_4.png)
+![mark_editor](./images/mark_editor_0_5.png)
 
 A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, ruby annotations for phonetic guides and other add-ons.
 
@@ -34,8 +34,6 @@ The main functions of the editor:
 
 - add language markers;
 
-- insert CJK language codes (Japanese; Simplified Chinese; Traditional Chinese for Taiwan/Hong Kong; Korean);
-
 - insert ruby annotations (furigana in Japanese texts);
 
 - insert comments (hidden in HTML5/PDF output);
@@ -46,9 +44,13 @@ The main functions of the editor:
 
 - add emoji;
 
+- insert CJK language codes (Japanese; Simplified Chinese; Traditional Chinese for Taiwan/Hong Kong; Korean);
+
 - do some typographic replacements;
 
 - create new files, save files (including 'Save As' action using a new file name), open existing files, reopen files (close without saving and open them again);
+
+- open and save files through native GTK file chooser dialogs (zenity), with a fallback to plain Tkinter dialogs when zenity is unavailable;
 
 - quick view Markdown files (using the system default browser);
 
@@ -63,15 +65,13 @@ The editor supports all markup elements listed in the [Full Markdown Functionali
 
 ## CODE BASE
 
-Versions since 0.4.0 are a fully rewritten application: the code was written from scratch (using parts of version 0.3 that were checked and refactored).
+Since version 0.4.0 the application has been fully rewritten: the code was written from scratch (using parts of version 0.3 that were checked and refactored).
 
-The editor is written as a single Python 3 file (`mark_editor.py`) using Tkinter and [ttkbootstrap](https://github.com/israel-dryer/ttkbootstrap). It is now based on the following Python 3 libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) converts and saves files as a PDF using [pandoc](https://pandoc.org/) (xelatex).
+The editor is written as a single Python 3 file (`mark_editor.py`) using Tkinter, [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) and [CTkMessagebox](https://github.com/Akascape/CTkMessagebox). It is now based on the following Python 3 libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) converts and saves files as a PDF using [pandoc](https://pandoc.org/) (xelatex).
 
-## STYLING (TTKBOOTSTRAP)
+## STYLING (CUSTOMTKINTER)
 
-Users can switch themes and toggle dark and light themes for all interface elements. See the [List of ttkbootstrap 2.0 Themes](./ttkbootstrap-themes.md).
-
-The default theme is `bootstrap-light`. Theme settings are stored in the `~/.config/mark_editor/theme.json` file.
+Users can switch between light and dark appearance modes for all interface elements (View menu → Light Theme / Dark Theme, or Toggle Theme with Ctrl+Shift+T). The default theme is `light`. Theme settings are stored in the `~/.config/mark_editor/theme.json` file and restored on the next start. Switching themes restarts the application window; unsaved text is preserved through the cache directory.
 
 ## FILE FORMATS
 
@@ -81,13 +81,15 @@ Editor's Markdown format supports basic and extended Markdown syntax of Matt Con
 
 ## FONTS
 
-The Editor requires Google's Noto font family and Symbola font for its interface and output:
+The editor requires Google's Noto font family and the Symbola font:
 
-- Noto Sans for the interface (menus and dialog boxes);
+- Noto Sans for the interface, menus and dialog windows;
 
-- Noto Sans Mono for text/code;
+- Noto Sans Mono for text/code (editor and status bar);
 
-- Noto Sans, Noto Serif, Noto Sans Mono, Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
+- Noto Sans Mono CJK JP/SC/TC/HK/KR for CJK language markers in the editor: a marker such as `{:ja}` switches the font of the following block (until the closing `{:}` marker or the end of the line) to `Noto Sans Mono CJK JP`; supported markers are `{:ja}`, `{:zh-Hans}`, `{:zh-CN}`, `{:zh-Hans-CN}`, `{:zh-TW}`, `{:zh-Hant-TW}`, `{:zh-HK}`, `{:zh-Hant-HK}`, `{:ko}` and `{:ko-KR}`;
+
+- Noto Sans, Noto Sans Mono and Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
 
 - Symbola for PDF output (emoji and special signs).
 
@@ -95,7 +97,7 @@ The Editor requires Google's Noto font family and Symbola font for its interface
 
 ### Ruby Annotation/Furigana
 
-Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語 | にほんご}` which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
+Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語 | にほんご}`, which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
 
 ### YAML Front Matter
 

@@ -7,7 +7,8 @@ APP_NAME="mark_editor"
 MAIN_FILE="mark_editor.py"
 REQUIREMENTS="requirements.txt"
 VENV_DIR="venv"
-TTK_ASSETS := $(shell $(VENV_DIR)/bin/python -c "import ttkbootstrap, os; print(os.path.join(os.path.dirname(ttkbootstrap.__file__), 'assets'))")
+CTK_DIR := $(shell $(VENV_DIR)/bin/python -c "import customtkinter, os; print(os.path.dirname(customtkinter.__file__))")
+CTKMSG_DIR := $(shell $(VENV_DIR)/bin/python -c "import CTkMessagebox, os; print(os.path.dirname(CTkMessagebox.__file__))")
 
 # Create virtual environment and install dependencies
 setup:
@@ -31,7 +32,9 @@ executable:
 		--add-binary /usr/bin/pandoc:. \
 		--add-data images/mark_editor.svg:images \
 		--add-data images/mark_editor.png:images \
-		--add-data $(TTK_ASSETS):ttkbootstrap/assets \
+		--add-data themes:themes \
+		--add-data $(CTK_DIR):customtkinter \
+		--add-data $(CTKMSG_DIR):CTkMessagebox \
 		--name $(APP_NAME) $(MAIN_FILE)
 	@echo "Executable created in dist/$(APP_NAME)"
 
