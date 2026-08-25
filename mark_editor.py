@@ -31,7 +31,7 @@ from markdown2pdf_base import convert as md2pdf_convert
 # ═══════════════════════════════════════════════════════════════════════
 
 APP_NAME = "Mark Editor"
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 RELEASE = "2026.08"
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
@@ -134,29 +134,21 @@ FONT_FAMILIES: dict[str, str] = {
     "sans": "Noto Sans",  # for interface, menus, dialog windows
     "mono": "Noto Sans Mono",  # for editor, status bar
     "symbola": "Symbola",
-    "cjk_ja": "Noto Sans Mono CJK JP",  # for {:ja} language marker
-    "cjk_cn": "Noto Sans Mono CJK SC",  # for {:zh-Hans} or {:zh-CN} or {:zh-Hans-CN} language marker
-    "cjk_tw": "Noto Sans Mono CJK TC",  # for {:zh-TW} or {:zh-Hant-TW} language marker
-    "cjk_hk": "Noto Sans Mono CJK HK",  # for {:zh-HK} or {:zh-Hant-HK} language marker
-    "cjk_kr": "Noto Sans Mono CJK KR",  # for {:ko} or {:ko-KR} language marker
 }
 
-# {:lang} markers that switch editor text to a CJK family.
-CJK_FONT_TAGS: dict[str, str] = {
-    "ja": "cjk_ja",
-    "zh-Hans": "cjk_cn",
-    "zh-CN": "cjk_cn",
-    "zh-Hans-CN": "cjk_cn",
-    "zh-TW": "cjk_tw",
-    "zh-Hant-TW": "cjk_tw",
-    "zh-HK": "cjk_hk",
-    "zh-Hant-HK": "cjk_hk",
-    "ko": "cjk_kr",
-    "ko-KR": "cjk_kr",
-}
-
-# Text-widget tag names derived from CJK_FONT_TAGS.
-CJK_TAG_KEYS = tuple(sorted(set(CJK_FONT_TAGS.values())))
+# CJK language codes offered in the Format -> CJK Codes menu.
+CJK_CODES: tuple[str, ...] = (
+    "ja",
+    "zh-Hans",
+    "zh-CN",
+    "zh-Hans-CN",
+    "zh-TW",
+    "zh-Hant-TW",
+    "zh-HK",
+    "zh-Hant-HK",
+    "ko",
+    "ko-KR",
+)
 
 INTERFACE_FONT_SIZE = 14
 STATUS_FONT_SIZE = 16
@@ -1179,7 +1171,7 @@ class MarkEditor(ctk.CTk):
         )
         format_menu.add_separator()
         cjk_menu = new_menu(menubar)
-        for code in CJK_FONT_TAGS:
+        for code in CJK_CODES:
             cjk_menu.add_command(
                 label=code,
                 command=lambda c=code: self._insert_text(f"{{:{c}}}"),
@@ -1373,10 +1365,6 @@ class MarkEditor(ctk.CTk):
         self._editor.tag_configure(
             "code", font=(self.editor_mono[0], self.editor_font_size - 1, "normal")
         )
-        for key in CJK_TAG_KEYS:
-            self._editor.tag_configure(
-                key, font=(FONT_FAMILIES[key], self.editor_font_size)
-            )
 
         editor_row.pack(fill=tk.BOTH, expand=True)
         editor_frame.pack(fill=tk.BOTH, expand=True)
@@ -1540,42 +1528,6 @@ class MarkEditor(ctk.CTk):
         numbers = "\n".join(str(i) for i in range(1, total + 1))
         self._line_numbers.insert("1.0", numbers)
         self._line_numbers.config(state=tk.DISABLED)
-        self._apply_language_fonts()
-
-    def _apply_language_fonts(self) -> None:
-        """Tag blocks after {:lang} markers with the matching CJK font.
-
-        A marker like {:ja} switches the font starting at the beginning of
-        the next line (header / paragraph / code block). The switch ends
-        at the closing {:} marker, or at the end of that line when no
-        closing marker follows.
-        """
-        content = self._editor.get("1.0", "end-1c")
-        for key in CJK_TAG_KEYS:
-            self._editor.tag_remove(key, "1.0", tk.END)
-        tag_map = {k.lower(): v for k, v in CJK_FONT_TAGS.items()}
-        marker_re = re.compile(r"\{:([A-Za-z][A-Za-z0-9-]*)\}")
-        pos = 0
-        while True:
-            match = marker_re.search(content, pos)
-            if not match:
-                break
-            key = tag_map.get(match.group(1).lower())
-            newline = content.find("\n", match.end())
-            start = len(content) if newline == -1 else newline + 1
-            close = content.find("{:}", start)
-            if key and start < len(content):
-                if close != -1:
-                    end_pos = close
-                    pos = close + 3
-                else:
-                    line_end = content.find("\n", start)
-                    end_pos = len(content) if line_end == -1 else line_end
-                    pos = match.end()
-                if end_pos > start:
-                    self._editor.tag_add(key, f"1.0+{start}c", f"1.0+{end_pos}c")
-            else:
-                pos = match.end()
 
     def _msg(self, title: str, message: str, icon: str = "info") -> None:
         """Show a themed message box."""
@@ -2156,8 +2108,6 @@ class MarkEditor(ctk.CTk):
         self._editor.tag_configure(
             "code", font=(self.editor_mono[0], new_size - 1, "normal")
         )
-        for key in CJK_TAG_KEYS:
-            self._editor.tag_configure(key, font=(FONT_FAMILIES[key], new_size))
         self._line_numbers.configure(font=(self.editor_mono[0], new_size - 2, "normal"))
         self._update_line_numbers()
 

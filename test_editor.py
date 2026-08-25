@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from mark_editor import (
     APP_NAME,
-    CJK_FONT_TAGS,
+    CJK_CODES,
     DEFAULT_THEME,
     FONT_FAMILIES,
     RELEASE,
@@ -31,7 +31,7 @@ class TestAppMetadata(unittest.TestCase):
         self.assertEqual(APP_NAME, "Mark Editor")
 
     def test_version(self):
-        self.assertEqual(VERSION, "0.5.0")
+        self.assertEqual(VERSION, "0.5.1")
 
     def test_release(self):
         self.assertEqual(RELEASE, "2026.08")
@@ -44,16 +44,7 @@ class TestAppMetadata(unittest.TestCase):
 
 class TestFontFamilies(unittest.TestCase):
     def test_categories_present(self):
-        for category in (
-            "sans",
-            "mono",
-            "symbola",
-            "cjk_ja",
-            "cjk_cn",
-            "cjk_tw",
-            "cjk_hk",
-            "cjk_kr",
-        ):
+        for category in ("sans", "mono", "symbola"):
             self.assertIn(category, FONT_FAMILIES)
             self.assertIsInstance(FONT_FAMILIES[category], str)
             self.assertTrue(FONT_FAMILIES[category])
@@ -61,20 +52,24 @@ class TestFontFamilies(unittest.TestCase):
     def test_known_families(self):
         self.assertEqual(FONT_FAMILIES["sans"], "Noto Sans")
         self.assertEqual(FONT_FAMILIES["mono"], "Noto Sans Mono")
-        self.assertEqual(FONT_FAMILIES["cjk_ja"], "Noto Sans Mono CJK JP")
-        self.assertEqual(FONT_FAMILIES["cjk_cn"], "Noto Sans Mono CJK SC")
-        self.assertEqual(FONT_FAMILIES["cjk_kr"], "Noto Sans Mono CJK KR")
+        self.assertNotIn("cjk_ja", FONT_FAMILIES)
 
-    def test_language_tag_map(self):
-        self.assertEqual(CJK_FONT_TAGS["ja"], "cjk_ja")
-        for lang in ("zh-Hans", "zh-CN", "zh-Hans-CN"):
-            self.assertEqual(CJK_FONT_TAGS[lang], "cjk_cn")
-        for lang in ("zh-TW", "zh-Hant-TW"):
-            self.assertEqual(CJK_FONT_TAGS[lang], "cjk_tw")
-        for lang in ("zh-HK", "zh-Hant-HK"):
-            self.assertEqual(CJK_FONT_TAGS[lang], "cjk_hk")
-        for lang in ("ko", "ko-KR"):
-            self.assertEqual(CJK_FONT_TAGS[lang], "cjk_kr")
+    def test_cjk_codes(self):
+        self.assertEqual(
+            CJK_CODES,
+            (
+                "ja",
+                "zh-Hans",
+                "zh-CN",
+                "zh-Hans-CN",
+                "zh-TW",
+                "zh-Hant-TW",
+                "zh-HK",
+                "zh-Hant-HK",
+                "ko",
+                "ko-KR",
+            ),
+        )
 
 
 class TestThemeStorage(unittest.TestCase):
@@ -220,36 +215,6 @@ class TestEditor(unittest.TestCase):
         self.assertEqual(self.app.editor_font_size, size + 2)
         self.app._on_zoom_out()
         self.assertEqual(self.app.editor_font_size, size)
-
-    def test_language_fonts_tagged_region(self):
-        import tkinter as tk
-
-        ed = self.app._editor
-        try:
-            ed.delete("1.0", tk.END)
-            ed.insert("1.0", "{:ja}\nこんにちは\n{:}\nafter")
-            self.app._apply_language_fonts()
-            ranges = ed.tag_ranges("cjk_ja")
-            self.assertEqual(len(ranges), 2)
-            self.assertEqual(ed.get(ranges[0], ranges[1]), "こんにちは\n")
-            # block form for another language
-            ed.delete("1.0", tk.END)
-            ed.insert("1.0", "{:zh-Hans}\n中文\n{:}\nafter")
-            self.app._apply_language_fonts()
-            ranges = ed.tag_ranges("cjk_cn")
-            self.assertEqual(len(ranges), 2)
-            self.assertEqual(ed.get(ranges[0], ranges[1]), "中文\n")
-            # unclosed marker applies only to the next line
-            ed.delete("1.0", tk.END)
-            ed.insert("1.0", "intro\n{:ko-KR}\n한국어\ntail")
-            self.app._apply_language_fonts()
-            ranges = ed.tag_ranges("cjk_kr")
-            self.assertEqual(len(ranges), 2)
-            self.assertEqual(ed.get(ranges[0], ranges[1]), "한국어")
-            ed.delete("1.0", tk.END)
-            self.app._apply_language_fonts()
-        finally:
-            ed.edit_modified(False)
 
     def test_cjk_codes_menu(self):
         mb = self.app.nametowidget(self.app.cget("menu"))

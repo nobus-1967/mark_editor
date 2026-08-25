@@ -85,9 +85,7 @@ The editor requires Google's Noto font family and the Symbola font:
 
 - Noto Sans for the interface, menus and dialog windows;
 
-- Noto Sans Mono for text/code (editor and status bar);
-
-- Noto Sans Mono CJK JP/SC/TC/HK/KR for CJK language markers in the editor: a marker such as `{:ja}` switches the font of the following block (until the closing `{:}` marker or the end of the line) to `Noto Sans Mono CJK JP`; supported markers are `{:ja}`, `{:zh-Hans}`, `{:zh-CN}`, `{:zh-Hans-CN}`, `{:zh-TW}`, `{:zh-Hant-TW}`, `{:zh-HK}`, `{:zh-Hant-HK}`, `{:ko}` and `{:ko-KR}`;
+- Noto Sans Mono (including Noto Sans Mono CJK JP/SC/TC/HK/KR) for text/code (editor and status bar);
 
 - Noto Sans, Noto Sans Mono and Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
 
