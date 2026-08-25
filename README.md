@@ -118,4 +118,6 @@ Users can add this metadata to the beginning of a document using the special dia
 
 ## HOW IT WORKS
 
-See Test_Page in [Markdown](../test_page/Test_Page.md), [HTML5 with CSS3](../test_page/Test_Page.html), [PDF](../test_page/Test_Page.pdf) and [TXT](../test_page/Test_Page.txt).
+See Test_Page in [Markdown](./test_page/Test_Page.md), [HTML5 with CSS3](./test_page/Test_Page.html), [PDF](./test_page/Test_Page.pdf) and [TXT](./test_page/Test_Page.txt).
+
+
