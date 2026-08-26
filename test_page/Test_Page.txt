@@ -3,11 +3,14 @@ title: Test Page
 author: nobus-1967
 description: Test Page for markdown2html5-base converter.
 keywords: markdown, html5
-published: 2026-08-18
+published: 2026-08-25
 
-[Test Page, created for markdown2html5-base converter (ver. 0.3.4).]: #
+[Test Page, created for markdown2html5-base converter (ver. 0.3.5).]: #
+
 Heading 1
+
 Heading 2
+
 Heading 3
 
 Heading 6: Formatting the text
@@ -18,10 +21,10 @@ The text may also be marked (highlighted). And this is a piece of something look
 
 You can use superscript (X2) or subscript (H2O) symbols.
 
-And you can add hyperlinks like Markdown Guide, footnotes[1] (LINE BREAK) \
+And you can add hyperlinks like Markdown Guide, footnotes[1] (LINE BREAK)
 and date/time.[2]
 
-See also other add-ons.
+See also other other add-ons.
 
 Blocks of text
 
@@ -37,8 +40,9 @@ Dog
 
 Definition list:
 
- Frau
-  : weiblicher erwachsener Mensch; Ehefrau
+Frau
+: weiblicher erwachsener Mensch
+: Ehefrau
 This is a citation (blockquote).
 
 And code block looks like with a code language definition:
@@ -48,23 +52,23 @@ and without it:
 
 Some text.
 
-| Product  | Qty | Price |
-| :------- | :-: | ----: |
-| Apples   | 2   | $3.00 |
-| Bananas  | 3   | $1.50 |
-| Cherries | 1   | $4.00 |
-||||
-| Total    | 6   | $8.50 |
+| Product | Qty | Price |
+| :---- | :---: | ---: |
+| Apples | 2 | $3.00 |
+| Bananas | 3 | $1.50 |
+| Cherries | 1 | $4.00 |
+|  |  |  |
+| Total | 6 | $8.50 |
 
 Markdown Image
 
 Test Russian symbols
 
- А этот текст на русском! Ещё текст...
+  А этот текст на русском! Ещё текст...
 
 Others
 
-Furigana (Japanese kanji spelling): はです。
+Furigana (Japanese kanji spelling):  はです。
 
 Some typographic symbols and emoji as (tm), (c), 1/2, --, :dnarrow:, "Hello!", <<It's me!>>, :heart:,  etc.
 
@@ -72,4 +76,4 @@ This \not italic\ is escaped by \\.
 
 [1]: This is a footnote.
 
-[2]: 2026-08-09 21:00
+[2]: 2026-08-25 12:00

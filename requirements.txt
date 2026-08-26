@@ -1,4 +1,3 @@
-customtkinter>=6.0
-CTkMessagebox>=2.7
+PyGObject>=3.50
 markdown2html5-base>=0.3.5
 markdown2pdf-base>=0.3.2
