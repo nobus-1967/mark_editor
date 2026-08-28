@@ -143,10 +143,14 @@ def ask_string(
 
     def on_ok(_btn):
         """Handle OK button click."""
-        text = entry.get_text().strip() or None
+        text = entry.get_text().strip()
+        if not text and options:
+            selected = combo.get_selected_item()
+            if selected is not None:
+                text = selected.get_string()
         dialog.close()
         if callback:
-            callback(text)
+            callback(text or None)
 
     ok_btn.connect("clicked", on_ok)
     entry.connect("activate", lambda _: on_ok(_))
