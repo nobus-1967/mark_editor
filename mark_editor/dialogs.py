@@ -113,7 +113,6 @@ def ask_string(
         if "en" in options:
             default_idx = list(options).index("en")
         combo.set_selected(default_idx)
-        entry.set_text(list(options)[default_idx])
 
         def on_combo(_combo):
             """Fill the entry with the selected option."""
