@@ -107,13 +107,13 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.6.1-x86_64.AppImage`
+Output: `MarkEditor-0.6.2-x86_64.AppImage`
 
 ## Add-ons
 
 ### Language Markers
 
-Language markers tag a line (`{:de}`) or wrap a selection (`{:fr}…{:}`) with a language-tag prefix. The Language Marker and Language Wrapping dialogs let you pick from a drop-down list of common [BCP 47](https://en.wikipedia.org/wiki/IETF_language_tag) tags (de, de-AT, de-DE, en, en-GB, en-US, es, fr, ja, it, ko, ko-KR, pt, pt-BR, pt-PT, ru, uk, zh, zh-Hans-CN, zh-Hant, zh-Hant-HK, zh-Hant-TW) or enter any other valid BCP 47 tag (`en` is preselected).
+Language markers tag a line (`{:de}`) or wrap a selection (`{:fr}…{:}`) with a language-tag prefix. The Language Marker and Language Wrapping dialogs let you pick from a drop-down list of common [BCP 47](https://en.wikipedia.org/wiki/IETF_language_tag) tags (de, de-AT, de-DE, en, en-GB, en-US, es, fr, ja, it, ko, ko-KR, pt, pt-BR, pt-PT, ru, uk, zh, zh-Hans-CN, zh-Hant, zh-Hant-HK, zh-Hant-TW) or enter any other valid BCP 47 tag in the input field below (which starts empty; `en` is preselected in the drop-down).
 
 ### Ruby Annotation/Furigana
 
