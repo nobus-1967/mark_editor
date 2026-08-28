@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
+<<<<<<< HEAD
 """Tests for Mark Editor 0.6.2 (GTK4)."""
+=======
+"""Tests for Mark Editor 0.6.0 (GTK4)."""
+>>>>>>> parent of 6337a92 (Enhance Release (0.6.1))
 
 import os
 import sys
@@ -28,7 +32,11 @@ class TestAppMetadata(unittest.TestCase):
         self.assertEqual(APP_NAME, "Mark Editor")
 
     def test_version(self):
+<<<<<<< HEAD
         self.assertEqual(VERSION, "0.6.2")
+=======
+        self.assertEqual(VERSION, "0.6.0")
+>>>>>>> parent of 6337a92 (Enhance Release (0.6.1))
 
     def test_release(self):
         self.assertEqual(RELEASE, "2026.08")
