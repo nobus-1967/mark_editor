@@ -20,13 +20,12 @@ The main functions of the editor:
 - add tables with footers and cell alignment;
 - add links to images;
 - add horizontal rules;
-- add language markers;
+- add language markers (from a drop-down list of common tags or a custom BCP 47 tag);
 - insert ruby annotations (furigana in Japanese texts);
 - insert comments (hidden in HTML5/PDF output);
 - define YAML Front Matter tags;
 - clear formatting;
 - add emoji;
-- insert CJK language codes (Japanese; Simplified Chinese; Traditional Chinese for Taiwan/Hong Kong; Korean);
 - do some typographic replacements;
 - create new files, open and save files (including 'Save As' action using a new file name) through native GTK4 file chooser dialogs, reopen files (close without saving and open them again);
 - quick view Markdown files (using the system default browser);
@@ -108,9 +107,13 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.6.0-x86_64.AppImage`
+Output: `MarkEditor-0.6.1-x86_64.AppImage`
 
 ## Add-ons
+
+### Language Markers
+
+Language markers tag a line (`{:de}`) or wrap a selection (`{:fr}…{:}`) with a language-tag prefix. The Language Marker and Language Wrapping dialogs let you pick from a drop-down list of common [BCP 47](https://en.wikipedia.org/wiki/IETF_language_tag) tags (de, de-AT, de-DE, en, en-GB, en-US, es, fr, ja, it, ko, ko-KR, pt, pt-BR, pt-PT, ru, uk, zh, zh-Hans-CN, zh-Hant, zh-Hant-HK, zh-Hant-TW) or enter any other valid BCP 47 tag (`en` is preselected).
 
 ### Ruby Annotation/Furigana
 

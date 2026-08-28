@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "0.6.0"
+VERSION = "0.6.1"
 RELEASE = "2026.08"
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
@@ -81,17 +81,29 @@ SPECIAL_SIGNS: list[tuple[str, str]] = [
     ("ellipsis", "..."),
 ]
 
-CJK_CODES: tuple[str, ...] = (
+LANGUAGE_TAGS: tuple[str, ...] = (
+    "de",
+    "de-AT",
+    "de-DE",
+    "en",
+    "en-GB",
+    "en-US",
+    "es",
+    "fr",
     "ja",
-    "zh-Hans",
-    "zh-CN",
-    "zh-Hans-CN",
-    "zh-TW",
-    "zh-Hant-TW",
-    "zh-HK",
-    "zh-Hant-HK",
+    "it",
     "ko",
     "ko-KR",
+    "pt",
+    "pt-BR",
+    "pt-PT",
+    "ru",
+    "uk",
+    "zh",
+    "zh-Hans-CN",
+    "zh-Hant",
+    "zh-Hant-HK",
+    "zh-Hant-TW",
 )
 
 EDITOR_FONT_SIZE = 16

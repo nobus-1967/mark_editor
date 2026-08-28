@@ -9,7 +9,7 @@ gi.require_version("Gdk", "4.0")
 
 from gi.repository import Gdk, Gio, Gtk
 
-from mark_editor.constants import CJK_CODES, EMOJIS, SPECIAL_SIGNS
+from mark_editor.constants import EMOJIS, SPECIAL_SIGNS
 from mark_editor.helpers import load_theme, resource_path
 
 
@@ -173,14 +173,6 @@ class MarkEditorApp(Gtk.Application):
             "help-markdown-guide", lambda a, p: _w() and _w()._on_help_markdown_guide()
         )
         self._add_action("help-about", lambda a, p: _w() and _w()._on_help_about())
-
-        # CJK Codes
-        for code in CJK_CODES:
-            c = code
-            self._add_action(
-                f"insert-cjk-{c}",
-                lambda a, p, v=c: _w() and _w()._insert_text("{:" + v + ":}"),
-            )
 
         # Emoji Shortcodes
         for emoji in EMOJIS:
