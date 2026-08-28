@@ -16,8 +16,8 @@ from gi.repository import Gdk, Gio, GLib, Gtk, GtkSource, Pango
 
 from mark_editor.constants import (
     APP_NAME,
+    CJK_CODES,
     EMOJIS,
-    LANGUAGE_TAGS,
     SPECIAL_SIGNS,
     THEMES,
     VERSION,
@@ -187,6 +187,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         fmt_menu.append("Date and Time...", "app.date-time")
         fmt_menu.append("Special Mark", "app.special-mark")
         fmt_menu.append("Clear Formatting", "app.clear-formatting")
+
+        # ── CJK Codes submenu ──
+        cjk_menu = Gio.Menu()
+        for code in CJK_CODES:
+            cjk_menu.append(code, f"app.insert-cjk-{code}")
+        fmt_menu.append_submenu("CJK Codes", cjk_menu)
 
         # ── Emoji Shortcodes submenu ──
         emoji_menu = Gio.Menu()
@@ -764,11 +770,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             self._editor.focus()
 
         ask_string(
-            self,
-            "or enter a valid BCP 47 tag:",
-            "Language Marker",
-            on_lang,
-            options=LANGUAGE_TAGS,
+            self, "Enter a BCP 47 language tag (e.g. de):", "Language Marker", on_lang
         )
 
     def _on_language_wrapping(self) -> None:
@@ -789,11 +791,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             self._editor.focus()
 
         ask_string(
-            self,
-            "or enter a valid BCP 47 tag:",
-            "Language Wrapping",
-            on_lang,
-            options=LANGUAGE_TAGS,
+            self, "Enter a BCP 47 language tag (e.g. fr):", "Language Wrapping", on_lang
         )
 
     def _on_furigana(self) -> None:

@@ -78,19 +78,8 @@ def show_message(
     alert.present(parent)
 
 
-def ask_string(
-    parent: Gtk.Window,
-    prompt: str,
-    title: str,
-    callback=None,
-    options: tuple[str, ...] | list[str] | None = None,
-) -> None:
-    """Show a dialog that prompts the user for a single text input.
-
-    If ``options`` is given, it is shown as a combo box (drop-down) above the entry;
-    selecting an option fills the entry. The entry remains editable so a custom
-    BCP 47 tag can be typed.
-    """
+def ask_string(parent: Gtk.Window, prompt: str, title: str, callback=None) -> None:
+    """Show a dialog that prompts the user for a single text input."""
     dialog = Adw.Dialog()
     dialog.set_title(title)
     dialog.set_content_width(400)
@@ -100,6 +89,7 @@ def ask_string(
     box.set_margin_start(24)
     box.set_margin_end(24)
 
+<<<<<<< HEAD
     entry = Gtk.Entry()
     entry.set_hexpand(True)
 
@@ -123,10 +113,14 @@ def ask_string(
         combo.connect("notify::selected-item", on_combo)
         box.append(combo)
 
+=======
+>>>>>>> parent of 6337a92 (Enhance Release (0.6.1))
     lbl = Gtk.Label(label=prompt)
     lbl.set_xalign(0.0)
     box.append(lbl)
 
+    entry = Gtk.Entry()
+    entry.set_hexpand(True)
     box.append(entry)
 
     result_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
