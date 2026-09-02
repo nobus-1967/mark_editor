@@ -66,11 +66,11 @@ Custom ID: `## Section {#sec1}` => `<h2 id="sec1">Section</h2>`
 
 ## 3. Links and Images
 
-| Markdown              | Output HTML                               |
-| --------------------- | ----------------------------------------- |
-| `[text](url)`         | `<a href="url">text</a>`                  |
-| `![alt](src)`         | `<img src="src" alt="alt">`               |
-| `![alt](src "Title")` | `<img src="/home/nobus/OpenCode/markdown2html5-base/markdown2html5-base/src" alt="alt" title="Title">` |
+| Markdown              | Output HTML                                                                              |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| `[text](url)`         | `<a href="url">text</a>`                                                                 |
+| `![alt](src)`         | `<figure><img src="src" alt="alt"></figure>`                                             |
+| `![alt](src "Title")` | `<figure><img src="src" alt="alt" title="Title"><figcaption>Title</figcaption></figure>` |
 
 ## 4. Fenced Code Blocks
 
@@ -473,6 +473,21 @@ thead tr {
 }
 tfoot tr {
   background-color: #f5f5f5;
+  font-style: italic;
+}
+figure {
+  display: table;
+  margin: 0;
+}
+figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+figcaption {
+  display: table-caption;
+  caption-side: bottom;
+  text-align: left;
   font-style: italic;
 }
 ruby { ruby-position: over; }

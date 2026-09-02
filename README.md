@@ -39,7 +39,7 @@ The editor supports all markup elements listed in the [Full Markdown Functionali
 
 Since version 0.6.0, the application has been rewritten from tkinter/CustomTkinter to GTK4/libadwaita.
 
-The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
+The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) (>= 0.3.5) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) (>= 0.3.2) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
 
 ### Package Structure
 
@@ -84,6 +84,8 @@ The editor font family and size can be changed via View > Editor Font (Ctrl+Alt+
 - libadwaita 1 (>= 1.4)
 - GtkSourceView 5 (>= 5.8)
 - PyGObject >= 3.50
+- [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.3.5
+- [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) >= 0.3.2
 
 ## Running the Application
 
@@ -107,13 +109,15 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.6.2-x86_64.AppImage`
+Output: `MarkEditor-0.6.3-x86_64.AppImage`
 
 ## Add-ons
 
 ### Language Markers
 
 Language markers tag a line (`{:de}`) or wrap a selection (`{:fr}…{:}`) with a language-tag prefix. The Language Marker and Language Wrapping dialogs let you pick from a drop-down list of common [BCP 47](https://en.wikipedia.org/wiki/IETF_language_tag) tags (de, de-AT, de-DE, en, en-GB, en-US, es, fr, ja, it, ko, ko-KR, pt, pt-BR, pt-PT, ru, uk, zh, zh-Hans-CN, zh-Hant, zh-Hant-HK, zh-Hant-TW) or enter any other valid BCP 47 tag in the input field below (which starts empty; `en` is preselected in the drop-down).
+
+The Format > Language Codes submenu lists the same tags with human-readable names (e.g. `de German (Generic)`, `en-US American English (United States)`) and inserts the plain language code (e.g. `de`) at the cursor with one click.
 
 ### Ruby Annotation/Furigana
 
@@ -125,7 +129,7 @@ YAML Front Matter is a block of metadata written in YAML, placed at the very top
 
 Example of YAML Front Matter:
 
-```
+```yaml
 ---
 lang: en
 title: My Document
@@ -136,7 +140,7 @@ published: 2026-08-09
 ---
 ```
 
-Users can add this metadata to the beginning of a document using the special dialog box (the field `published` is filled in automatically with the system date).
+Users can add this metadata to the beginning of a document using a special dialog box (the `published` field is filled in automatically with the system date). The `lang` field uses a drop-down list of language tags (default `en`) with an editable input below, the same behavior as the Language Marker dialog.
 
 ## Temporary Files
 

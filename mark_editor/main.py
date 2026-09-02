@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import os
 import sys
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib
 
 
 def main() -> None:

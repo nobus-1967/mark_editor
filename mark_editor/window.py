@@ -17,6 +17,7 @@ from gi.repository import Gdk, Gio, GLib, Gtk, GtkSource, Pango
 from mark_editor.constants import (
     APP_NAME,
     EMOJIS,
+    LANGUAGE_CODES,
     LANGUAGE_TAGS,
     SPECIAL_SIGNS,
     THEMES,
@@ -183,6 +184,13 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         fmt_menu.append("Footnote...", "app.footnote")
         fmt_menu.append("Language Marker...", "app.language-marker")
         fmt_menu.append("Language Wrapping...", "app.language-wrapping")
+
+        # ── Language Codes submenu ──
+        lang_codes_menu = Gio.Menu()
+        for code, desc in LANGUAGE_CODES:
+            lang_codes_menu.append(f"{code} {desc}", f"app.insert-lang-{code}")
+        fmt_menu.append_submenu("Language Codes", lang_codes_menu)
+
         fmt_menu.append("Furigana...", "app.furigana")
         fmt_menu.append("Date and Time...", "app.date-time")
         fmt_menu.append("Special Mark", "app.special-mark")

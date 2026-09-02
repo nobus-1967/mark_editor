@@ -11,6 +11,8 @@ gi.require_version("Adw", "1")
 
 from gi.repository import Adw, Gtk
 
+from mark_editor.constants import LANGUAGE_TAGS
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -23,6 +25,41 @@ def _make_entry_row(label_text: str) -> tuple[Gtk.Label, Gtk.Entry]:
     entry = Gtk.Entry()
     entry.set_hexpand(True)
     return label, entry
+
+
+def _make_dropdown_row(
+    options: tuple[str, ...] | list[str] | None,
+    entry: Gtk.Entry,
+) -> Gtk.DropDown | None:
+    """Create a drop-down that fills ``entry`` with the selected option.
+
+    The default selection is ``en`` (or the first option if ``en`` is absent).
+    Returns ``None`` when ``options`` is empty so callers can skip the widget.
+    """
+    if not options:
+        return None
+    combo = Gtk.DropDown.new(Gtk.StringList.new(list(options)))
+    default_idx = list(options).index("en") if "en" in options else 0
+    combo.set_selected(default_idx)
+
+    def on_combo(_combo):
+        """Fill the entry with the selected option."""
+        selected = _combo.get_selected_item()
+        if selected is not None:
+            entry.set_text(selected.get_string())
+
+    combo.connect("notify::selected-item", on_combo)
+    return combo
+
+
+def _dropdown_value(combo: Gtk.DropDown | None, entry_text: str) -> str | None:
+    """Return the entry text, falling back to the combo's selected option."""
+    text = entry_text.strip()
+    if not text and combo is not None:
+        selected = combo.get_selected_item()
+        if selected is not None:
+            text = selected.get_string()
+    return text or None
 
 
 def _make_button_box(*buttons: Gtk.Button) -> Gtk.Box:
@@ -103,25 +140,15 @@ def ask_string(
     entry = Gtk.Entry()
     entry.set_hexpand(True)
 
+    combo = None
     if options:
         combo_lbl = Gtk.Label(label="Choose a language tag:")
         combo_lbl.set_xalign(0.0)
         box.append(combo_lbl)
 
-        combo = Gtk.DropDown.new(Gtk.StringList.new(list(options)))
-        default_idx = 0
-        if "en" in options:
-            default_idx = list(options).index("en")
-        combo.set_selected(default_idx)
-
-        def on_combo(_combo):
-            """Fill the entry with the selected option."""
-            selected = _combo.get_selected_item()
-            if selected is not None:
-                entry.set_text(selected.get_string())
-
-        combo.connect("notify::selected-item", on_combo)
-        box.append(combo)
+        combo = _make_dropdown_row(options, entry)
+        if combo is not None:
+            box.append(combo)
 
     lbl = Gtk.Label(label=prompt)
     lbl.set_xalign(0.0)
@@ -143,14 +170,10 @@ def ask_string(
 
     def on_ok(_btn):
         """Handle OK button click."""
-        text = entry.get_text().strip()
-        if not text and options:
-            selected = combo.get_selected_item()
-            if selected is not None:
-                text = selected.get_string()
+        text = _dropdown_value(combo, entry.get_text())
         dialog.close()
         if callback:
-            callback(text or None)
+            callback(text)
 
     ok_btn.connect("clicked", on_ok)
     entry.connect("activate", lambda _: on_ok(_))
@@ -682,12 +705,22 @@ class YAMLFrontMatterDialog(Adw.Dialog):
         grid = Gtk.Grid()
         grid.set_column_spacing(8)
         grid.set_row_spacing(8)
+        self._lang_combo: Gtk.DropDown | None = None
         for i, field in enumerate(fields):
             lbl = Gtk.Label(label=f"{field}:")
             lbl.set_xalign(1.0)
             entry = Gtk.Entry()
             entry.set_hexpand(True)
             self._entries[field] = entry
+            if field == "lang":
+                vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+                self._lang_combo = _make_dropdown_row(LANGUAGE_TAGS, entry)
+                if self._lang_combo is not None:
+                    vbox.append(self._lang_combo)
+                vbox.append(entry)
+                grid.attach(lbl, 0, i, 1, 1)
+                grid.attach(vbox, 1, i, 1, 1)
+                continue
             grid.attach(lbl, 0, i, 1, 1)
             grid.attach(entry, 1, i, 1, 1)
         box.append(grid)
@@ -705,6 +738,8 @@ class YAMLFrontMatterDialog(Adw.Dialog):
         lines = ["---"]
         for field in ["lang", "title", "author", "description", "keywords"]:
             value = self._entries[field].get_text().strip()
+            if not value and field == "lang":
+                value = _dropdown_value(self._lang_combo, "") or ""
             if value:
                 lines.append(f"{field}: {value}")
         lines.append(f"published: {datetime.now().date().isoformat()}")

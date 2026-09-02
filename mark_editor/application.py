@@ -9,7 +9,7 @@ gi.require_version("Gdk", "4.0")
 
 from gi.repository import Gdk, Gio, Gtk
 
-from mark_editor.constants import EMOJIS, SPECIAL_SIGNS
+from mark_editor.constants import EMOJIS, LANGUAGE_CODES, SPECIAL_SIGNS
 from mark_editor.helpers import load_theme, resource_path
 
 
@@ -180,6 +180,14 @@ class MarkEditorApp(Gtk.Application):
             self._add_action(
                 f"insert-emoji-{e}",
                 lambda a, p, v=f":{e}:": _w() and _w()._insert_text(v),
+            )
+
+        # Language Codes
+        for code, desc in LANGUAGE_CODES:
+            c = code
+            self._add_action(
+                f"insert-lang-{c}",
+                lambda a, p, v=c: _w() and _w()._insert_text(v),
             )
 
         # Special Signs

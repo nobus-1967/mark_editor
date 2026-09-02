@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "0.6.2"
-RELEASE = "2026.08"
+VERSION = "0.6.3"
+RELEASE = "2026.09"
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
 THEME_FILE = CONFIG_DIR / "theme.json"
@@ -69,16 +69,19 @@ SPECIAL_SIGNS: list[tuple[str, str]] = [
     ("greater-than/equal to", ">="),
     ("left arrow", "->"),
     ("right arrow", "<-"),
-    ("up arrow", ":uparrow:"),
-    ("down arrow", ":dnarrow:"),
+    ("up arrow", "&uarr;"),
+    ("down arrow", "&darr;"),
     ("logical implication", "=>"),
-    ("slash", ":slash:"),
-    ("backslash", ":bslash:"),
+    ("slash", "&#47;"),
+    ("backslash", "&#92;"),
     ("left angle quote", "<<"),
+    ("left double quote", "&ldquo;"),
     ("right angle quote", ">>"),
+    ("right double quote", "&rdquo;"),
     ("em dash", "---"),
     ("en dash", "--"),
     ("ellipsis", "..."),
+    ("non-breaking space", "&nbsp;"),
 ]
 
 LANGUAGE_TAGS: tuple[str, ...] = (
@@ -104,6 +107,31 @@ LANGUAGE_TAGS: tuple[str, ...] = (
     "zh-Hant",
     "zh-Hant-HK",
     "zh-Hant-TW",
+)
+
+LANGUAGE_CODES: tuple[tuple[str, str], ...] = (
+    ("de", "German (Generic)"),
+    ("de-AT", "German (Austria)"),
+    ("de-DE", "German (Germany)"),
+    ("en", "English (Generic)"),
+    ("en-GB", "British English (United Kingdom)"),
+    ("en-US", "American English (United States)"),
+    ("es", "Spanish"),
+    ("fr", "French"),
+    ("it", "Italian"),
+    ("ja", "Japanese"),
+    ("ru", "Russian"),
+    ("uk", "Ukrainian"),
+    ("ko", "Korean (Generic)"),
+    ("ko-KR", "Korean (South Korea)"),
+    ("pt", "Portuguese (Generic)"),
+    ("pt-BR", "Brazilian Portuguese (Brazil)"),
+    ("pt-PT", "European Portuguese (Portugal)"),
+    ("zh", "Chinese (Generic)"),
+    ("zh-Hans-CN", "Simplified Chinese (Mainland China)"),
+    ("zh-Hant", "Traditional Chinese (Generic)"),
+    ("zh-Hant-HK", "Traditional Chinese (Hong Kong)"),
+    ("zh-Hant-TW", "Traditional Chinese (Taiwan)"),
 )
 
 EDITOR_FONT_SIZE = 16
