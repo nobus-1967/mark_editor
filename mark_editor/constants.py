@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "0.6.3"
+VERSION = "0.6.4"
 RELEASE = "2026.09"
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
@@ -72,8 +72,8 @@ SPECIAL_SIGNS: list[tuple[str, str]] = [
     ("up arrow", "&uarr;"),
     ("down arrow", "&darr;"),
     ("logical implication", "=>"),
-    ("slash", "&#47;"),
-    ("backslash", "&#92;"),
+    ("slash", "&sol;"),
+    ("backslash", "&bsol;"),
     ("left angle quote", "<<"),
     ("left double quote", "&ldquo;"),
     ("right angle quote", ">>"),

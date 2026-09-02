@@ -4,6 +4,29 @@
 
 A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, ruby annotations for phonetic guides and other add-ons.
 
+## Table of Contents
+
+- [Functions](#functions)
+- [Code Base](#code-base)
+  - [Package Structure](#package-structure)
+- [Styling](#styling)
+- [File Formats](#file-formats)
+- [Fonts](#fonts)
+- [Requirements](#requirements)
+- [Running the Application](#running-the-application)
+- [Building AppImage](#building-appimage)
+- [Add-ons](#add-ons)
+  - [Emoji](#emoji)
+  - [Special Signs](#special-signs)
+  - [Language Markers](#language-markers)
+  - [Ruby Annotation/Furigana](#ruby-annotationfurigana)
+  - [YAML Front Matter](#yaml-front-matter)
+- [Temporary Files](#temporary-files)
+  - [New (unsaved) files](#new-unsaved-files)
+  - [Saved/opened files](#savedopened-files)
+  - [Cleanup](#cleanup)
+- [How It Works](#how-it-works)
+
 ## Functions
 
 The main functions of the editor:
@@ -109,9 +132,17 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.6.3-x86_64.AppImage`
+Output: `MarkEditor-0.6.4-x86_64.AppImage`
 
 ## Add-ons
+
+### Emoji
+
+The Format > Emoji Shortcodes submenu inserts emoji shortcodes (e.g. `:joy:`, `:heart:`, `:rocket:`) at the cursor. The available shortcodes are `:joy:`, `:smile:`, `:heart:`, `:thumbsup:`, `:thumbsdown:`, `:wink:`, `:tada:`, `:rocket:`, `:fire:`, `:star:`, `:cry:`, `:thinking:`, `:100:`, `:sparkles:`, `:eyes:`, `:bulb:`, `:warning:`, `:ok:` and `:check_mark:`. They are rendered by [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) in HTML5 output and by Symbola in PDF output.
+
+### Special Signs
+
+The Format > Special Signs submenu inserts punctuation and special characters at the cursor. Items show the inserted expression followed by its name. The list includes typographic quotes (`&ldquo;`, `&rdquo;`, `<<`, `>>`), arrows (`->`, `<-`, `&uarr;`, `&darr;`, `=>`), the slash `&sol;` and backslash `&bsol;`, dashes (`---`, `--`), the ellipsis `...`, the non-breaking space `&nbsp;`, and the protected symbols `(c)`, `(tm)`, `(r)`, `+/-`, `!=`, `<=>`, `<=`, `>=`. These are printed as HTML5/PDF entities in the exported documents.
 
 ### Language Markers
 

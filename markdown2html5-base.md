@@ -261,24 +261,27 @@ A French phrase {:fr}"L'État c'est moi"{:} is traditionally attributed to King 
 | Greater-Than or Equal To    | `>=`        | `&ge;`               |
 | Left Arrow                  | `->`        | `&rarr;`             |
 | Right Arrow                 | `<-`        | `&larr;`             |
-| Up Arrow                    | `:uparrow:` | `&uarr;`             |
-| Down Arrow                  | `:dnarrow:` | `&darr;`             |
+| Up Arrow                    | `&uarr;`    | `&uarr;`             |
+| Down Arrow                  | `&darr;`    | `&darr;`             |
 | Logical Implication         | `=>`        | `&rArr;`             |
+| Solidus (Slash)             | `&sol`      | `&sol;`              |
+| Reverse Solidus (Backslash) | `&bsol;`    | `&bsol;`             |
 | One-Half                    | `1/2`       | `&frac12;`           |
 | One-Third                   | `1/3`       | `&frac13;`           |
 | Two-Thirds                  | `2/3`       | `&frac23;`           |
 | One-Quarter                 | `1/4`       | `&frac14;`           |
 | Three-Quarters              | `3/4`       | `&frac34;`           |
-| Solidus (Slash)             | `:slash:`   | `&sol;`              |
-| Reverse Solidus (Backslash) | `:bslash:`  | `&bsol;`             |
 | Left Angle Quote            | `<<`        | `&laquo;`            |
+| Left Double Quote           | `&ldquo;`   | `&ldquo;`            |
 | Right Angle Quote           | `>>`        | `&raquo;`            |
+| Right Double Quote          | `&rdquo;`   | `&rdquo;`            |
 | Smart Double Quotes         | `"text"`    | `&ldquo;text&rdquo;` |
 | Smart Single Quotes         | `'text'`    | `&lsquo;text&rsquo;` |
 | Straight Apostrophe         | `'`         | `&apos;`             |
 | Em Dash                     | `---`       | `&mdash;`            |
 | En Dash                     | `--`        | `&ndash;`            |
 | Ellipsis                    | `...`       | `&hellip;`           |
+| Non-Breaking Space          | `&nbsp;`    | `&nbsp;`             |
 
 ## 15. Hard Line Breaks
 
@@ -476,7 +479,7 @@ tfoot tr {
   font-style: italic;
 }
 figure {
-  display: table;
+  display: block;
   margin: 0;
 }
 figure img {
@@ -485,8 +488,6 @@ figure img {
   height: auto;
 }
 figcaption {
-  display: table-caption;
-  caption-side: bottom;
   text-align: left;
   font-style: italic;
 }

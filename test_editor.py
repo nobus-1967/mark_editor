@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.6.3 (GTK4)."""
+"""Tests for Mark Editor 0.6.4 (GTK4)."""
 
 import os
 import sys
@@ -58,7 +58,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.6.3")
+        self.assertEqual(VERSION, "0.6.4")
 
     def test_release(self):
         """RELEASE matches the current release period."""
@@ -108,7 +108,7 @@ class TestCacheDir(_IsolatedConfigMixin, unittest.TestCase):
 
 
 class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
-    """Behavioural tests that instantiate the real GTK4 application."""
+    """Behavioral tests that instantiate the real GTK4 application."""
 
     def setUp(self):
         """Isolate config dirs, then instantiate the GTK4 app window."""
