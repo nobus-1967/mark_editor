@@ -109,9 +109,9 @@ def show_message(
     alert = Adw.AlertDialog()
     alert.set_heading(title)
     alert.set_body(message)
-    if icon == "error":
-        alert.set_response_appearance("destructive", Adw.ResponseAppearance.DESTRUCTIVE)
     alert.add_response("ok", "_OK")
+    if icon == "error":
+        alert.set_response_appearance("ok", Adw.ResponseAppearance.DESTRUCTIVE)
     alert.present(parent)
 
 

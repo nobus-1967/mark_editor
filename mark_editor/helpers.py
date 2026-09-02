@@ -190,9 +190,15 @@ def md_to_html(text: str, *, include_css: bool = False) -> str:
     return get_converter().convert(text, include_css=include_css)
 
 
-def md_to_pdf(text: str, path: str) -> None:
-    """Convert Markdown *text* to PDF and save to *path* via pandoc/xelatex."""
-    md2pdf_convert(text, path)
+def md_to_pdf(text: str, path: str, *, source_dir: str | None = None) -> None:
+    """Convert Markdown *text* to PDF and save to *path* via pandoc/xelatex.
+
+    ``source_dir`` is the directory used to resolve relative image paths;
+    it falls back to the output file's own directory when omitted.
+    """
+    if source_dir is None:
+        source_dir = os.path.dirname(os.path.abspath(path))
+    md2pdf_convert(text, path, source_dir=source_dir)
 
 
 def md_to_plain(text: str) -> str:

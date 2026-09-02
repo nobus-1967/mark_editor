@@ -531,7 +531,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             elif ext == ".txt":
                 path.write_text(md_to_plain(content), encoding="utf-8")
             else:
-                md_to_pdf(content, str(path))
+                src_dir = (
+                    str(self.current_file.parent)
+                    if self.current_file is not None
+                    else None
+                )
+                md_to_pdf(content, str(path), source_dir=src_dir)
         except Exception as exc:
             show_message(self, "Convert", str(exc), "error")
             return

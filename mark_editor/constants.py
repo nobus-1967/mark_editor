@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "0.6.4"
+VERSION = "0.6.5"
 RELEASE = "2026.09"
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"

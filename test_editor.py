@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.6.4 (GTK4)."""
+"""Tests for Mark Editor 0.6.5 (GTK4)."""
 
 import os
 import sys
@@ -58,7 +58,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.6.4")
+        self.assertEqual(VERSION, "0.6.5")
 
     def test_release(self):
         """RELEASE matches the current release period."""
