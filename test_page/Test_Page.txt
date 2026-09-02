@@ -70,7 +70,7 @@ Others
 
 Furigana (Japanese kanji spelling):  はです。
 
-Some typographic symbols and emoji as (tm), (c), 1/2, --, :dnarrow:, "Hello!", <<It's me!>>, :heart:,  etc.
+Some typographic symbols and emoji as (tm), (c), 1/2, --, &darr;, "Hello!", <<It's me!>>, :heart:,  etc.
 
 This \not italic\ is escaped by \\.
 
