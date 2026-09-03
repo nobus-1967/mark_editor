@@ -33,6 +33,7 @@ from mark_editor.dialogs import (
     FootnoteDialog,
     FuriganaDialog,
     HeaderLinkDialog,
+    OrderedListDialog,
     ReplaceDialog,
     TableDialog,
     YAMLFrontMatterDialog,
@@ -822,8 +823,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         )
 
     def _on_furigana(self) -> None:
-        """Open the Furigana dialog to insert a ruby annotation."""
-        dlg = FuriganaDialog(self, self._insert_text)
+        """Open the Furigana dialog to add a ruby annotation."""
+        dlg = FuriganaDialog(self, self._editor)
         dlg.present()
 
     def _on_date_time(self) -> None:
@@ -890,12 +891,19 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._replace_current_line(text)
 
     def _on_ordered_list(self) -> None:
-        """Convert the current line to an ordered-list item (``1. …``)."""
-        text = self._get_current_line_text()
-        text = _strip_list_marker(text)
-        if not self._prev_line_is_list_item():
-            self._add_blank_line_before_if_needed()
-        self._replace_current_line(f"1. {text}")
+        """Turn the current line into an ordered-list item with a chosen number."""
+
+        def on_number(number: int) -> None:
+            """Apply the chosen item *number* to the current line."""
+            text = self._get_current_line_text()
+            text = _strip_list_marker(text)
+            if not self._prev_line_is_list_item():
+                self._add_blank_line_before_if_needed()
+            self._replace_current_line(f"{number}. {text}")
+            self._editor.focus()
+
+        dlg = OrderedListDialog(self, on_number)
+        dlg.present()
 
     def _on_unordered_list(self) -> None:
         """Convert the current line to an unordered-list item (``- …``)."""

@@ -132,7 +132,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.7.0-x86_64.AppImage`
+Output: `MarkEditor-0.7.1-x86_64.AppImage`
 
 ## Add-ons
 
@@ -152,7 +152,9 @@ The Format > Language Codes submenu lists the same tags with human-readable name
 
 ### Ruby Annotation/Furigana
 
-Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語 | にほんご}`, which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
+Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語|にほんご}`, which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
+
+Use **Format → Furigana...** to add a ruby reading. When text (kanji/hanzi/kana) is **selected**, it is prefilled as the base text and the annotation wraps exactly those selected symbols; otherwise you type the base text yourself, and the annotation is inserted at the cursor.
 
 ### YAML Front Matter
 

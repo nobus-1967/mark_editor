@@ -432,15 +432,15 @@ class TableDialog(Adw.Dialog):
 
 
 class FuriganaDialog(Adw.Dialog):
-    """Dialog for inserting a furigana (ruby) annotation."""
+    """Dialog for adding a furigana (ruby) annotation."""
 
-    def __init__(self, parent: Gtk.Window, callback) -> None:
-        """Initialize the Furigana dialog with parent window and callback."""
+    def __init__(self, parent: Gtk.Window, editor) -> None:
+        """Initialize the dialog; *editor* receives the ruby annotation."""
         super().__init__()
         self.set_title("Furigana (Ruby Annotation)")
         self.set_content_width(380)
 
-        self._callback = callback
+        self._editor = editor
 
         box = _make_dialog_box()
 
@@ -461,15 +461,82 @@ class FuriganaDialog(Adw.Dialog):
         self._kanji_entry.connect("activate", lambda _: self._on_insert())
         self._reading_entry.connect("activate", lambda _: self._on_insert())
         self.set_child(box)
-        self._kanji_entry.grab_focus()
+
+        selected = self._editor.get_selected_text()
+        if selected:
+            self._kanji_entry.set_text(selected)
+            self._kanji_entry.select_region(0, -1)
+            self._reading_entry.grab_focus()
+        else:
+            self._kanji_entry.grab_focus()
 
     def _on_insert(self, *_args) -> None:
-        """Insert the ruby annotation and close the dialog."""
-        kanji = self._kanji_entry.get_text().strip()
+        """Wrap the selected kana (or the entered text) in a ruby annotation."""
         reading = self._reading_entry.get_text().strip()
+        selected = self._editor.get_selected_text()
+        kanji = selected or self._kanji_entry.get_text().strip()
         if kanji and reading:
-            self._callback("{" + kanji + " | " + reading + "}")
+            self._editor.replace_selection("{" + kanji + "|" + reading + "}")
         self.close()
+
+
+class OrderedListDialog(Adw.Dialog):
+    """Dialog for picking an ordered-list item number."""
+
+    def __init__(self, parent: Gtk.Window, callback) -> None:
+        """Initialize the dialog; *callback(number)* runs on a valid number."""
+        super().__init__()
+        self.set_title("Ordered List")
+        self.set_content_width(360)
+
+        self._callback = callback
+        self._parent = parent
+
+        box = _make_dialog_box()
+
+        lbl = Gtk.Label(label="Insert item's number:")
+        lbl.set_xalign(0.0)
+        box.append(lbl)
+
+        self._number_entry = Gtk.Entry()
+        self._number_entry.set_hexpand(True)
+
+        self._menu = Gtk.DropDown.new(
+            Gtk.StringList.new([str(n) for n in range(1, 21)])
+        )
+        self._menu.set_selected(0)
+        self._menu.connect("notify::selected-item", self._on_menu_change)
+
+        box.append(self._menu)
+        box.append(self._number_entry)
+
+        box.append(_make_insert_cancel_box(self))
+
+        self._number_entry.connect("activate", lambda _: self._on_insert())
+        self.set_child(box)
+        self._number_entry.grab_focus()
+        self._number_entry.set_position(-1)
+
+    def _on_menu_change(self, _menu, *_args) -> None:
+        """Fill the entry with the number chosen in the drop-down."""
+        item = self._menu.get_selected_item()
+        if item is not None:
+            self._number_entry.set_text(item.get_string())
+
+    def _on_insert(self, *_args) -> None:
+        """Validate the number and, if valid, run the *callback* and close."""
+        number = self._number_entry.get_text().strip()
+        if not number.isdigit() or int(number) < 1:
+            show_message(
+                self._parent,
+                "Ordered List",
+                "The item's number must be a positive integer (e.g. 1, 2, …).",
+                "warning",
+            )
+            return
+        self.close()
+        if self._callback:
+            self._callback(int(number))
 
 
 # ---------------------------------------------------------------------------
