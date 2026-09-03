@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
@@ -69,10 +70,8 @@ def save_theme(name: str) -> None:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         # Preserve existing font settings
         data = {}
-        try:
+        with contextlib.suppress(Exception):
             data = json.loads(THEME_FILE.read_text(encoding="utf-8"))
-        except Exception:
-            pass
         data["mode"] = name
         THEME_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
     except Exception:
@@ -85,10 +84,8 @@ def save_font(family: str, size: int) -> None:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         # Preserve existing mode setting
         data = {}
-        try:
+        with contextlib.suppress(Exception):
             data = json.loads(THEME_FILE.read_text(encoding="utf-8"))
-        except Exception:
-            pass
         data["font_family"] = family
         data["font_size"] = size
         THEME_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
@@ -214,6 +211,7 @@ def md_to_plain(text: str) -> str:
     text = re.sub(r"^\s*(\|\s*)+$", "", text, flags=re.MULTILINE)
     text = re.sub(r"^---\s*$", "", text, flags=re.MULTILINE)
     text = re.sub(r"^:::+\s*$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\[.*?\]:\s*#\s*", "", text, flags=re.MULTILINE)
     text = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
     # Strip known Markdown extension curly-brace patterns only

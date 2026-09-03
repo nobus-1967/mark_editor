@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -29,10 +31,8 @@ class MarkEditorApp(Gtk.Application):
         """Load the CSS stylesheet, register actions and keyboard shortcuts."""
         css_provider = Gtk.CssProvider()
         css_path = resource_path("marks.css")
-        try:
+        with contextlib.suppress(Exception):
             css_provider.load_from_path(css_path)
-        except Exception:
-            pass
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(),
             css_provider,
@@ -68,7 +68,7 @@ class MarkEditorApp(Gtk.Application):
         self.add_action(action)
 
     def _setup_actions(self) -> None:
-        """Create all application actions (file, edit, format, paragraph, view, help)."""
+        """Create all application actions (file, edit, format, view, help)."""
 
         def _w():
             """Return the current window instance."""
@@ -131,7 +131,7 @@ class MarkEditorApp(Gtk.Application):
         for level in range(1, 7):
             lv = level
             self._add_action(
-                f"heading-{lv}", lambda a, p, l=lv: _w() and _w()._on_heading(l)
+                f"heading-{lv}", lambda a, p, h=lv: _w() and _w()._on_heading(h)
             )
         self._add_action("paragraph", lambda a, p: _w() and _w()._on_paragraph())
         self._add_action("ordered-list", lambda a, p: _w() and _w()._on_ordered_list())
@@ -172,6 +172,7 @@ class MarkEditorApp(Gtk.Application):
         self._add_action(
             "help-markdown-guide", lambda a, p: _w() and _w()._on_help_markdown_guide()
         )
+        self._add_action("help-md-ref", lambda a, p: _w() and _w()._on_help_md_ref())
         self._add_action("help-about", lambda a, p: _w() and _w()._on_help_about())
 
         # Emoji Shortcodes
@@ -183,7 +184,7 @@ class MarkEditorApp(Gtk.Application):
             )
 
         # Language Codes
-        for code, desc in LANGUAGE_CODES:
+        for code, _desc in LANGUAGE_CODES:
             c = code
             self._add_action(
                 f"insert-lang-{c}",
@@ -277,7 +278,5 @@ class MarkEditorApp(Gtk.Application):
         ]
 
         for action_name, accels in shortcuts:
-            try:
+            with contextlib.suppress(Exception):
                 self.set_accels_for_action(action_name, accels)
-            except Exception:
-                pass

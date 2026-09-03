@@ -17,7 +17,7 @@ import sys
 
 APP_ID = "com.github.mark_editor"
 APP_NAME = "Mark Editor"
-VERSION = "0.6.5"
+VERSION = "0.7.0"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_DIR = os.path.join(BASE_DIR, "mark_editor")
 ICON_SRC = os.path.join(BASE_DIR, "images", "mark_editor.png")
@@ -27,15 +27,18 @@ OUTPUT = os.path.join(BASE_DIR, f"MarkEditor-{VERSION}-x86_64.AppImage")
 
 
 def run(cmd: list[str], **kwargs) -> None:
+    """Run a command in the build directory, failing on any error."""
     print(f"  $ {' '.join(cmd)}")
     subprocess.run(cmd, check=True, cwd=BASE_DIR, **kwargs)
 
 
 def step(msg: str) -> None:
+    """Print a section heading to the build log."""
     print(f"\n==> {msg}")
 
 
 def clean() -> None:
+    """Remove any previous build directory and output AppImage."""
     step("Cleaning old builds")
     for p in (BUILD_DIR, OUTPUT):
         if os.path.isdir(p):
@@ -45,6 +48,7 @@ def clean() -> None:
 
 
 def create_appdir() -> None:
+    """Assemble the AppDir layout with package files, wrapper, icon and desktop."""
     step("Creating AppDir structure")
 
     # Directories
@@ -58,12 +62,16 @@ def create_appdir() -> None:
     # Copy package files
     for f in os.listdir(PACKAGE_DIR):
         if f.endswith(".py") or f.endswith(".css"):
-            shutil.copy2(os.path.join(PACKAGE_DIR, f),
-                        os.path.join(BUILD_DIR, "usr", "share", "mark_editor", f))
+            shutil.copy2(
+                os.path.join(PACKAGE_DIR, f),
+                os.path.join(BUILD_DIR, "usr", "share", "mark_editor", f),
+            )
 
     # Copy requirements
-    shutil.copy2(os.path.join(BASE_DIR, "requirements.txt"),
-                os.path.join(BUILD_DIR, "usr", "share", "requirements.txt"))
+    shutil.copy2(
+        os.path.join(BASE_DIR, "requirements.txt"),
+        os.path.join(BUILD_DIR, "usr", "share", "requirements.txt"),
+    )
 
     # Create wrapper script
     wrapper = os.path.join(BUILD_DIR, "usr", "bin", "mark-editor")
@@ -77,7 +85,10 @@ def create_appdir() -> None:
     os.chmod(wrapper, 0o755)
 
     # Icon
-    shutil.copy2(ICON_SRC, os.path.join(BUILD_DIR, "usr", "share", "icons", "hicolor", "256x256", "apps", "mark-editor.png"))
+    icons_apps = os.path.join(
+        BUILD_DIR, "usr", "share", "icons", "hicolor", "256x256", "apps"
+    )
+    shutil.copy2(ICON_SRC, os.path.join(icons_apps, "mark-editor.png"))
     shutil.copy2(ICON_SRC, os.path.join(BUILD_DIR, "mark-editor.png"))
 
     # Desktop file
@@ -95,6 +106,7 @@ def create_appdir() -> None:
 
 
 def build_appimage() -> None:
+    """Locate appimagetool and package the AppDir into the output AppImage."""
     step("Building AppImage")
     # Find appimagetool
     tool = shutil.which("appimagetool")
@@ -115,6 +127,7 @@ def build_appimage() -> None:
 
 
 def main() -> None:
+    """Run the full AppImage build: clean, assemble AppDir, and package."""
     print(f"Building {APP_NAME} AppImage v{VERSION}")
     clean()
     create_appdir()

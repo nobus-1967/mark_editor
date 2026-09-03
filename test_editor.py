@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.6.5 (GTK4)."""
+"""Tests for Mark Editor 0.7.0 (GTK4)."""
 
 import os
 import sys
 import tempfile
 import unittest
 import unittest.mock
+from contextlib import suppress
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -58,11 +59,13 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.6.5")
+        self.assertEqual(VERSION, "0.7.0")
 
     def test_release(self):
-        """RELEASE matches the current release period."""
-        self.assertEqual(RELEASE, "2026.09")
+        """RELEASE is auto-derived as the current year.month."""
+        from datetime import datetime
+
+        self.assertEqual(RELEASE, datetime.now().strftime("%Y.%m"))
 
     def test_themes(self):
         """Both light and dark themes are available, light is the default."""
@@ -119,7 +122,7 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
 
         super().setUp()
         try:
-            from gi.repository import Adw, GLib, Gtk
+            from gi.repository import Adw, GLib
 
             self._app = Adw.Application(application_id="com.github.mark_editor.test")
             self._app.register()
@@ -134,10 +137,8 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
     def tearDown(self):
         """Close the window and restore config dirs."""
         if hasattr(self, "app"):
-            try:
+            with suppress(Exception):
                 self.app.close()
-            except Exception:
-                pass
         super().tearDown()
 
     def test_title(self):
@@ -163,10 +164,10 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         self.assertTrue(self.app._editor.get_text().startswith("1. "))
 
     def test_unordered_list(self):
-        """Applying an unordered list prefixes the line with '* '."""
+        """Applying an unordered list prefixes the line with '- '."""
         self.app._editor.set_text("item")
         self.app._on_unordered_list()
-        self.assertTrue(self.app._editor.get_text().startswith("* "))
+        self.assertTrue(self.app._editor.get_text().startswith("- "))
 
     def test_blockquote(self):
         """Applying a blockquote prefixes the line with '> '."""

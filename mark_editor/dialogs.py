@@ -18,13 +18,14 @@ from mark_editor.constants import LANGUAGE_TAGS
 # ---------------------------------------------------------------------------
 
 
-def _make_entry_row(label_text: str) -> tuple[Gtk.Label, Gtk.Entry]:
-    """Create a label + entry pair for use in dialog forms."""
-    label = Gtk.Label(label=label_text)
-    label.set_xalign(1.0)
-    entry = Gtk.Entry()
-    entry.set_hexpand(True)
-    return label, entry
+def _make_dialog_box(spacing: int = 8) -> Gtk.Box:
+    """Create a vertical dialog content box with standard margins."""
+    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=spacing)
+    box.set_margin_top(24)
+    box.set_margin_bottom(24)
+    box.set_margin_start(24)
+    box.set_margin_end(24)
+    return box
 
 
 def _make_dropdown_row(
@@ -42,7 +43,7 @@ def _make_dropdown_row(
     default_idx = list(options).index("en") if "en" in options else 0
     combo.set_selected(default_idx)
 
-    def on_combo(_combo):
+    def on_combo(_combo, *_args):
         """Fill the entry with the selected option."""
         selected = _combo.get_selected_item()
         if selected is not None:
@@ -60,6 +61,33 @@ def _dropdown_value(combo: Gtk.DropDown | None, entry_text: str) -> str | None:
         if selected is not None:
             text = selected.get_string()
     return text or None
+
+
+def _find_and_select(editor, pattern: re.Pattern) -> bool:
+    """Select the next occurrence of *pattern* from the cursor.
+
+    Wraps around to the start of the document when the pattern is not found
+    ahead of the cursor. Returns True when a match was selected.
+    """
+    text = editor.get_text()
+    offset = editor.get_cursor_iter().get_offset()
+    match = pattern.search(text, offset) or pattern.search(text)
+    if match is None:
+        return False
+    buf = editor.get_buffer()
+    buf.select_range(
+        buf.get_iter_at_offset(match.start()),
+        buf.get_iter_at_offset(match.end()),
+    )
+    editor.scroll_to_cursor()
+    return True
+
+
+def _make_insert_cancel_box(dialog) -> Gtk.Box:
+    """Build an Insert/Cancel button box for a dialog with an ``_on_insert``."""
+    insert_btn = _make_button("Insert", dialog._on_insert, suggested=True)
+    cancel_btn = _make_button("Cancel", lambda _: dialog.close())
+    return _make_button_box(insert_btn, cancel_btn)
 
 
 def _make_button_box(*buttons: Gtk.Button) -> Gtk.Box:
@@ -105,13 +133,15 @@ def _make_grid(
 def show_message(
     parent: Gtk.Window, title: str, message: str, icon: str = "info"
 ) -> None:
-    """Display an informational alert dialog."""
+    """Display an alert dialog with an *icon* role (info, warning or error)."""
     alert = Adw.AlertDialog()
     alert.set_heading(title)
     alert.set_body(message)
     alert.add_response("ok", "_OK")
     if icon == "error":
         alert.set_response_appearance("ok", Adw.ResponseAppearance.DESTRUCTIVE)
+    elif icon == "warning":
+        alert.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
     alert.present(parent)
 
 
@@ -131,11 +161,7 @@ def ask_string(
     dialog = Adw.Dialog()
     dialog.set_title(title)
     dialog.set_content_width(400)
-    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-    box.set_margin_top(24)
-    box.set_margin_bottom(24)
-    box.set_margin_start(24)
-    box.set_margin_end(24)
+    box = _make_dialog_box(spacing=12)
 
     entry = Gtk.Entry()
     entry.set_hexpand(True)
@@ -199,11 +225,7 @@ class FindDialog(Adw.Dialog):
         self._editor = editor
         self._use_regex = False
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         self._entry = Gtk.Entry()
         self._entry.set_hexpand(True)
@@ -235,21 +257,7 @@ class FindDialog(Adw.Dialog):
             pattern = re.compile(term if self._use_regex else re.escape(term))
         except re.error:
             return
-
-        text = self._editor.get_text()
-        cursor_offset = self._editor.get_cursor_iter().get_offset()
-
-        match = pattern.search(text, cursor_offset)
-        if not match:
-            match = pattern.search(text)
-        if match is None:
-            return
-
-        buf = self._editor.get_buffer()
-        start = buf.get_iter_at_offset(match.start())
-        end = buf.get_iter_at_offset(match.end())
-        buf.select_range(start, end)
-        self._editor.scroll_to_cursor()
+        _find_and_select(self._editor, pattern)
 
     def _on_search_changed(self, entry) -> None:
         """Update the editor's search highlights as the user types."""
@@ -274,11 +282,7 @@ class ReplaceDialog(Adw.Dialog):
         self._editor = editor
         self._use_regex = False
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         self._find_entry = Gtk.Entry()
         self._find_entry.set_hexpand(True)
@@ -329,35 +333,17 @@ class ReplaceDialog(Adw.Dialog):
         pattern = self._get_pattern()
         if pattern is None:
             return
-        text = self._editor.get_text()
-        offset = self._editor.get_cursor_iter().get_offset()
-        match = pattern.search(text, offset)
-        if not match:
-            match = pattern.search(text)
-        if match is None:
-            return
-        buf = self._editor.get_buffer()
-        buf.select_range(
-            buf.get_iter_at_offset(match.start()),
-            buf.get_iter_at_offset(match.end()),
-        )
-        self._editor.scroll_to_cursor()
+        _find_and_select(self._editor, pattern)
 
     def _on_replace(self, *_args) -> None:
         """Replace the current match and advance to the next."""
         pattern = self._get_pattern()
         if pattern is None:
             return
-        text = self._editor.get_text()
-        offset = self._editor.get_cursor_iter().get_offset()
-        match = pattern.search(text, offset)
-        if not match:
-            match = pattern.search(text)
-        if match is None:
+        if not _find_and_select(self._editor, pattern):
             return
         buf = self._editor.get_buffer()
-        start = buf.get_iter_at_offset(match.start())
-        end = buf.get_iter_at_offset(match.end())
+        start, end = buf.get_selection_bounds()
         buf.begin_user_action()
         buf.delete(start, end)
         buf.insert(start, self._replace_entry.get_text(), -1)
@@ -398,11 +384,7 @@ class TableDialog(Adw.Dialog):
 
         self._callback = callback
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         self._cols_spin = Gtk.SpinButton()
         self._cols_spin.set_range(1, 20)
@@ -419,12 +401,7 @@ class TableDialog(Adw.Dialog):
         self._footer_check.set_active(True)
         box.append(self._footer_check)
 
-        box.append(
-            _make_button_box(
-                _make_button("Insert", self._on_insert, suggested=True),
-                _make_button("Cancel", lambda _: self.close()),
-            )
-        )
+        box.append(_make_insert_cancel_box(self))
         self.set_child(box)
 
     def _on_insert(self, *_args) -> None:
@@ -465,11 +442,7 @@ class FuriganaDialog(Adw.Dialog):
 
         self._callback = callback
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         self._kanji_entry = Gtk.Entry()
         self._kanji_entry.set_hexpand(True)
@@ -483,12 +456,7 @@ class FuriganaDialog(Adw.Dialog):
             )
         )
 
-        box.append(
-            _make_button_box(
-                _make_button("Insert", self._on_insert, suggested=True),
-                _make_button("Cancel", lambda _: self.close()),
-            )
-        )
+        box.append(_make_insert_cancel_box(self))
 
         self._kanji_entry.connect("activate", lambda _: self._on_insert())
         self._reading_entry.connect("activate", lambda _: self._on_insert())
@@ -520,11 +488,7 @@ class HeaderLinkDialog(Adw.Dialog):
 
         self._callback = callback
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         self._id_entry = Gtk.Entry()
         self._id_entry.set_hexpand(True)
@@ -538,12 +502,7 @@ class HeaderLinkDialog(Adw.Dialog):
             )
         )
 
-        box.append(
-            _make_button_box(
-                _make_button("Insert", self._on_insert, suggested=True),
-                _make_button("Cancel", lambda _: self.close()),
-            )
-        )
+        box.append(_make_insert_cancel_box(self))
 
         self._id_entry.connect("activate", lambda _: self._on_insert())
         self._text_entry.connect("activate", lambda _: self._on_insert())
@@ -575,11 +534,7 @@ class FootnoteDialog(Adw.Dialog):
 
         self._callback = callback
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         self._ref_entry = Gtk.Entry()
         self._ref_entry.set_hexpand(True)
@@ -593,12 +548,7 @@ class FootnoteDialog(Adw.Dialog):
             )
         )
 
-        box.append(
-            _make_button_box(
-                _make_button("Insert", self._on_insert, suggested=True),
-                _make_button("Cancel", lambda _: self.close()),
-            )
-        )
+        box.append(_make_insert_cancel_box(self))
 
         self._ref_entry.connect("activate", lambda _: self._on_insert())
         self.set_child(box)
@@ -629,11 +579,7 @@ class DefinitionListDialog(Adw.Dialog):
 
         self._callback = callback
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         self._term_entry = Gtk.Entry()
         self._term_entry.set_hexpand(True)
@@ -650,12 +596,7 @@ class DefinitionListDialog(Adw.Dialog):
             )
         )
 
-        box.append(
-            _make_button_box(
-                _make_button("Insert", self._on_insert, suggested=True),
-                _make_button("Cancel", lambda _: self.close()),
-            )
-        )
+        box.append(_make_insert_cancel_box(self))
         self.set_child(box)
         self._term_entry.grab_focus()
 
@@ -696,11 +637,7 @@ class YAMLFrontMatterDialog(Adw.Dialog):
         fields = ["lang", "title", "author", "description", "keywords"]
         self._entries: dict[str, Gtk.Entry] = {}
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         grid = Gtk.Grid()
         grid.set_column_spacing(8)
@@ -725,12 +662,7 @@ class YAMLFrontMatterDialog(Adw.Dialog):
             grid.attach(entry, 1, i, 1, 1)
         box.append(grid)
 
-        box.append(
-            _make_button_box(
-                _make_button("Insert", self._on_insert, suggested=True),
-                _make_button("Cancel", lambda _: self.close()),
-            )
-        )
+        box.append(_make_insert_cancel_box(self))
         self.set_child(box)
 
     def _on_insert(self, *_args) -> None:
@@ -765,11 +697,7 @@ class DateTimeDialog(Adw.Dialog):
         self._callback = callback
         self._choice = "date_time"
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box()
 
         group = Gtk.CheckButton()
         for label, value in [
@@ -787,12 +715,7 @@ class DateTimeDialog(Adw.Dialog):
             )
             box.append(btn)
 
-        box.append(
-            _make_button_box(
-                _make_button("Insert", self._on_insert, suggested=True),
-                _make_button("Cancel", lambda _: self.close()),
-            )
-        )
+        box.append(_make_insert_cancel_box(self))
         self.set_child(box)
 
     def _on_insert(self, *_args) -> None:
@@ -826,11 +749,7 @@ class ChoiceDialog(Adw.Dialog):
 
         self.result: str | None = None
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box(spacing=12)
 
         lbl = Gtk.Label(label=prompt)
         lbl.set_xalign(0.0)
@@ -845,12 +764,9 @@ class ChoiceDialog(Adw.Dialog):
         self._dropdown.set_selected(idx)
         box.append(self._dropdown)
 
-        box.append(
-            _make_button_box(
-                _make_button("OK", self._on_ok, suggested=True),
-                _make_button("Cancel", lambda _: self.close()),
-            )
-        )
+        ok_btn = _make_button("OK", self._on_ok, suggested=True)
+        cancel_btn = _make_button("Cancel", lambda _: self.close())
+        box.append(_make_button_box(ok_btn, cancel_btn))
         self.set_child(box)
 
     def _on_ok(self, *_args) -> None:
@@ -878,11 +794,7 @@ class AboutDialog(Adw.Dialog):
         self.set_title("About")
         self.set_content_width(360)
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        box.set_margin_top(24)
-        box.set_margin_bottom(24)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
+        box = _make_dialog_box(spacing=12)
         box.set_halign(Gtk.Align.CENTER)
 
         lbl = Gtk.Label(label=f"{app_name}, version {version} ({release})")

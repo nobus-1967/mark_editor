@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import urllib.request
 import webbrowser
 from pathlib import Path
 
@@ -42,17 +43,42 @@ from mark_editor.editor import Editor
 from mark_editor.helpers import (
     cleanup_tilde_files,
     ensure_cache_dir,
+    load_font,
     load_temp_md,
     load_theme,
-    load_font,
     md_to_html,
     md_to_pdf,
     md_to_plain,
+    save_font,
     save_temp_html,
     save_temp_md,
     save_theme,
-    save_font,
 )
+
+
+def _strip_heading_marker(text: str) -> str:
+    """Remove a leading Markdown heading marker (``#`` run) from *text*."""
+    return re.sub(r"^#{1,6}\s*", "", text)
+
+
+def _strip_list_marker(text: str) -> str:
+    """Remove a leading ordered/unordered/quote list marker from *text*."""
+    return re.sub(r"^(\d+\.|\*|-|>)\s*", "", text)
+
+
+def _make_md_filters() -> Gio.ListStore:
+    """Return a ListStore of file filters (Markdown docs and all files)."""
+    md_filter = Gtk.FileFilter()
+    md_filter.set_name("Markdown files")
+    md_filter.add_pattern("*.md")
+    md_filter.add_pattern("*.markdown")
+    all_filter = Gtk.FileFilter()
+    all_filter.set_name("All files")
+    all_filter.add_pattern("*")
+    filters = Gio.ListStore.new(Gtk.FileFilter)
+    filters.append(md_filter)
+    filters.append(all_filter)
+    return filters
 
 
 class MarkEditorWindow(Gtk.ApplicationWindow):
@@ -138,7 +164,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
     # ------------------------------------------------------------------
 
     def _build_menubar_model(self) -> Gio.Menu:
-        """Return the full menu-bar model (File / Edit / Format / Paragraph / View / Help)."""
+        """Return the full menu-bar model (File/Edit/Format/Paragraph/View/Help)."""
         menubar = Gio.Menu()
 
         # ── File ──
@@ -182,6 +208,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         fmt_menu.append("Header Link...", "app.header-link")
         fmt_menu.append("Hyperlink...", "app.hyperlink")
         fmt_menu.append("Footnote...", "app.footnote")
+        fmt_menu.append("Date and Time...", "app.date-time")
+        fmt_menu.append("Special Mark", "app.special-mark")
         fmt_menu.append("Language Marker...", "app.language-marker")
         fmt_menu.append("Language Wrapping...", "app.language-wrapping")
 
@@ -192,9 +220,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         fmt_menu.append_submenu("Language Codes", lang_codes_menu)
 
         fmt_menu.append("Furigana...", "app.furigana")
-        fmt_menu.append("Date and Time...", "app.date-time")
-        fmt_menu.append("Special Mark", "app.special-mark")
-        fmt_menu.append("Clear Formatting", "app.clear-formatting")
 
         # ── Emoji Shortcodes submenu ──
         emoji_menu = Gio.Menu()
@@ -208,6 +233,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             safe_name = name.replace(" ", "-")
             signs_menu.append(f"{sign} {name}", f"app.insert-sign-{safe_name}")
         fmt_menu.append_submenu("Special Signs", signs_menu)
+
+        fmt_menu.append("Clear Formatting", "app.clear-formatting")
 
         menubar.append_submenu("Format", fmt_menu)
 
@@ -244,6 +271,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         # ── Help ──
         help_menu = Gio.Menu()
         help_menu.append("Markdown Guide", "app.help-markdown-guide")
+        help_menu.append("Full Markdown Functionality Reference", "app.help-md-ref")
         help_menu.append("About Editor", "app.help-about")
         menubar.append_submenu("Help", help_menu)
 
@@ -267,6 +295,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
         section3 = Gio.Menu()
         section3.append("Toggle Theme", "app.toggle-theme")
+        section3.append("Full Markdown Functionality Reference", "app.help-md-ref")
         section3.append("About Editor", "app.help-about")
         menu.append_section(None, section3)
         return menu
@@ -276,7 +305,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
     # ------------------------------------------------------------------
 
     def _update_title(self) -> None:
-        """Refresh the window title to reflect current file name and modification state."""
+        """Refresh the title to reflect the file name and modification state."""
         symbol = "*" if self.is_modified else ""
         name = self.current_file.name if self.current_file else "New File"
         self.set_title(f"{APP_NAME} - {symbol}{name}")
@@ -361,17 +390,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Open a file-chooser dialog to load a Markdown file."""
         dialog = Gtk.FileDialog()
         dialog.set_title("Open file")
-        f = Gtk.FileFilter()
-        f.set_name("Markdown files")
-        f.add_pattern("*.md")
-        f.add_pattern("*.markdown")
-        f2 = Gtk.FileFilter()
-        f2.set_name("All files")
-        f2.add_pattern("*")
-        filters = Gio.ListStore.new(Gtk.FileFilter)
-        filters.append(f)
-        filters.append(f2)
-        dialog.set_filters(filters)
+        dialog.set_filters(_make_md_filters())
         dialog.open(self, None, self._on_open_response)
 
     def _on_open_response(self, dialog, result) -> None:
@@ -380,15 +399,20 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             file = dialog.open_finish(result)
         except GLib.Error:
             return
-        if file is None:
-            return
+        self._load_file(Path(file.get_path()))
+
+    def _load_file(self, path: Path) -> None:
+        """Load *path* into the editor, cleaning up the previous file's temps."""
         try:
-            text = file.load_contents(None)[1].decode("utf-8")
+            text = path.read_text(encoding="utf-8")
         except Exception as exc:
             show_message(self, "Open file", str(exc), "error")
             return
+        old_file = self.current_file
         self._editor.set_text(text)
-        self.current_file = Path(file.get_path())
+        self.current_file = path
+        if old_file:
+            cleanup_tilde_files(old_file.parent)
         self.is_modified = False
         self._update_title()
 
@@ -404,6 +428,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.set_text(text)
         self.is_modified = False
         self._update_title()
+        cleanup_tilde_files(self.current_file.parent)
         show_message(self, "Reopen file", "File reopened!")
 
     def _on_save(self) -> bool:
@@ -422,8 +447,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             self.is_modified = False
             self._editor.set_modified(False)
             self._update_title()
-            # Clean up temp files with ~ prefix
-            cleanup_tilde_files(path.parent)
         except Exception as exc:
             show_message(self, "Save file", str(exc), "error")
             return
@@ -433,17 +456,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Open a file-chooser dialog to save under a new name."""
         dialog = Gtk.FileDialog()
         dialog.set_title("Save As")
-        f = Gtk.FileFilter()
-        f.set_name("Markdown files")
-        f.add_pattern("*.md")
-        f.add_pattern("*.markdown")
-        f2 = Gtk.FileFilter()
-        f2.set_name("All files")
-        f2.add_pattern("*")
-        filters = Gio.ListStore.new(Gtk.FileFilter)
-        filters.append(f)
-        filters.append(f2)
-        dialog.set_filters(filters)
+        dialog.set_filters(_make_md_filters())
 
         initial = self.current_file.name if self.current_file else "untitled.md"
         dialog.set_initial_name(initial)
@@ -455,8 +468,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         try:
             file = dialog.save_finish(result)
         except GLib.Error:
-            return
-        if file is None:
             return
         path = Path(file.get_path())
         if not path.suffix:
@@ -520,8 +531,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             file = dialog.save_finish(result)
         except GLib.Error:
             return
-        if file is None:
-            return
         path = Path(file.get_path())
         try:
             content = self._editor.get_text()
@@ -563,20 +572,23 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Redo the last undone editing action."""
         self._editor.redo()
 
-    def _on_cut(self) -> None:
-        """Cut the selection to the clipboard."""
+    def _copy_selection(self) -> bool:
+        """Copy the current selection to the clipboard. Returns True if copied."""
         clipboard = Gdk.Display.get_default().get_clipboard()
         text = self._editor.get_selected_text()
         if text:
             clipboard.set(text)
+            return True
+        return False
+
+    def _on_cut(self) -> None:
+        """Cut the selection to the clipboard."""
+        if self._copy_selection():
             self._editor.delete_selection()
 
     def _on_copy(self) -> None:
         """Copy the selection to the clipboard."""
-        clipboard = Gdk.Display.get_default().get_clipboard()
-        text = self._editor.get_selected_text()
-        if text:
-            clipboard.set(text)
+        self._copy_selection()
 
     def _on_paste(self) -> None:
         """Paste text from the clipboard asynchronously."""
@@ -843,7 +855,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.replace_line(self._editor.get_current_line_number(), new_text)
 
     def _add_blank_line_before_if_needed(self) -> None:
-        """Insert a blank line before the current line when the previous line is non-empty."""
+        """Insert a blank line if the previous line is non-empty."""
         line = self._editor.get_current_line_number()
         if line <= 1:
             return
@@ -855,33 +867,43 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             buf.insert(insert_pos, "\n")
             buf.end_user_action()
 
+    def _prev_line_is_list_item(self) -> bool:
+        """Return True when the previous line begins a list marker."""
+        line = self._editor.get_current_line_number()
+        if line <= 1:
+            return False
+        prev = self._editor.get_line_text(line - 1)
+        return bool(re.match(r"^(\d+\.|\*|-)\s", prev))
+
     def _on_heading(self, level: int) -> None:
         """Set the current line as a heading of the given *level* (1-6)."""
         text = self._get_current_line_text()
-        text = re.sub(r"^#{1,6}\s*", "", text)
+        text = _strip_heading_marker(text)
         self._add_blank_line_before_if_needed()
         self._replace_current_line(f"{'#' * level} {text}")
 
     def _on_paragraph(self) -> None:
         """Convert the current heading line to a normal paragraph."""
         text = self._get_current_line_text()
-        text = re.sub(r"^#{1,6}\s*", "", text)
+        text = _strip_heading_marker(text)
         self._add_blank_line_before_if_needed()
         self._replace_current_line(text)
 
     def _on_ordered_list(self) -> None:
         """Convert the current line to an ordered-list item (``1. …``)."""
         text = self._get_current_line_text()
-        text = re.sub(r"^(\d+\.|\*|-|>)\s*", "", text)
-        self._add_blank_line_before_if_needed()
+        text = _strip_list_marker(text)
+        if not self._prev_line_is_list_item():
+            self._add_blank_line_before_if_needed()
         self._replace_current_line(f"1. {text}")
 
     def _on_unordered_list(self) -> None:
-        """Convert the current line to an unordered-list item (``* …``)."""
+        """Convert the current line to an unordered-list item (``- …``)."""
         text = self._get_current_line_text()
-        text = re.sub(r"^(\d+\.|\*|-|>)\s*", "", text)
-        self._add_blank_line_before_if_needed()
-        self._replace_current_line(f"* {text}")
+        text = _strip_list_marker(text)
+        if not self._prev_line_is_list_item():
+            self._add_blank_line_before_if_needed()
+        self._replace_current_line(f"- {text}")
 
     def _on_definition_list(self) -> None:
         """Open the Definition List dialog to insert a term/definition block."""
@@ -889,7 +911,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         dlg.present()
 
     def _on_code_block(self) -> None:
-        """Prompt for a language tag and wrap the current line in a fenced code block."""
+        """Prompt for a language tag and wrap the line in a fenced code block."""
 
         def on_lang(lang):
             """Handle code block language input."""
@@ -936,8 +958,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         try:
             file = dialog.open_finish(result)
         except GLib.Error:
-            return
-        if file is None:
             return
         path = file.get_path()
 
@@ -993,7 +1013,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
         def on_comment(comment):
             """Handle comment input."""
-            if comment is None:
+            if not comment:
                 return
             self._insert_block(f"[{comment}]: #")
 
@@ -1100,7 +1120,11 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._quick_view(include_css=True)
 
     def _quick_view(self, include_css: bool) -> None:
-        """Quick view: save temp MD for saved files, then create HTML."""
+        """Quick view: write a temp HTML file and open it in the browser.
+
+        The temp HTML is rewritten on every quick view and deleted when the
+        application exits.
+        """
         content = self._editor.get_text()
         # For saved files, save temp MD with ~ prefix first
         if self.current_file:
@@ -1121,6 +1145,28 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
     def _on_help_markdown_guide(self) -> None:
         """Open the Markdown Guide website in the default browser."""
         webbrowser.open("https://www.markdownguide.org/")
+
+    def _on_help_md_ref(self) -> None:
+        """Download the Full Markdown Functionality Reference into the editor.
+
+        The file is fetched into ``~/.cache/mark_editor`` and opened in the
+        current window.
+        """
+        try:
+            req = urllib.request.Request(
+                "https://raw.githubusercontent.com/nobus-1967/mark_editor"
+                "/main/markdown2html5-base.md",
+                headers={"User-Agent": "MarkEditor/0.7"},
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                text = resp.read().decode("utf-8")
+        except Exception as exc:
+            show_message(self, "Reference", str(exc), "error")
+            return
+        cache = ensure_cache_dir()
+        path = cache / "markdown2html5-base.md"
+        path.write_text(text, encoding="utf-8")
+        self._load_file(path)
 
     def _on_help_about(self) -> None:
         """Show the About dialog with version and release information."""

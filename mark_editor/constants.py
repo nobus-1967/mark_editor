@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "0.6.5"
-RELEASE = "2026.09"
+VERSION = "0.7.0"
+RELEASE = datetime.now().strftime("%Y.%m")
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
 THEME_FILE = CONFIG_DIR / "theme.json"
@@ -21,18 +22,10 @@ EDITOR_COLORS: dict[str, dict[str, str]] = {
     "light": {
         "bg": "#ffffff",
         "fg": "#0f172a",
-        "cursor": "#0f172a",
-        "find_bg": "#fff3cd",
-        "find_fg": "#1f2937",
-        "border": "#cbd5e1",
     },
     "dark": {
         "bg": "#14181f",
         "fg": "#dee7f5",
-        "cursor": "#dee7f5",
-        "find_bg": "#2f4a78",
-        "find_fg": "#f2f6ff",
-        "border": "#2e3746",
     },
 }
 
@@ -75,8 +68,8 @@ SPECIAL_SIGNS: list[tuple[str, str]] = [
     ("slash", "&sol;"),
     ("backslash", "&bsol;"),
     ("left angle quote", "<<"),
-    ("left double quote", "&ldquo;"),
     ("right angle quote", ">>"),
+    ("left double quote", "&ldquo;"),
     ("right double quote", "&rdquo;"),
     ("em dash", "---"),
     ("en dash", "--"),
@@ -133,6 +126,3 @@ LANGUAGE_CODES: tuple[tuple[str, str], ...] = (
     ("zh-Hant-HK", "Traditional Chinese (Hong Kong)"),
     ("zh-Hant-TW", "Traditional Chinese (Taiwan)"),
 )
-
-EDITOR_FONT_SIZE = 16
-ZOOM_STEP = 2

@@ -5,8 +5,6 @@ description: Test Page for markdown2html5-base converter.
 keywords: markdown, html5
 published: 2026-09-02
 
-[Test Page, created for markdown2html5-base converter (ver. 0.3.7).]: #
-
 Heading 1
 
 Heading 2

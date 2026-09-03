@@ -62,7 +62,7 @@ The editor supports all markup elements listed in the [Full Markdown Functionali
 
 Since version 0.6.0, the application has been rewritten from tkinter/CustomTkinter to GTK4/libadwaita.
 
-The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) (>= 0.4.0) converts Markdown text into HTML5; [markdown2pdf](https://github.com/nobus-1967/markdown2pdf-base) (>= 0.4.2) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
+The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) (>= 0.5.0) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) (>= 0.5.0) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
 
 ### Package Structure
 
@@ -85,7 +85,7 @@ Users can switch between light and dark appearance modes for all interface eleme
 
 ## File Formats
 
-The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the [Full Markdown Functionality Reference](https://github.com/nobus-1967/markdown2html5-base).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the [Full Markdown Functionality Reference](./markdown2html5-base.md).
 
 The editor's Markdown format supports basic and extended Markdown syntax from Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
@@ -107,8 +107,8 @@ The editor font family and size can be changed via View > Editor Font (Ctrl+Alt+
 - libadwaita 1 (>= 1.4)
 - GtkSourceView 5 (>= 5.8)
 - PyGObject >= 3.50
-- [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.4.0
-- [markdown2pdf](https://github.com/nobus-1967/markdown2pdf-base) >= 0.4.2
+- [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.5.0
+- [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) >= 0.5.0
 
 ## Running the Application
 
@@ -132,7 +132,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.6.5-x86_64.AppImage`
+Output: `MarkEditor-0.7.0-x86_64.AppImage`
 
 ## Add-ons
 
@@ -189,12 +189,11 @@ The editor uses temporary files to preserve unsaved work and enable quick browse
 
 ### Cleanup
 
-Temporary files with the `~` prefix are automatically deleted:
+Temporary files with the `~` prefix are deleted when the user **opens or reopens**
+another file, and when the user **quits** the application or closes the window.
 
-- When the user saves the file (Save) or uses Save As;
-- When the user quits the application or closes the window.
-
-This ensures the working directory stays clean after the editor session ends.
+The **quick view** HTML (`~<stem>.html`) is rewritten with the latest content on
+every **Quick View** command and removed along with the other `~` files on exit.
 
 ## How It Works
 

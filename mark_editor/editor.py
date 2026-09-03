@@ -69,10 +69,6 @@ class Editor(Gtk.Box):
         """Return the underlying GtkSource.Buffer."""
         return self._buffer
 
-    def get_view(self) -> GtkSource.View:
-        """Return the underlying GtkSource.View widget."""
-        return self._view
-
     def get_text(self) -> str:
         """Return the full buffer content as a string."""
         start = self._buffer.get_start_iter()
@@ -80,20 +76,21 @@ class Editor(Gtk.Box):
         return self._buffer.get_text(start, end, include_hidden_chars=False)
 
     def set_text(self, text: str) -> None:
-        """Replace the entire buffer content with *text*."""
+        """Replace the entire buffer content with *text*.
+
+        Undo is temporarily disabled so the wholesale replacement is not
+        recorded in (nor complained about by) the undo stack.
+        """
+        undo = self._buffer.get_enable_undo()
+        self._buffer.set_enable_undo(False)
         self._buffer.set_text(text)
+        self._buffer.set_enable_undo(undo)
         self._buffer.set_modified(False)
 
     def insert_at_cursor(self, text: str) -> None:
         """Insert *text* at the current cursor position."""
         self._buffer.begin_user_action()
         self._buffer.insert_at_cursor(text, -1)
-        self._buffer.end_user_action()
-
-    def insert_at_iter(self, iter_: Gtk.TextIter, text: str) -> None:
-        """Insert *text* at the given text iterator position."""
-        self._buffer.begin_user_action()
-        self._buffer.insert(iter_, text, -1)
         self._buffer.end_user_action()
 
     def delete_selection(self) -> None:
@@ -106,9 +103,9 @@ class Editor(Gtk.Box):
 
     def select_all(self) -> None:
         """Select the entire document."""
-        start = self._buffer.get_start_iter()
-        end = self._buffer.get_end_iter()
-        self._buffer.select_range(start, end)
+        self._view.grab_focus()
+        buf = self._buffer
+        buf.select_range(buf.get_start_iter(), buf.get_end_iter())
 
     def get_selection_bounds(self) -> tuple[Gtk.TextIter, Gtk.TextIter] | None:
         """Return (start, end) iterators of the selection, or None."""
@@ -136,7 +133,7 @@ class Editor(Gtk.Box):
         self._buffer.end_user_action()
 
     def wrap_selection(self, wrapper: str) -> None:
-        """Surround the selection with *wrapper* characters, or place a pair at cursor."""
+        """Surround the selection with *wrapper*, or place a pair at the cursor."""
         bounds = self.get_selection_bounds()
         self._buffer.begin_user_action()
         if bounds is not None:
@@ -162,14 +159,6 @@ class Editor(Gtk.Box):
     def redo(self) -> bool:
         """Redo the last undone editing action."""
         return self._buffer.redo()
-
-    def can_undo(self) -> bool:
-        """Return True if an undo operation is available."""
-        return self._buffer.can_undo()
-
-    def can_redo(self) -> bool:
-        """Return True if a redo operation is available."""
-        return self._buffer.can_redo()
 
     def get_current_line_number(self) -> int:
         """Return the 1-based line number of the cursor."""
@@ -204,37 +193,18 @@ class Editor(Gtk.Box):
         """Return a TextIter at the current cursor position."""
         return self._buffer.get_iter_at_mark(self._buffer.get_insert())
 
-    def set_cursor_iter(self, iter_: Gtk.TextIter) -> None:
-        """Move the cursor to the position given by *iter_*."""
-        self._buffer.place_cursor(iter_)
-
     def scroll_to_cursor(self) -> None:
         """Scroll the view so the cursor is visible on screen."""
         mark = self._buffer.get_insert()
-        self._view.scroll_mark_onscreen(mark, True)
+        self._view.scroll_mark_onscreen(mark)
 
     def clear(self) -> None:
-        """Clear the entire buffer content."""
-        self._buffer.begin_user_action()
-        self._buffer.set_text("")
-        self._buffer.end_user_action()
-        self._buffer.set_modified(False)
+        """Clear the entire buffer content and reset the modification state."""
+        self.set_text("")
 
     def set_modified(self, modified: bool) -> None:
         """Mark the buffer as modified or unmodified."""
         self._buffer.set_modified(modified)
-
-    def is_modified(self) -> bool:
-        """Return True if the buffer has been modified since last save."""
-        return self._buffer.get_modified()
-
-    def connect_modified(self, callback) -> int:
-        """Connect *callback* to the buffer's modified-changed signal."""
-        return self._buffer.connect("modified-changed", callback)
-
-    def connect_changed(self, callback) -> int:
-        """Connect *callback* to the buffer's changed signal."""
-        return self._buffer.connect("changed", callback)
 
     def set_font_size(self, size: int) -> None:
         """Set the editor font size in pixels via CSS."""
@@ -276,7 +246,7 @@ class Editor(Gtk.Box):
             new_content = content.replace(find_text, replace_text)
             count = content.count(find_text)
         if count > 0:
-            self._buffer.set_text(new_content)
+            self.set_text(new_content)
         return count
 
     # --- Search highlighting ---
