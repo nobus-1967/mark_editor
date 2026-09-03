@@ -1,29 +1,32 @@
-# <code>markdown2html5-base</code>
+# `markdown2html5-base`
 
 # Full Markdown Functionality Reference
 
-This reference covers all 20 feature categories:
+This reference covers all `markdown2html5-base` features.
 
-* headings (with custom IDs),
-* inline styling (bold/italic/strikethrough/highlight/sub/sup/underline/code),
-* links and images,
-* fenced code blocks,
-* horizontal rules,
-* lists (unordered/ordered/task),
-* blockquotes,
-* tables (with alignment and table foot),
-* definition lists,
-* footnotes,
-* language markers,
-* ruby annotations,
-* emoji shortcodes,
-* typography/legal marks,
-* hard line breaks,
-* HTML comments,
-* YAML front matter,
-* predefined CSS styles,
-* backslash escaping,
-* and paragraph handling.
+## Table of Contents
+
+* [Programmatic Usage](#programmatic-usage)
+* [1. Headings (H1-H6)](#1-headings-h1-h6)
+* [2. Inline Text Styling](#2-inline-text-styling)
+* [3. Links and Images](#3-links-and-images)
+* [4. Fenced Code Blocks](#4-fenced-code-blocks)
+* [5. Horizontal Rules](#5-horizontal-rules)
+* [6. Lists](#6-lists)
+* [7. Blockquotes](#7-blockquotes)
+* [8. Tables](#8-tables)
+* [9. Definition Lists](#9-definition-lists)
+* [10. Footnotes](#10-footnotes)
+* [11. Language Markers](#11-language-markers)
+* [12. Ruby Annotations](#12-ruby-annotations)
+* [13. Emoji Shortcodes](#13-emoji-shortcodes)
+* [14. Typography and Legal Marks](#14-typography-and-legal-marks)
+* [15. Hard Line Breaks](#15-hard-line-breaks)
+* [16. HTML Comments](#16-html-comments)
+* [17. YAML Front Matter](#17-yaml-front-matter)
+* [18. Backslash Escaping](#18-backslash-escaping)
+* [19. Paragraphs](#19-paragraphs)
+* [20. CSS Styles](#20-css-styles)
 
 ## Programmatic Usage
 
@@ -109,7 +112,7 @@ Supports `<thead>`, `<tbody>`, `<tfoot>`, and alignment:
 | `:---:`   | center    |
 | `---:`    | right     |
 
-Footer: a row of `=` signs in the separator columns after body rows renders `<tfoot>`.
+Footer: a row of `=` signs below the separator columns, after the body rows, renders a `<tfoot>`.
 
 ```markdown
 | Product  | Qty | Price |
@@ -259,12 +262,12 @@ A French phrase {:fr}"L'État c'est moi"{:} is traditionally attributed to King 
 | Logical Equivalence         | `<=>`       | `&hArr;`             |
 | Less-Than or Equal To       | `<=`        | `&le;`               |
 | Greater-Than or Equal To    | `>=`        | `&ge;`               |
-| Left Arrow                  | `->`        | `&rarr;`             |
-| Right Arrow                 | `<-`        | `&larr;`             |
+| Right Arrow                 | `->`        | `&rarr;`             |
+| Left Arrow                  | `<-`        | `&larr;`             |
 | Up Arrow                    | `&uarr;`    | `&uarr;`             |
 | Down Arrow                  | `&darr;`    | `&darr;`             |
 | Logical Implication         | `=>`        | `&rArr;`             |
-| Solidus (Slash)             | `&sol`      | `&sol;`              |
+| Solidus (Slash)             | `&sol;`     | `&sol;`              |
 | Reverse Solidus (Backslash) | `&bsol;`    | `&bsol;`             |
 | One-Half                    | `1/2`       | `&frac12;`           |
 | One-Third                   | `1/3`       | `&frac13;`           |
@@ -272,8 +275,8 @@ A French phrase {:fr}"L'État c'est moi"{:} is traditionally attributed to King 
 | One-Quarter                 | `1/4`       | `&frac14;`           |
 | Three-Quarters              | `3/4`       | `&frac34;`           |
 | Left Angle Quote            | `<<`        | `&laquo;`            |
-| Left Double Quote           | `&ldquo;`   | `&ldquo;`            |
 | Right Angle Quote           | `>>`        | `&raquo;`            |
+| Left Double Quote           | `&ldquo;`   | `&ldquo;`            |
 | Right Double Quote          | `&rdquo;`   | `&rdquo;`            |
 | Smart Double Quotes         | `"text"`    | `&ldquo;text&rdquo;` |
 | Smart Single Quotes         | `'text'`    | `&lsquo;text&rsquo;` |
@@ -348,38 +351,88 @@ Empty line after list close => `<!-- -->` preserves whitespace.
 ## 20. CSS Styles
 
 The converter (with `--css` option or `include_css=True`) embeds a default `<style>` block in `<head>` that provides viewing-friendly styling, regardless of YAML front matter.
-This predefined CSS rulles includes:
+This predefined CSS rules includes:
 ```css
 body {
   padding: 20px;
-  font-family:
-    "Noto Serif",
-    "Liberation Serif",
-    "Times New Roman",
-    Times,
-    serif;
+  font-family: "Noto Serif", "Liberation Serif", "Times New Roman", Times, serif;
   font-size: 18px;
   line-height: 1.4;
   color: #000000;
+  background-color: #ffffff;
 }
-h1, h2, h3, h4, h5, h6 {
+h1 {
   margin-top: 1.2em;
   margin-bottom: 0.6em;
-  font-family:
-    "Noto Sans",
-    "Liberation Sans",
-    Arial,
-    sans-serif;
+  font-family: "Noto Sans", "Liberation Sans", Arial, sans-serif;
   font-weight: bold;
+  font-size: 32px;
+  hyphens: auto;
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
 }
-h1 { font-size: 32px; }
-h2 { font-size: 28px; }
-h3 { font-size: 24px; }
-h4 { font-size: 20px; }
-h5 { font-size: 18px; }
+h2 {
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+  font-family: "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  font-weight: bold;
+  font-size: 28px;
+  hyphens: auto;
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+h3 {
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+  font-family: "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  font-weight: bold;
+  font-size: 24px;
+  hyphens: auto;
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+h4 {
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+  font-family: "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  hyphens: auto;
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+h5 {
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+  font-family: "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  font-weight: bold;
+  font-size: 18px;
+  hyphens: auto;
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
 h6 {
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+  font-family: "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  font-weight: bold;
   font-size: 18px;
   font-style: italic;
+  hyphens: auto;
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+p {
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 hr {
   height: 4px;
@@ -387,45 +440,72 @@ hr {
   border: none;
   background-color: #000000;
 }
-li {
-  position: relative;
-  padding-left: 20px;
-}
-dt { font-weight: bold; }
-dd {
-  position: relative;
-  margin-left: 0;
-  padding-left: 20px;
-  font-style: italic;
-}
 blockquote {
   margin-left: 0;
   padding-left: 20px;
   border-left: 8px solid #f5f5f5;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 mark {
   padding: 0 2px;
   border-radius: 4px;
   background-color: #ffff00;
+  color: #000000;
 }
 a:link { color: #0000cd; }
 a:visited { color: #9400d3; }
-a:hover, a:focus {
-  outline: none;
-  color: #000080;
-}
+a:hover { outline: none; color: #000080; }
+a:focus { outline: none; color: #000080; }
 a:active { color: #dc143c; }
+ol {
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+ul {
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+li {
+  position: relative;
+  padding-left: 20px;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+dt {
+  font-weight: bold;
+  hyphens: auto;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+dd {
+  position: relative;
+  margin-left: 0;
+  padding-left: 20px;
+  font-style: italic;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
 code {
   padding: 2px 4px;
   border-radius: 4px;
-  font-family:
-    "Noto Sans Mono",
-    "Liberation Mono",
-    "Courier New",
-    Courier,
-    monospace;
+  font-family: "Noto Sans Mono", "Liberation Mono", "Courier New", Courier, monospace;
   font-size: 0.9em;
   line-height: 1;
+  hyphens: none !important;
+  white-space: normal;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 pre {
   max-width: 100%;
@@ -435,6 +515,9 @@ pre {
   background-color: #f5f5f5;
   overflow: auto;
   scrollbar-color: #000000 transparent;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 pre > code {
   display: block;
@@ -445,16 +528,15 @@ pre > code {
   line-height: 1.2;
   background-color: transparent;
   overflow: visible;
+  hyphens: none !important;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 div.code-lang {
   display: block;
   padding: 10px 20px;
-  font-family:
-    "Noto Sans Mono",
-    "Liberation Mono",
-    "Courier New",
-    Courier,
-    monospace;
+  font-family: "Noto Sans Mono", "Liberation Mono", "Courier New", Courier, monospace;
   font-size: 0.9em;
   line-height: 1;
   background-color: #000000;
@@ -465,19 +547,16 @@ table {
   margin: 20px 0;
   border-collapse: collapse;
 }
-th, td {
-  padding: 10px 12px;
-  border: 1px solid #000000;
-}
-th { font-weight: bold; }
-thead tr {
-  background-color: #000000;
-  color: #ffffff;
-}
-tfoot tr {
-  background-color: #f5f5f5;
-  font-style: italic;
-}
+th { padding: 10px 12px; border: 1px solid #000000; font-weight: bold; }
+td { padding: 10px 12px; border: 1px solid #000000; }
+thead tr { background-color: #000000; color: #ffffff; }
+thead th { hyphens: auto; word-break: break-word; overflow-wrap: anywhere; }
+thead td { hyphens: auto; word-break: break-word; overflow-wrap: anywhere; }
+tbody th { hyphens: auto; word-break: break-word; overflow-wrap: anywhere; }
+tbody td { hyphens: auto; word-break: break-word; overflow-wrap: anywhere; }
+tfoot tr { background-color: #f5f5f5; font-style: italic; }
+tfoot th { hyphens: auto; word-break: break-word; overflow-wrap: anywhere; }
+tfoot td { hyphens: auto; word-break: break-word; overflow-wrap: anywhere; }
 figure {
   display: block;
   margin: 0;
@@ -490,80 +569,53 @@ figure img {
 figcaption {
   text-align: left;
   font-style: italic;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
-ruby { ruby-position: over; }
+ruby { ruby-position: over; ruby-align: space-around; }
 rt {
   letter-spacing: 0.05em;
   font-size: 0.55em;
   line-break: strict;
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 rp { display: none; }
 span[lang="ja"] {
-  font-family:
-    "Noto Serif CJK JP",
-    "Source Han Serif JP",
-    "源ノ明朝",
-    "Source Han Serif",
-    "Hiragino Mincho ProN",
-    "Hiragino Mincho Pro",
-    "IPAexMincho",
-    "IPAMincho",
-    "MS PMincho",
-    "MS Mincho",
-    serif;
+  font-family: "Noto Serif CJK JP", "Source Han Serif JP", "源ノ明朝", "Source Han Serif", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "IPAexMincho", "IPAMincho", "MS PMincho", "MS Mincho", serif;
+  word-break: break-all;
+  line-break: normal;
 }
-span[lang="zh-CN"], span[lang="zh-Hans"] {
-  font-family:
-    "Noto Serif CJK SC",
-    "Source Han Serif SC",
-    "思源宋体",
-    "Source Han Serif CN",
-    "Source Han Serif",
-    "Songti SC",
-    "FandolSong",
-    "WenQuanYi Bitmap Song",
-    "SimSun",
-    serif;
+span[lang="zh-CN"] {
+  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "思源宋体", "Source Han Serif CN", "Source Han Serif", "Songti SC", "FandolSong", "WenQuanYi Bitmap Song", "SimSun", serif;
+  word-break: break-all;
+  line-break: normal;
 }
-span[lang="zh-TW"], span[lang="zh-Hant"] {
-  font-family:
-    "Noto Serif CJK TC",
-    "Source Han Serif TC",
-    "思源宋體",
-    "Source Han Serif TW",
-    "Source Han Serif",
-    "Apple LiSung",
-    "LiSong Pro",
-    "HanaMinA",
-    "PMingLiU",
-    "MingLiU",
-    serif;
+span[lang="zh-Hans"] {
+  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "思源宋体", "Source Han Serif CN", "Source Han Serif", "Songti SC", "FandolSong", "WenQuanYi Bitmap Song", "SimSun", serif;
+  word-break: break-all;
+  line-break: normal;
+}
+span[lang="zh-TW"] {
+  font-family: "Noto Serif CJK TC", "Source Han Serif TC", "思源宋體", "Source Han Serif TW", "Source Han Serif", "Apple LiSung", "LiSong Pro", "HanaMinA", "PMingLiU", "MingLiU", serif;
+  word-break: break-all;
+  line-break: normal;
+}
+span[lang="zh-Hant"] {
+  font-family: "Noto Serif CJK TC", "Source Han Serif TC", "思源宋體", "Source Han Serif TW", "Source Han Serif", "Apple LiSung", "LiSong Pro", "HanaMinA", "PMingLiU", "MingLiU", serif;
+  word-break: break-all;
+  line-break: normal;
 }
 span[lang="zh-HK"] {
-  font-family:
-    "Noto Serif CJK HK",
-    "Source Han Serif HK",
-    "思源宋體 香港",
-    "思源宋體",
-    "Source Han Serif",
-    "Apple LiSung",
-    "LiSong Pro",
-    "HanaMinA",
-    "MingLiU_HKSCS",
-    "PMingLiU",
-    "MingLiU",
-    serif;
+  font-family: "Noto Serif CJK HK", "Source Han Serif HK", "思源宋體 香港", "思源宋體", "Source Han Serif", "Apple LiSung", "LiSong Pro", "HanaMinA", "MingLiU_HKSCS", "PMingLiU", "MingLiU", serif;
+  word-break: break-all;
+  line-break: normal;
 }
 span[lang="ko"] {
-  font-family:
-    "Noto Serif CJK KR",
-    "Source Han Serif KR",
-    "본명조",
-    "Source Han Serif",
-    "AppleMyungjo",
-    "UnBatang",
-    "은바탕",
-    "Batang",
-    serif;
+  font-family: "Noto Serif CJK KR", "Source Han Serif KR", "본명조", "Source Han Serif", "AppleMyungjo", "UnBatang", "은바탕", "Batang", serif;
+  word-break: break-all;
+  line-break: normal;
 }
 ```
