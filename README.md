@@ -20,6 +20,7 @@ A simple Markdown editor that supports standard Markdown, GFM extensions, smart 
   - [Special Signs](#special-signs)
   - [Language Markers](#language-markers)
   - [Ruby Annotation/Furigana](#ruby-annotationfurigana)
+  - [Tables](#tables)
   - [YAML Front Matter](#yaml-front-matter)
 - [Temporary Files](#temporary-files)
   - [New (unsaved) files](#new-unsaved-files)
