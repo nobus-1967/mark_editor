@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.8.1 (GTK4)."""
+"""Tests for Mark Editor 0.8.2 (GTK4)."""
 
 import os
 import sys
@@ -61,7 +61,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.8.1")
+        self.assertEqual(VERSION, "0.8.2")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -162,7 +162,13 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
     def test_ordered_list(self):
         """Applying an ordered list prefixes the line with '1. '."""
         self.app._editor.set_text("item")
-        self.app._on_ordered_list()
+        with unittest.mock.patch(
+            "mark_editor.window.OrderedListDialog",
+            return_value=unittest.mock.MagicMock(),
+        ) as mock_dlg:
+            self.app._on_ordered_list()
+            callback = mock_dlg.call_args.args[0]
+            callback(1)
         self.assertTrue(self.app._editor.get_text().startswith("1. "))
 
     def test_unordered_list(self):

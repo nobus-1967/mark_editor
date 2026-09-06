@@ -502,14 +502,13 @@ class FuriganaDialog(Adw.Dialog):
 class OrderedListDialog(Adw.Dialog):
     """Dialog for picking an ordered-list item number."""
 
-    def __init__(self, parent: Gtk.Window, callback) -> None:
+    def __init__(self, callback) -> None:
         """Initialize the dialog; *callback(number)* runs on a valid number."""
         super().__init__()
         self.set_title("Ordered List")
         self.set_content_width(360)
 
         self._callback = callback
-        self._parent = parent
 
         box = _make_dialog_box()
 
@@ -517,45 +516,22 @@ class OrderedListDialog(Adw.Dialog):
         lbl.set_xalign(0.0)
         box.append(lbl)
 
-        self._number_entry = Gtk.Entry()
-        self._number_entry.set_hexpand(True)
+        self._spin = Gtk.SpinButton.new_with_range(1, 999, 1)
+        self._spin.set_value(1)
 
-        self._menu = Gtk.DropDown.new(
-            Gtk.StringList.new([str(n) for n in range(1, 21)])
-        )
-        self._menu.set_selected(0)
-        self._menu.connect("notify::selected-item", self._on_menu_change)
-
-        box.append(self._menu)
-        box.append(self._number_entry)
+        box.append(self._spin)
 
         box.append(_make_insert_cancel_box(self))
 
-        self._number_entry.connect("activate", lambda _: self._on_insert())
+        self._spin.connect("activate", lambda _: self._on_insert())
         self.set_child(box)
-        self._number_entry.grab_focus()
-        self._number_entry.set_position(-1)
-
-    def _on_menu_change(self, _menu, *_args) -> None:
-        """Fill the entry with the number chosen in the drop-down."""
-        item = self._menu.get_selected_item()
-        if item is not None:
-            self._number_entry.set_text(item.get_string())
+        self._spin.grab_focus()
 
     def _on_insert(self, *_args) -> None:
-        """Validate the number and, if valid, run the *callback* and close."""
-        number = self._number_entry.get_text().strip()
-        if not number.isdigit() or int(number) < 1:
-            show_message(
-                self._parent,
-                "Ordered List",
-                "The item's number must be a positive integer (e.g. 1, 2, …).",
-                "warning",
-            )
-            return
+        """Signal the *callback* with the chosen number and close."""
         self.close()
         if self._callback:
-            self._callback(int(number))
+            self._callback(int(self._spin.get_value()))
 
 
 # ---------------------------------------------------------------------------

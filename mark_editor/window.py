@@ -253,7 +253,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         for level in range(1, 7):
             para_menu.append(f"Heading {level}", f"app.heading-{level}")
         para_menu.append("Paragraph", "app.paragraph")
-        para_menu.append("Ordered List", "app.ordered-list")
+        para_menu.append("Ordered List...", "app.ordered-list")
         para_menu.append("Unordered List", "app.unordered-list")
         para_menu.append("Definition List...", "app.definition-list")
         para_menu.append("Code Block...", "app.code-block")
@@ -910,7 +910,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             self._replace_current_line(f"{number}. {text}")
             self._editor.focus()
 
-        dlg = OrderedListDialog(self, on_number)
+        dlg = OrderedListDialog(on_number)
         dlg.present()
 
     def _on_unordered_list(self) -> None:
@@ -1204,7 +1204,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             req = urllib.request.Request(
                 "https://raw.githubusercontent.com/nobus-1967/mark_editor"
                 "/main/markdown2html5-base.md",
-                headers={"User-Agent": "MarkEditor/0.8.1"},
+                headers={"User-Agent": "MarkEditor/0.8.2"},
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 text = resp.read().decode("utf-8")

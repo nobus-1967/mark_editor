@@ -130,14 +130,14 @@ python3 -m mark_editor.main
 
 ```bash
 # Download appimagetool (if not present)
-curl -sL https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
+curl -sL https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
 chmod +x appimagetool
 
 # Build
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.8.1-x86_64.AppImage`
+Output: `MarkEditor-0.8.2-x86_64.AppImage`
 
 ## Add-ons
 

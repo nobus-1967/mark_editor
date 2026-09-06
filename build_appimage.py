@@ -4,7 +4,7 @@
 Requirements:
     - Python 3 with venv module
     - GTK4 runtime libraries on the host
-    - appimagetool (download from https://github.com/AppImage/AppImageKit/releases)
+    - appimagetool (download from https://github.com/AppImage/appimagetool/releases)
 
 Usage:
     python3 build_appimage.py
@@ -16,7 +16,7 @@ import subprocess
 import sys
 
 APP_NAME = "Mark Editor"
-VERSION = "0.8.1"
+VERSION = "0.8.2"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_DIR = os.path.join(BASE_DIR, "mark_editor")
 ICON_SRC = os.path.join(BASE_DIR, "images", "mark_editor.png")
@@ -100,7 +100,6 @@ def create_appdir() -> None:
     # Desktop file
     with open(DESKTOP_SRC) as f:
         desktop = f.read()
-    desktop = desktop.replace("Icon=images/mark_editor.png", "Icon=mark-editor")
     with open(os.path.join(BUILD_DIR, "mark-editor.desktop"), "w") as f:
         f.write(desktop)
 
@@ -120,7 +119,7 @@ def build_appimage() -> None:
         tool = os.path.join(BASE_DIR, "appimagetool")
     if not os.path.isfile(tool):
         print("ERROR: appimagetool not found.")
-        print("  Download from: https://github.com/AppImage/AppImageKit/releases")
+        print("  Download from: https://github.com/AppImage/appimagetool/releases")
         print("  Or place it in the project directory as 'appimagetool'")
         sys.exit(1)
 
