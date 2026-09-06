@@ -51,7 +51,7 @@ The main functions of the editor:
 - add emoji;
 - do some typographic replacements;
 - create new files, open and save files (including 'Save As' action using a new file name) through native GTK4 file chooser dialogs, reopen files (close without saving and open them again);
-- quick view Markdown files (using the system default browser);
+- quick view Markdown files in a built-in GTK4/WebKit window (with or without embedded CSS);
 - export files to other formats (HTML5, plain text and PDF);
 - use commands from menus or shortcuts for operations;
 - toggle modern light and dark themes (live, no restart needed).
@@ -72,8 +72,9 @@ mark_editor/
   main.py            # Entry point
   application.py     # Gtk.Application with actions and keyboard shortcuts
   window.py          # Main Gtk.ApplicationWindow + HeaderBar
-  editor.py          # GtkSourceView-based editor with built-in line numbers
+  editor.py          # GtkSourceView-based editor with line numbers
   dialogs.py         # All dialog classes (Find, Replace, Table, etc.)
+  viewer.py          # GTK4/WebKit quick-view window
   constants.py       # Application constants
   helpers.py         # Resource paths, theme/font persistence, markdown utils
   marks.css          # Custom CSS stylesheet
@@ -106,6 +107,7 @@ The editor font family and size can be changed via View > Editor Font (Ctrl+Alt+
 - GTK 4 (>= 4.12)
 - libadwaita 1 (>= 1.4)
 - GtkSourceView 5 (>= 5.8)
+- WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
 - PyGObject >= 3.50
 - [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.5.0
 - [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) >= 0.5.0
@@ -132,7 +134,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.7.1-x86_64.AppImage`
+Output: `MarkEditor-0.8.0-x86_64.AppImage`
 
 ## Add-ons
 
@@ -177,25 +179,24 @@ Users can add this metadata to the beginning of a document using a special dialo
 
 ## Temporary Files
 
-The editor uses temporary files to preserve unsaved work and enable quick browser preview:
+The editor uses temporary files to preserve unsaved work and to feed the built-in quick view:
 
 ### New (unsaved) files
 
-- **Temp file**: `~/.cache/mark_editor/Temp.md` — stores unsaved content until the file is saved or the app is closed.
-- **Quick view**: `~/.cache/mark_editor/Temp.html` — temporary HTML for browser preview.
+- **Processing**: `~/.cache/mark_editor/Temp.md` — autosaved buffer content, kept as a session backup.
+- **Quick view**: `~/.cache/mark_editor/Temp.html` — temporary HTML for the quick-view window.
 
 ### Saved/opened files
 
-- **Temp file**: `<directory>/~<filename>.md` — created before quick view to preserve the current state.
-- **Quick view**: `<directory>/~<stem>.html` — HTML preview file with the same name but `.html` extension.
+- **Processing**: `<directory>/~<filename>.md` — autosaved copy of the buffer, placed next to the source file.
+- **Quick view**: `<directory>/~<stem>.html` — HTML preview with the same stem but a `.html` extension.
 
 ### Cleanup
 
-Temporary files with the `~` prefix are deleted when the user **opens or reopens**
-another file, and when the user **quits** the application or closes the window.
+Temporary Markdown files (`~*.md`) are deleted when the associated file is closed — when opening or reopening another file — and when the editor window is closed via the close button or the Quit command.
 
-The **quick view** HTML (`~<stem>.html`) is rewritten with the latest content on
-every **Quick View** command and removed along with the other `~` files on exit.
+The quick-view HTML (`~*.html`) is rewritten with the latest content on every **Quick View** / **Quick View CSS** command and deleted when the quick-view
+window is closed.  Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
 
 ## How It Works
 

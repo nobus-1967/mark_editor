@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import contextlib
 import re
 import urllib.request
 import webbrowser
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import gi
 
@@ -14,6 +16,9 @@ gi.require_version("Gdk", "4.0")
 gi.require_version("GtkSource", "5")
 
 from gi.repository import Gdk, Gio, GLib, Gtk, GtkSource, Pango
+
+if TYPE_CHECKING:
+    from mark_editor.viewer import QuickViewWindow
 
 from mark_editor.constants import (
     APP_NAME,
@@ -42,7 +47,8 @@ from mark_editor.dialogs import (
 )
 from mark_editor.editor import Editor
 from mark_editor.helpers import (
-    cleanup_tilde_files,
+    cleanup_temp_html,
+    cleanup_temp_md,
     ensure_cache_dir,
     load_font,
     load_temp_md,
@@ -97,10 +103,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self.current_file: Path | None = None
         self.is_modified = False
         self._idle_update_pending = False
+        self._quick_view_windows: list[QuickViewWindow] = []
 
         self._build_ui()
         self._restore_pending_text()
         self._update_title()
+        self.connect("close-request", self._on_close_request)
 
     # ------------------------------------------------------------------
     # UI construction
@@ -413,7 +421,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.set_text(text)
         self.current_file = path
         if old_file:
-            cleanup_tilde_files(old_file.parent)
+            cleanup_temp_md(old_file.parent)
         self.is_modified = False
         self._update_title()
 
@@ -429,7 +437,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.set_text(text)
         self.is_modified = False
         self._update_title()
-        cleanup_tilde_files(self.current_file.parent)
+        cleanup_temp_md(self.current_file.parent)
         show_message(self, "Reopen file", "File reopened!")
 
     def _on_save(self) -> bool:
@@ -484,7 +492,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             "PDF file (.pdf)",
         ]
         dlg = ChoiceDialog(
-            self, prompt="Choose the target format:", items=formats, initial=formats[0]
+            prompt="Choose the target format:", items=formats, initial=formats[0]
         )
         dlg.connect("closed", lambda _: self._convert_after_choice(dlg.result, formats))
         dlg.present()
@@ -552,13 +560,34 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             return
         show_message(self, "Convert", "Conversion complete!")
 
+    def _cleanup_temp_files(self) -> None:
+        """Delete the current document's temporary ~*.md and ~*.html files."""
+        if self.current_file:
+            cleanup_temp_md(self.current_file.parent)
+            cleanup_temp_html(self.current_file.parent)
+        else:
+            cleanup_temp_md(ensure_cache_dir())
+            cleanup_temp_html(ensure_cache_dir())
+
+    def _close_quick_view_windows(self) -> None:
+        """Close all open quick-view windows (deleting their ~*.html files)."""
+        for window in list(self._quick_view_windows):
+            window.close()
+
+    def _on_quick_view_window_closed(self, window: QuickViewWindow) -> None:
+        """Forget a quick-view window once it is closed or destroyed."""
+        with contextlib.suppress(ValueError):
+            self._quick_view_windows.remove(window)
+
+    def _on_close_request(self, _widget) -> bool:
+        """Clean up temp files when the editor window is closed."""
+        self._close_quick_view_windows()
+        self._cleanup_temp_files()
+        return False
+
     def _on_quit(self) -> None:
         """Clean up temp files and close the application window."""
-        # Clean up temp files in the working directory
-        if self.current_file:
-            cleanup_tilde_files(self.current_file.parent)
-        else:
-            cleanup_tilde_files(ensure_cache_dir())
+        self._on_close_request(None)
         self.close()
 
     # ------------------------------------------------------------------
@@ -661,12 +690,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_find(self) -> None:
         """Open the Find dialog."""
-        dlg = FindDialog(self, self._editor)
+        dlg = FindDialog(self._editor)
         dlg.present()
 
     def _on_replace(self) -> None:
         """Open the Find & Replace dialog."""
-        dlg = ReplaceDialog(self, self._editor)
+        dlg = ReplaceDialog(self._editor)
         dlg.present()
 
     # ------------------------------------------------------------------
@@ -734,7 +763,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_header_link(self) -> None:
         """Open the Header Link dialog to insert a heading cross-reference."""
-        dlg = HeaderLinkDialog(self, self._insert_text)
+        dlg = HeaderLinkDialog(self._insert_text)
         dlg.present()
 
     def _on_hyperlink(self) -> None:
@@ -773,7 +802,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
                 buf.insert(end, f"\n\n[^{ref}]: {definition}")
             self._editor.focus()
 
-        dlg = FootnoteDialog(self, callback)
+        dlg = FootnoteDialog(callback)
         dlg.present()
 
     def _on_language_marker(self) -> None:
@@ -824,12 +853,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_furigana(self) -> None:
         """Open the Furigana dialog to add a ruby annotation."""
-        dlg = FuriganaDialog(self, self._editor)
+        dlg = FuriganaDialog(self._editor)
         dlg.present()
 
     def _on_date_time(self) -> None:
         """Open the Date & Time dialog to insert a formatted timestamp."""
-        dlg = DateTimeDialog(self, self._insert_text)
+        dlg = DateTimeDialog(self._insert_text)
         dlg.present()
 
     def _on_special_mark(self) -> None:
@@ -915,7 +944,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_definition_list(self) -> None:
         """Open the Definition List dialog to insert a term/definition block."""
-        dlg = DefinitionListDialog(self, self._insert_block)
+        dlg = DefinitionListDialog(self._insert_block)
         dlg.present()
 
     def _on_code_block(self) -> None:
@@ -941,7 +970,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_table(self) -> None:
         """Open the Table dialog to insert a Markdown table."""
-        dlg = TableDialog(self, self._insert_block)
+        dlg = TableDialog(self._insert_block)
         dlg.present()
 
     def _on_image(self) -> None:
@@ -1048,7 +1077,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             buf.end_user_action()
             self._editor.focus()
 
-        dlg = YAMLFrontMatterDialog(self, callback)
+        dlg = YAMLFrontMatterDialog(callback)
         dlg.present()
 
     def _insert_block(self, text: str) -> None:
@@ -1120,18 +1149,19 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         save_font(self._editor_font_family, self.editor_font_size)
 
     def _on_quick_view(self) -> None:
-        """Render the document as HTML5 and open it in the default browser."""
+        """Render the document as HTML5 and show it in a quick-view window."""
         self._quick_view(include_css=False)
 
     def _on_quick_view_css(self) -> None:
-        """Render the document as HTML5 with embedded CSS and open in the browser."""
+        """Render the document with embedded CSS in a quick-view window."""
         self._quick_view(include_css=True)
 
     def _quick_view(self, include_css: bool) -> None:
-        """Quick view: write a temp HTML file and open it in the browser.
+        """Render the document as HTML5 and show it in a quick-view window.
 
-        The temp HTML is rewritten on every quick view and deleted when the
-        application exits.
+        A temp HTML file is generated, then opened in a new GTK4/WebKit
+        window.  The temp HTML is rewritten on every quick view and deleted
+        when the quick-view window closes.
         """
         content = self._editor.get_text()
         # For saved files, save temp MD with ~ prefix first
@@ -1144,7 +1174,14 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         except Exception as exc:
             show_message(self, "Quick View", str(exc), "error")
             return
-        webbrowser.open(html_path.as_uri())
+
+        from mark_editor.viewer import QuickViewWindow
+
+        title = "Quick View CSS" if include_css else "Quick View"
+        window = QuickViewWindow(html_path.as_uri(), title=title, html_path=html_path)
+        self._quick_view_windows.append(window)
+        window.connect("close-request", self._on_quick_view_window_closed)
+        window.connect("destroy", self._on_quick_view_window_closed)
 
     # ------------------------------------------------------------------
     # Help
@@ -1164,7 +1201,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             req = urllib.request.Request(
                 "https://raw.githubusercontent.com/nobus-1967/mark_editor"
                 "/main/markdown2html5-base.md",
-                headers={"User-Agent": "MarkEditor/0.7"},
+                headers={"User-Agent": "MarkEditor/0.8"},
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 text = resp.read().decode("utf-8")
@@ -1180,7 +1217,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Show the About dialog with version and release information."""
         from mark_editor.constants import RELEASE
 
-        dlg = AboutDialog(self, APP_NAME, VERSION, RELEASE)
+        dlg = AboutDialog(APP_NAME, VERSION, RELEASE)
         dlg.present()
 
     # ------------------------------------------------------------------

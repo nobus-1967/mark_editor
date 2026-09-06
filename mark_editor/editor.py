@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -236,12 +238,10 @@ class Editor(Gtk.Box):
         When *use_regex* is True the search string is treated as a regular
         expression.  Returns the number of replacements made.
         """
-        import re as _re
-
         content = self.get_text()
         if use_regex:
-            pattern = _re.compile(find_text)
-            new_content, count = _re.subn(pattern, replace_text, content)
+            pattern = re.compile(find_text)
+            new_content, count = re.subn(pattern, replace_text, content)
         else:
             new_content = content.replace(find_text, replace_text)
             count = content.count(find_text)
@@ -275,8 +275,8 @@ class Editor(Gtk.Box):
         colors = EDITOR_COLORS.get(mode, EDITOR_COLORS["light"])
         css = f"""
         .mark-editor sourceview {{
-            background: {colors['bg']};
-            color: {colors['fg']};
+            background: {colors["bg"]};
+            color: {colors["fg"]};
         }}
         """
         provider = Gtk.CssProvider()

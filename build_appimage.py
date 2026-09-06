@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build an AppImage for Mark Editor 4.
+"""Build an AppImage for Mark Editor.
 
 Requirements:
     - Python 3 with venv module
@@ -15,9 +15,8 @@ import shutil
 import subprocess
 import sys
 
-APP_ID = "com.github.mark_editor"
 APP_NAME = "Mark Editor"
-VERSION = "0.7.1"
+VERSION = "0.8.0"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_DIR = os.path.join(BASE_DIR, "mark_editor")
 ICON_SRC = os.path.join(BASE_DIR, "images", "mark_editor.png")

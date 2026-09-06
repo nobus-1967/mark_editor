@@ -156,15 +156,25 @@ def save_temp_html(html: str, current_file: Path | None) -> Path:
     return path
 
 
-def cleanup_tilde_files(directory: Path) -> None:
-    """Delete all files with ~ prefix in the given directory."""
+def _delete_tilde_files(directory: Path, suffix: str) -> None:
+    """Delete ``~*<suffix>`` files in the given directory (best effort)."""
     try:
         if directory.exists():
             for f in directory.iterdir():
-                if f.is_file() and f.name.startswith("~"):
+                if f.is_file() and f.name.startswith("~") and f.name.endswith(suffix):
                     f.unlink()
     except Exception:
         pass
+
+
+def cleanup_temp_md(directory: Path) -> None:
+    """Delete temporary Markdown files (~*.md) in the given directory."""
+    _delete_tilde_files(directory, ".md")
+
+
+def cleanup_temp_html(directory: Path) -> None:
+    """Delete temporary HTML files (~*.html) in the given directory."""
+    _delete_tilde_files(directory, ".html")
 
 
 # ---------------------------------------------------------------------------

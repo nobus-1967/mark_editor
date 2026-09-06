@@ -216,8 +216,8 @@ def ask_string(
 class FindDialog(Adw.Dialog):
     """Dialog for searching text within the editor."""
 
-    def __init__(self, parent: Gtk.Window, editor) -> None:
-        """Initialize the Find dialog with parent window and editor reference."""
+    def __init__(self, editor) -> None:
+        """Initialize the Find dialog with a reference to the editor."""
         super().__init__()
         self.set_title("Find")
         self.set_content_width(420)
@@ -273,8 +273,8 @@ class FindDialog(Adw.Dialog):
 class ReplaceDialog(Adw.Dialog):
     """Dialog for finding and replacing text in the editor."""
 
-    def __init__(self, parent: Gtk.Window, editor) -> None:
-        """Initialize the Replace dialog with parent window and editor reference."""
+    def __init__(self, editor) -> None:
+        """Initialize the Replace dialog with a reference to the editor."""
         super().__init__()
         self.set_title("Replace")
         self.set_content_width(420)
@@ -376,8 +376,8 @@ class ReplaceDialog(Adw.Dialog):
 class TableDialog(Adw.Dialog):
     """Dialog for inserting a Markdown table."""
 
-    def __init__(self, parent: Gtk.Window, callback) -> None:
-        """Initialize the Table dialog with parent window and callback."""
+    def __init__(self, callback) -> None:
+        """Initialize the Table dialog with a result callback."""
         super().__init__()
         self.set_title("Insert Table")
         self.set_content_width(380)
@@ -434,7 +434,7 @@ class TableDialog(Adw.Dialog):
 class FuriganaDialog(Adw.Dialog):
     """Dialog for adding a furigana (ruby) annotation."""
 
-    def __init__(self, parent: Gtk.Window, editor) -> None:
+    def __init__(self, editor) -> None:
         """Initialize the dialog; *editor* receives the ruby annotation."""
         super().__init__()
         self.set_title("Furigana (Ruby Annotation)")
@@ -547,8 +547,8 @@ class OrderedListDialog(Adw.Dialog):
 class HeaderLinkDialog(Adw.Dialog):
     """Dialog for inserting a cross-reference link to a document heading."""
 
-    def __init__(self, parent: Gtk.Window, callback) -> None:
-        """Initialize the Header Link dialog with parent window and callback."""
+    def __init__(self, callback) -> None:
+        """Initialize the Header Link dialog with a result callback."""
         super().__init__()
         self.set_title("Insert Header Link")
         self.set_content_width(380)
@@ -593,8 +593,8 @@ class HeaderLinkDialog(Adw.Dialog):
 class FootnoteDialog(Adw.Dialog):
     """Dialog for inserting a footnote reference and optional definition."""
 
-    def __init__(self, parent: Gtk.Window, callback) -> None:
-        """Initialize the Footnote dialog with parent window and callback."""
+    def __init__(self, callback) -> None:
+        """Initialize the Footnote dialog with a result callback."""
         super().__init__()
         self.set_title("Insert Footnote")
         self.set_content_width(380)
@@ -638,8 +638,8 @@ class FootnoteDialog(Adw.Dialog):
 class DefinitionListDialog(Adw.Dialog):
     """Dialog for inserting a Markdown definition-list block."""
 
-    def __init__(self, parent: Gtk.Window, callback) -> None:
-        """Initialize the Definition List dialog with parent window and callback."""
+    def __init__(self, callback) -> None:
+        """Initialize the Definition List dialog with a result callback."""
         super().__init__()
         self.set_title("Definition List")
         self.set_content_width(400)
@@ -693,8 +693,8 @@ class DefinitionListDialog(Adw.Dialog):
 class YAMLFrontMatterDialog(Adw.Dialog):
     """Dialog for inserting a YAML front-matter metadata block."""
 
-    def __init__(self, parent: Gtk.Window, callback) -> None:
-        """Initialize the YAML Front Matter dialog with parent window and callback."""
+    def __init__(self, callback) -> None:
+        """Initialize the YAML Front Matter dialog with a result callback."""
         super().__init__()
         self.set_title("YAML Front Matter")
         self.set_content_width(420)
@@ -755,8 +755,8 @@ class YAMLFrontMatterDialog(Adw.Dialog):
 class DateTimeDialog(Adw.Dialog):
     """Dialog for inserting a formatted date and/or time stamp."""
 
-    def __init__(self, parent: Gtk.Window, callback) -> None:
-        """Initialize the Date & Time dialog with parent window and callback."""
+    def __init__(self, callback) -> None:
+        """Initialize the Date & Time dialog with a result callback."""
         super().__init__()
         self.set_title("Insert Date and Time")
         self.set_content_width(320)
@@ -806,9 +806,7 @@ class DateTimeDialog(Adw.Dialog):
 class ChoiceDialog(Adw.Dialog):
     """Dialog for selecting an item from a drop-down list."""
 
-    def __init__(
-        self, parent: Gtk.Window, prompt: str, items: list[str], initial: str
-    ) -> None:
+    def __init__(self, prompt: str, items: list[str], initial: str) -> None:
         """Initialize the Choice dialog with prompt, items, and initial selection."""
         super().__init__()
         self.set_title("Select")
@@ -853,9 +851,7 @@ class ChoiceDialog(Adw.Dialog):
 class AboutDialog(Adw.Dialog):
     """Dialog showing application name, version and release information."""
 
-    def __init__(
-        self, parent: Gtk.Window, app_name: str, version: str, release: str
-    ) -> None:
+    def __init__(self, app_name: str, version: str, release: str) -> None:
         """Initialize the About dialog with app name, version, and release."""
         super().__init__()
         self.set_title("About")

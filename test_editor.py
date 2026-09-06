@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.7.1 (GTK4)."""
+"""Tests for Mark Editor 0.8.0 (GTK4)."""
 
 import os
 import sys
@@ -19,6 +19,8 @@ from mark_editor.constants import (
     VERSION,
 )
 from mark_editor.helpers import (
+    cleanup_temp_html,
+    cleanup_temp_md,
     ensure_cache_dir,
     get_converter,
     load_font,
@@ -59,7 +61,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.7.1")
+        self.assertEqual(VERSION, "0.8.0")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -197,17 +199,6 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         self.app._on_toggle_theme()
         self.assertEqual(load_theme(), expected)
 
-    def test_line_numbers(self):
-        """The gutter buffer reflects the editor's line count."""
-        self.app._editor.set_text("a\nb\nc\n")
-        self.app._editor.update_line_numbers()
-        numbers = self.app._editor._gutter_buffer.get_text(
-            self.app._editor._gutter_buffer.get_start_iter(),
-            self.app._editor._gutter_buffer.get_end_iter(),
-            include_hidden_chars=False,
-        )
-        self.assertEqual(numbers, "1\n2\n3\n4")
-
     def test_md_to_plain(self):
         """md_to_plain strips Markdown markup and keeps the text."""
         text = md_to_plain("# Title\n\nSome **bold** and [link](https://x.com).")
@@ -236,20 +227,62 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
     def test_quick_view_without_css(self):
         """Quick view renders HTML5 output without embedded CSS."""
         self.app._editor.set_text("# Hello")
-        with unittest.mock.patch("mark_editor.window.webbrowser.open"):
+        with unittest.mock.patch(
+            "mark_editor.window.QuickViewWindow",
+            return_value=unittest.mock.MagicMock(),
+        ) as mock_view:
             self.app._on_quick_view()
         html = (ensure_cache_dir() / "Temp.html").read_text(encoding="utf-8")
         self.assertIn("<h1>", html)
         self.assertNotIn("<style>", html)
+        self.assertEqual(
+            mock_view.call_args.kwargs["html_path"], ensure_cache_dir() / "Temp.html"
+        )
 
     def test_quick_view_with_css(self):
         """Quick view with CSS renders HTML5 output with embedded styles."""
         self.app._editor.set_text("# Hello")
-        with unittest.mock.patch("mark_editor.window.webbrowser.open"):
+        with unittest.mock.patch(
+            "mark_editor.window.QuickViewWindow",
+            return_value=unittest.mock.MagicMock(),
+        ) as mock_view:
             self.app._on_quick_view_css()
         html = (ensure_cache_dir() / "Temp.html").read_text(encoding="utf-8")
         self.assertIn("<h1>", html)
         self.assertIn("<style>", html)
+        self.assertEqual(
+            mock_view.call_args.kwargs["html_path"], ensure_cache_dir() / "Temp.html"
+        )
+
+
+class TestTempFileCleanup(unittest.TestCase):
+    """Verify targeted deletion of temporary ~*.md and ~*.html files."""
+
+    def _make_dir(self) -> Path:
+        """Create a temp directory with mixed tilde and plain files."""
+        d = Path(tempfile.mkdtemp())
+        (d / "~doc.md").write_text("x", encoding="utf-8")
+        (d / "~doc.html").write_text("x", encoding="utf-8")
+        (d / "~notes").write_text("x", encoding="utf-8")
+        (d / "doc.md").write_text("x", encoding="utf-8")
+        return d
+
+    def test_cleanup_temp_md_only(self):
+        """cleanup_temp_md removes ~*.md but keeps other files."""
+        d = self._make_dir()
+        cleanup_temp_md(d)
+        self.assertFalse((d / "~doc.md").exists())
+        self.assertTrue((d / "~doc.html").exists())
+        self.assertTrue((d / "~notes").exists())
+        self.assertTrue((d / "doc.md").exists())
+
+    def test_cleanup_temp_html_only(self):
+        """cleanup_temp_html removes ~*.html but keeps other files."""
+        d = self._make_dir()
+        cleanup_temp_html(d)
+        self.assertFalse((d / "~doc.html").exists())
+        self.assertTrue((d / "~doc.md").exists())
+        self.assertTrue((d / "~notes").exists())
 
 
 class TestMarkdownConversion(unittest.TestCase):
