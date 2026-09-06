@@ -58,6 +58,8 @@ The main functions of the editor:
 
 The editor supports all markup elements listed in the [Full Markdown Functionality Reference](https://github.com/nobus-1967/markdown2html5-base).
 
+See also [Full List of Editor's Dialogs, Commands & Submenus (with Shorcuts)](./mark_editor_shotcuts.md).
+
 ## Code Base
 
 Since version 0.6.0, the application has been rewritten from tkinter/CustomTkinter to GTK4/libadwaita.
