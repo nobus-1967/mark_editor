@@ -16,7 +16,7 @@ import subprocess
 import sys
 
 APP_NAME = "Mark Editor"
-VERSION = "0.8.0"
+VERSION = "0.8.1"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_DIR = os.path.join(BASE_DIR, "mark_editor")
 ICON_SRC = os.path.join(BASE_DIR, "images", "mark_editor.png")
@@ -37,13 +37,20 @@ def step(msg: str) -> None:
 
 
 def clean() -> None:
-    """Remove any previous build directory and output AppImage."""
+    """Remove any previous build directory and all stale AppImages."""
     step("Cleaning old builds")
     for p in (BUILD_DIR, OUTPUT):
         if os.path.isdir(p):
             shutil.rmtree(p)
         elif os.path.isfile(p):
             os.remove(p)
+    for f in os.scandir(BASE_DIR):
+        if (
+            f.name.startswith("MarkEditor-")
+            and f.name.endswith(".AppImage")
+            and f.is_file()
+        ):
+            os.remove(f.path)
 
 
 def create_appdir() -> None:

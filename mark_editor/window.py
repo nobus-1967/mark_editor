@@ -41,6 +41,7 @@ from mark_editor.dialogs import (
     OrderedListDialog,
     ReplaceDialog,
     TableDialog,
+    TableRowDialog,
     YAMLFrontMatterDialog,
     ask_string,
     show_message,
@@ -258,6 +259,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         para_menu.append("Code Block...", "app.code-block")
         para_menu.append("Blockquote", "app.blockquote")
         para_menu.append("Table...", "app.table")
+        para_menu.append("Add Table Row", "app.add-table-row")
+        align_menu = Gio.Menu()
+        align_menu.append(":--- left", "app.align-left")
+        align_menu.append(":---: center", "app.align-center")
+        align_menu.append("---: right", "app.align-right")
+        para_menu.append_submenu("Table Alignment", align_menu)
         para_menu.append("Image...", "app.image")
         para_menu.append("Line Break", "app.line-break")
         para_menu.append("Horizontal Rule", "app.horizontal-rule")
@@ -274,7 +281,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         view_menu.append("Zoom In", "app.zoom-in")
         view_menu.append("Zoom Out", "app.zoom-out")
         view_menu.append("Quick View", "app.quick-view")
-        view_menu.append("Quick View CSS", "app.quick-view-css")
+        view_menu.append("Quick View (CSS)", "app.quick-view-css")
         menubar.append_submenu("View", view_menu)
 
         # ── Help ──
@@ -294,17 +301,17 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         section.append("Open...", "app.open")
         section.append("Save", "app.save")
         section.append("Save As...", "app.save-as")
+        section.append("Convert...", "app.convert")
         menu.append_section(None, section)
 
         section2 = Gio.Menu()
         section2.append("Find...", "app.find")
         section2.append("Replace...", "app.replace")
-        section2.append("Select All", "app.select-all")
         menu.append_section(None, section2)
 
         section3 = Gio.Menu()
         section3.append("Toggle Theme", "app.toggle-theme")
-        section3.append("Full Markdown Functionality Reference", "app.help-md-ref")
+        section3.append("Quick View (CSS)", "app.quick-view-css")
         section3.append("About Editor", "app.help-about")
         menu.append_section(None, section3)
         return menu
@@ -358,34 +365,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
     # ------------------------------------------------------------------
     # File operations
     # ------------------------------------------------------------------
-
-    def _check_save(self, callback) -> None:
-        """Prompt the user to save unsaved changes before proceeding.
-
-        *callback* is called with True (proceed) or False (cancel) once the
-        user answers.  Uses ``Gtk.AlertDialog`` which is non-blocking.
-        """
-        if not self.is_modified:
-            callback(True)
-            return
-        alert = Gtk.AlertDialog()
-        alert.set_message("Save changes")
-        alert.set_detail("Save the opened file?")
-        alert.add_button("_Cancel", 0)
-        alert.add_button("_Yes", 1)
-        alert.add_button("_No", 2)
-        alert.set_cancel_button(0)
-        alert.set_default_button(1)
-
-        def on_response(dlg, res):
-            """Handle alert dialog response."""
-            try:
-                choice = dlg.choose_finish(res)
-                callback(choice != 0)
-            except GLib.Error:
-                callback(False)
-
-        alert.choose(self, None, on_response)
 
     def _on_new(self) -> None:
         """Clear the editor and reset to an empty untitled document."""
@@ -973,6 +952,30 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         dlg = TableDialog(self._insert_block)
         dlg.present()
 
+    def _on_add_table_row(self) -> None:
+        """Insert a new table row below the current line with a chosen cell count."""
+
+        def on_count(count: int) -> None:
+            """Apply the chosen *count* as a pipe row on the next line."""
+            row = "| " + " | ".join(["Cell"] * count) + " |"
+            line = self._editor.get_current_line_number()
+            buf = self._editor.get_buffer()
+            _, end = buf.get_iter_at_line(line - 1)
+            if not end.ends_line():
+                end.forward_to_line_end()
+            buf.begin_user_action()
+            buf.insert(end, "\n" + row)
+            buf.end_user_action()
+            self._editor.focus()
+
+        dlg = TableRowDialog(on_count)
+        dlg.present()
+
+    def _on_table_align(self, marker: str) -> None:
+        """Insert a table alignment marker at the cursor or on the selection."""
+        self._editor.replace_selection(marker)
+        self._editor.focus()
+
     def _on_image(self) -> None:
         """Open a file chooser for an image, then prompt for alt text and title."""
         dialog = Gtk.FileDialog()
@@ -1177,7 +1180,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
         from mark_editor.viewer import QuickViewWindow
 
-        title = "Quick View CSS" if include_css else "Quick View"
+        title = "Quick View (CSS)" if include_css else "Quick View"
         window = QuickViewWindow(html_path.as_uri(), title=title, html_path=html_path)
         self._quick_view_windows.append(window)
         window.connect("close-request", self._on_quick_view_window_closed)
@@ -1201,7 +1204,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             req = urllib.request.Request(
                 "https://raw.githubusercontent.com/nobus-1967/mark_editor"
                 "/main/markdown2html5-base.md",
-                headers={"User-Agent": "MarkEditor/0.8"},
+                headers={"User-Agent": "MarkEditor/0.8.1"},
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 text = resp.read().decode("utf-8")

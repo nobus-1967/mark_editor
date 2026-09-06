@@ -134,7 +134,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.8.0-x86_64.AppImage`
+Output: `MarkEditor-0.8.1-x86_64.AppImage`
 
 ## Add-ons
 
@@ -144,7 +144,7 @@ The Format > Emoji Shortcodes submenu inserts emoji shortcodes (e.g. `:joy:`, `:
 
 ### Special Signs
 
-The Format > Special Signs submenu inserts punctuation and special characters at the cursor. Items show the inserted expression followed by its name. The list includes typographic quotes (`&ldquo;`, `&rdquo;`, `<<`, `>>`), arrows (`->`, `<-`, `&uarr;`, `&darr;`, `=>`), the slash `&sol;` and backslash `&bsol;`, dashes (`---`, `--`), the ellipsis `...`, the non-breaking space `&nbsp;`, and the protected symbols `(c)`, `(tm)`, `(r)`, `+/-`, `!=`, `<=>`, `<=`, `>=`. These are printed as HTML5/PDF entities in the exported documents.
+The Format > Special Signs submenu inserts punctuation and special characters at the cursor. Items show the inserted expression followed by its name. The list includes typographic quotes (`&ldquo;`, `&rdquo;`, `<<`, `>>`), arrows (`<-`, `->`, `&uarr;`, `&darr;`, `=>`), the slash `&sol;` and backslash `&bsol;`, dashes (`---`, `--`), the ellipsis `...`, the non-breaking space `&nbsp;`, and the protected symbols `(c)`, `(tm)`, `(r)`, `+/-`, `!=`, `<=>`, `<=`, `>=`. These are printed as HTML5/PDF entities in the exported documents.
 
 ### Language Markers
 
@@ -157,6 +157,14 @@ The Format > Language Codes submenu lists the same tags with human-readable name
 Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語|にほんご}`, which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
 
 Use **Format → Furigana...** to add a ruby reading. When text (kanji/hanzi/kana) is **selected**, it is prefilled as the base text and the annotation wraps exactly those selected symbols; otherwise you type the base text yourself, and the annotation is inserted at the cursor.
+
+### Tables
+
+The editor helps you build Markdown tables with a footer and cell alignment:
+
+- **Paragraph → Table...** opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and `Footer` row.
+- **Paragraph → Add Table Row** (shortcut `Ctrl+Shift+R`) inserts a pipe row of `Cell` entries below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
+- **Paragraph → Table Alignment** inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
 
 ### YAML Front Matter
 

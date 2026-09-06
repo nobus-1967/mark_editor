@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "0.8.0"
+VERSION = "0.8.1"
 RELEASE = datetime.now().strftime("%Y.%m")
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
@@ -60,8 +60,8 @@ SPECIAL_SIGNS: list[tuple[str, str]] = [
     ("logical equivalence", "<=>"),
     ("less-than/equal to", "<="),
     ("greater-than/equal to", ">="),
-    ("left arrow", "->"),
-    ("right arrow", "<-"),
+    ("left arrow", "<-"),
+    ("right arrow", "->"),
     ("up arrow", "&uarr;"),
     ("down arrow", "&darr;"),
     ("logical implication", "=>"),

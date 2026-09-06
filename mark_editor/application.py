@@ -144,6 +144,18 @@ class MarkEditorApp(Gtk.Application):
         self._add_action("code-block", lambda a, p: _w() and _w()._on_code_block())
         self._add_action("blockquote", lambda a, p: _w() and _w()._on_blockquote())
         self._add_action("table", lambda a, p: _w() and _w()._on_table())
+        self._add_action(
+            "add-table-row", lambda a, p: _w() and _w()._on_add_table_row()
+        )
+        self._add_action(
+            "align-left", lambda a, p: _w() and _w()._on_table_align(":---")
+        )
+        self._add_action(
+            "align-center", lambda a, p: _w() and _w()._on_table_align(":---:")
+        )
+        self._add_action(
+            "align-right", lambda a, p: _w() and _w()._on_table_align("---:")
+        )
         self._add_action("image", lambda a, p: _w() and _w()._on_image())
         self._add_action("line-break", lambda a, p: _w() and _w()._on_line_break())
         self._add_action(
@@ -261,6 +273,7 @@ class MarkEditorApp(Gtk.Application):
             ("app.code-block", ["<Control><Shift>k"]),
             ("app.blockquote", ["<Control><Shift>q"]),
             ("app.table", ["<Control>t"]),
+            ("app.add-table-row", ["<Control><Shift>r"]),
             ("app.image", ["<Control><Shift>i"]),
             ("app.line-break", ["<Control>backslash"]),
             ("app.horizontal-rule", ["<Control>underscore"]),

@@ -24,8 +24,6 @@ class Editor(Gtk.Box):
         self.set_vexpand(True)
         self.set_hexpand(True)
 
-        self._mode = mode
-
         # --- Buffer ---
         self._buffer = GtkSource.Buffer()
         self._buffer.set_highlight_matching_brackets(False)
@@ -267,7 +265,6 @@ class Editor(Gtk.Box):
 
     def set_mode(self, mode: str) -> None:
         """Switch the editor color scheme ('light' or 'dark')."""
-        self._mode = mode
         self._apply_colors(mode)
 
     def _apply_colors(self, mode: str) -> None:

@@ -386,11 +386,9 @@ class TableDialog(Adw.Dialog):
 
         box = _make_dialog_box()
 
-        self._cols_spin = Gtk.SpinButton()
-        self._cols_spin.set_range(1, 20)
+        self._cols_spin = Gtk.SpinButton.new_with_range(1, 20, 1)
         self._cols_spin.set_value(3)
-        self._rows_spin = Gtk.SpinButton()
-        self._rows_spin.set_range(1, 50)
+        self._rows_spin = Gtk.SpinButton.new_with_range(1, 50, 1)
         self._rows_spin.set_value(3)
 
         box.append(
@@ -410,25 +408,46 @@ class TableDialog(Adw.Dialog):
         rows = int(self._rows_spin.get_value())
         use_footer = self._footer_check.get_active()
 
-        header = "| " + " | ".join(f"Header {i + 1}" for i in range(cols)) + " |"
+        header = "| " + " | ".join(["Header"] * cols) + " |"
         align = "| " + " | ".join(":---:" for _ in range(cols)) + " |"
         lines = ["", header, align]
-        for r in range(rows):
-            lines.append(
-                "| " + " | ".join(f"Cell {r + 1}-{c + 1}" for c in range(cols)) + " |"
-            )
+        for _ in range(rows):
+            lines.append("| " + " | ".join(["Cell"] * cols) + " |")
         if use_footer:
-            lines.append("| " + " | ".join("=" * 8 for _ in range(cols)) + " |")
-            lines.append(
-                "| " + " | ".join(f"Footer {c + 1}" for c in range(cols)) + " |"
-            )
+            lines.append("| " + " | ".join(["==="] * cols) + " |")
+            lines.append("| " + " | ".join(["Footer"] * cols) + " |")
         self._callback("\n".join(lines))
         self.close()
 
 
-# ---------------------------------------------------------------------------
-# Furigana
-# ---------------------------------------------------------------------------
+class TableRowDialog(Adw.Dialog):
+    """Dialog for picking the number of cells in a new table row."""
+
+    def __init__(self, callback) -> None:
+        """Initialize the dialog; *callback(count)* runs on a valid count."""
+        super().__init__()
+        self.set_title("Add Table Row")
+        self.set_content_width(360)
+
+        self._callback = callback
+
+        box = _make_dialog_box()
+
+        lbl = Gtk.Label(label="Choose the number of cells:")
+        lbl.set_xalign(0.0)
+        box.append(lbl)
+
+        self._spin = Gtk.SpinButton.new_with_range(1, 9, 1)
+        self._spin.set_value(3)
+        box.append(self._spin)
+
+        box.append(_make_insert_cancel_box(self))
+        self.set_child(box)
+
+    def _on_insert(self, *_args) -> None:
+        """Signal *callback* with the chosen number of cells and close."""
+        self.close()
+        self._callback(int(self._spin.get_value()))
 
 
 class FuriganaDialog(Adw.Dialog):

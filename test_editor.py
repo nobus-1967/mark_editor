@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.8.0 (GTK4)."""
+"""Tests for Mark Editor 0.8.1 (GTK4)."""
 
 import os
 import sys
@@ -61,7 +61,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.8.0")
+        self.assertEqual(VERSION, "0.8.1")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -183,6 +183,45 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         self.app._editor.select_all()
         self.app._wrap_selection("**")
         self.assertEqual(self.app._editor.get_text(), "**word**")
+
+    def test_table(self):
+        """Applying a table-row insert puts a pipe row on the next line."""
+        self.app._editor.set_text("Header")
+        with unittest.mock.patch(
+            "mark_editor.window.TableRowDialog",
+            return_value=unittest.mock.MagicMock(),
+        ) as mock_dlg:
+            self.app._on_add_table_row()
+            callback = mock_dlg.call_args.args[0]
+            callback(3)
+        self.assertEqual(self.app._editor.get_text(), "Header\n| Cell | Cell | Cell |")
+
+    def test_table_dialog_spins(self):
+        """Table dialog spin buttons are usable and build the expected pattern."""
+        from mark_editor.dialogs import TableDialog
+
+        callback = unittest.mock.MagicMock()
+        dlg = TableDialog(callback)
+        self.assertEqual(dlg._cols_spin.get_adjustment().get_step_increment(), 1)
+        self.assertEqual(dlg._rows_spin.get_adjustment().get_step_increment(), 1)
+        self.assertGreater(dlg._cols_spin.get_climb_rate(), 0)
+        dlg._cols_spin.set_value(3)
+        dlg._rows_spin.set_value(3)
+        dlg._on_insert()
+        text = callback.call_args.args[0]
+        self.assertIn("| Header | Header | Header |", text)
+        self.assertIn("| :---: | :---: | :---: |", text)
+        self.assertEqual(text.count("| Cell | Cell | Cell |"), 3)
+        self.assertIn("| Footer | Footer | Footer |", text)
+
+    def test_table_align(self):
+        """Alignment markers insert at the cursor or replace a selection."""
+        self.app._on_table_align(":---")
+        self.assertEqual(self.app._editor.get_text(), ":---")
+        self.app._editor.set_text("old")
+        self.app._editor.select_all()
+        self.app._on_table_align(":---:")
+        self.assertEqual(self.app._editor.get_text(), ":---:")
 
     def test_zoom_in_out(self):
         """Zoom in increases the font size, zoom out restores it."""
