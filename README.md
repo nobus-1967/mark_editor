@@ -160,15 +160,15 @@ The Format > Language Codes submenu lists the same tags with human-readable name
 
 Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語|にほんご}`, which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
 
-Use **Format → Furigana...** to add a ruby reading. When text (kanji/hanzi/kana) is **selected**, it is prefilled as the base text and the annotation wraps exactly those selected symbols; otherwise you type the base text yourself, and the annotation is inserted at the cursor.
+Use Format > Furigana... to add a ruby reading. When text (kanji/hanzi/kana) is selected, it is prefilled as the base text and the annotation wraps exactly those selected symbols; otherwise you type the base text yourself, and the annotation is inserted at the cursor.
 
 ### Tables
 
 The editor helps you build Markdown tables with a footer and cell alignment:
 
-- **Paragraph → Table...** opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and `Footer` row.
-- **Paragraph → Add Table Row** (shortcut `Ctrl+Shift+R`) inserts a pipe row of `Cell` entries below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
-- **Paragraph → Table Alignment** inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
+- Paragraph > Table... opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and footer row.
+- Paragraph > Add Table Row inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
+- Paragraph > Table Alignment inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
 
 ### YAML Front Matter
 
@@ -195,19 +195,19 @@ The editor uses temporary files to preserve unsaved work and to feed the built-i
 
 ### New (unsaved) files
 
-- **Processing**: `~/.cache/mark_editor/Temp.md` — autosaved buffer content, kept as a session backup.
-- **Quick view**: `~/.cache/mark_editor/Temp.html` — temporary HTML for the quick-view window.
+- Processing: `~/.cache/mark_editor/Temp.md` — autosaved buffer content, kept as a session backup.
+- Quick view: `~/.cache/mark_editor/Temp.html` — temporary HTML for the quick-view window.
 
 ### Saved/opened files
 
-- **Processing**: `<directory>/~<filename>.md` — autosaved copy of the buffer, placed next to the source file.
-- **Quick view**: `<directory>/~<stem>.html` — HTML preview with the same stem but a `.html` extension.
+- Processing: `<directory>/~<filename>.md` — autosaved copy of the buffer, placed next to the source file.
+- Quick view: `<directory>/~<stem>.html` — HTML preview with the same stem but a `.html` extension.
 
 ### Cleanup
 
 Temporary Markdown files (`~*.md`) are deleted when the associated file is closed — when opening or reopening another file — and when the editor window is closed via the close button or the Quit command.
 
-The quick-view HTML (`~*.html`) is rewritten with the latest content on every **Quick View** / **Quick View CSS** command and deleted when the quick-view
+The quick-view HTML (`~*.html`) is rewritten with the latest content on every Quick View / Quick View (CSS) command and deleted when the quick-view
 window is closed.  Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
 
 ## How It Works
