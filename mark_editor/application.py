@@ -138,6 +138,7 @@ class MarkEditorApp(Gtk.Application):
         self._add_action(
             "unordered-list", lambda a, p: _w() and _w()._on_unordered_list()
         )
+        self._add_action("todo-list", lambda a, p: _w() and _w()._on_todo_list())
         self._add_action(
             "definition-list", lambda a, p: _w() and _w()._on_definition_list()
         )
@@ -269,6 +270,7 @@ class MarkEditorApp(Gtk.Application):
             ("app.paragraph", ["<Alt><Control>0"]),
             ("app.ordered-list", ["<Control>g"]),
             ("app.unordered-list", ["<Control><Shift>g"]),
+            ("app.todo-list", ["<Control><Shift>c"]),
             ("app.definition-list", ["<Control><Shift>x"]),
             ("app.code-block", ["<Control><Shift>k"]),
             ("app.blockquote", ["<Control><Shift>q"]),

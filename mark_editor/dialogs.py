@@ -450,6 +450,36 @@ class TableRowDialog(Adw.Dialog):
         self._callback(int(self._spin.get_value()))
 
 
+class TodoListDialog(Adw.Dialog):
+    """Dialog for adding a todo-list item, optionally marked as checked."""
+
+    def __init__(self, callback) -> None:
+        """Initialize the dialog; *callback(checked)* runs on insert."""
+        super().__init__()
+        self.set_title("Todo List")
+        self.set_content_width(360)
+
+        self._callback = callback
+
+        box = _make_dialog_box()
+
+        lbl = Gtk.Label(label="Add the current line as a todo-list item:")
+        lbl.set_xalign(0.0)
+        box.append(lbl)
+
+        self._checked = Gtk.CheckButton(label="Checked (Completed)")
+        box.append(self._checked)
+
+        box.append(_make_insert_cancel_box(self))
+        self.set_child(box)
+
+    def _on_insert(self, *_args) -> None:
+        """Signal *callback* with the checked state and close."""
+        checked = self._checked.get_active()
+        self.close()
+        self._callback(checked)
+
+
 class FuriganaDialog(Adw.Dialog):
     """Dialog for adding a furigana (ruby) annotation."""
 

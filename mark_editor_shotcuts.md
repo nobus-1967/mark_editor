@@ -68,6 +68,7 @@ Sorted alphabetically by name.
 | Superscript | Command | Format | Ctrl+Shift+P |
 | Table Alignment | Submenu | Paragraph | — |
 | Table... | Dialog | Paragraph | Ctrl+T |
+| Todo List... | Dialog | Paragraph | Ctrl+Shift+C |
 | Toggle Theme | Command | View | Ctrl+Shift+T |
 | Underline | Command | Format | Ctrl+U |
 | Undo | Command | Edit | Ctrl+Z |

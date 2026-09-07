@@ -42,6 +42,7 @@ from mark_editor.dialogs import (
     ReplaceDialog,
     TableDialog,
     TableRowDialog,
+    TodoListDialog,
     YAMLFrontMatterDialog,
     ask_string,
     show_message,
@@ -70,8 +71,8 @@ def _strip_heading_marker(text: str) -> str:
 
 
 def _strip_list_marker(text: str) -> str:
-    """Remove a leading ordered/unordered/quote list marker from *text*."""
-    return re.sub(r"^(\d+\.|\*|-|>)\s*", "", text)
+    """Remove a leading ordered/unordered/todo/quote list marker from *text*."""
+    return re.sub(r"^(\* \[[ xX]\]\s*|(\d+\.|\*|-|>)\s*)", "", text)
 
 
 def _make_md_filters() -> Gio.ListStore:
@@ -255,6 +256,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         para_menu.append("Paragraph", "app.paragraph")
         para_menu.append("Ordered List...", "app.ordered-list")
         para_menu.append("Unordered List", "app.unordered-list")
+        para_menu.append("Todo List...", "app.todo-list")
         para_menu.append("Definition List...", "app.definition-list")
         para_menu.append("Code Block...", "app.code-block")
         para_menu.append("Blockquote", "app.blockquote")
@@ -921,6 +923,22 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             self._add_blank_line_before_if_needed()
         self._replace_current_line(f"- {text}")
 
+    def _on_todo_list(self) -> None:
+        """Convert the current line to a todo-list item (``* [ ] …`` / ``* [x] …``)."""
+
+        def on_checked(checked: bool) -> None:
+            """Apply the done state to the current line as a todo-list item."""
+            marker = "* [x] " if checked else "* [ ] "
+            text = self._get_current_line_text()
+            text = _strip_list_marker(text)
+            if not self._prev_line_is_list_item():
+                self._add_blank_line_before_if_needed()
+            self._replace_current_line(f"{marker}{text}")
+            self._editor.focus()
+
+        dlg = TodoListDialog(on_checked)
+        dlg.present()
+
     def _on_definition_list(self) -> None:
         """Open the Definition List dialog to insert a term/definition block."""
         dlg = DefinitionListDialog(self._insert_block)
@@ -1204,7 +1222,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             req = urllib.request.Request(
                 "https://raw.githubusercontent.com/nobus-1967/mark_editor"
                 "/main/markdown2html5-base.md",
-                headers={"User-Agent": "MarkEditor/0.8.3"},
+                headers={"User-Agent": f"MarkEditor/{VERSION}"},
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 text = resp.read().decode("utf-8")
