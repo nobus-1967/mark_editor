@@ -6,7 +6,7 @@ Sorted alphabetically by name.
 | :--- | :---: | :---: | :---: |
 | About Editor | Dialog | Help | — |
 | Add Indent | Command | Paragraph | Tab |
-| Add Table Row | Dialog | Paragraph | Ctrl+Shift+R |
+| Add Table Row... | Dialog | Paragraph | Ctrl+Shift+R |
 | Blockquote | Command | Paragraph | Ctrl+Shift+Q |
 | Bold | Command | Format | Ctrl+B |
 | Clear Formatting | Command | Format | Ctrl+Shift+F |
@@ -51,7 +51,7 @@ Sorted alphabetically by name.
 | Paragraph | Command | Paragraph | Ctrl+Alt+0 |
 | Paste | Command | Edit | Ctrl+V |
 | Quick View | Command | View | Ctrl+Alt+V |
-| Quick View CSS | Command | View | Ctrl+Alt+C |
+| Quick View (CSS) | Command | View | Ctrl+Alt+C |
 | Quit | Command | File | Ctrl+Q |
 | Redo | Command | Edit | Ctrl+Shift+Z |
 | Remove Indent | Command | Paragraph | Shift+Tab |
@@ -66,6 +66,7 @@ Sorted alphabetically by name.
 | Strikethrough | Command | Format | Ctrl+D |
 | Subscript | Command | Format | Ctrl+Shift+B |
 | Superscript | Command | Format | Ctrl+Shift+P |
+| Table Alignment | Submenu | Paragraph | — |
 | Table... | Dialog | Paragraph | Ctrl+T |
 | Toggle Theme | Command | View | Ctrl+Shift+T |
 | Underline | Command | Format | Ctrl+U |

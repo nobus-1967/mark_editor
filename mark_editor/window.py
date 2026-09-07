@@ -259,7 +259,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         para_menu.append("Code Block...", "app.code-block")
         para_menu.append("Blockquote", "app.blockquote")
         para_menu.append("Table...", "app.table")
-        para_menu.append("Add Table Row", "app.add-table-row")
+        para_menu.append("Add Table Row...", "app.add-table-row")
         align_menu = Gio.Menu()
         align_menu.append(":--- left", "app.align-left")
         align_menu.append(":---: center", "app.align-center")
@@ -1204,7 +1204,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             req = urllib.request.Request(
                 "https://raw.githubusercontent.com/nobus-1967/mark_editor"
                 "/main/markdown2html5-base.md",
-                headers={"User-Agent": "MarkEditor/0.8.2"},
+                headers={"User-Agent": "MarkEditor/0.8.3"},
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 text = resp.read().decode("utf-8")

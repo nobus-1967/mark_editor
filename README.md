@@ -137,7 +137,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.8.2-x86_64.AppImage`
+Output: `MarkEditor-0.8.3-x86_64.AppImage`
 
 ## Add-ons
 
