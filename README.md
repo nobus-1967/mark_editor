@@ -52,7 +52,7 @@ The main functions of the editor:
 - clear formatting;
 - add emoji;
 - do some typographic replacements;
-- create new files, open and save files (including 'Save As' action using a new file name) through native GTK4 file chooser dialogs, reopen files (close without saving and open them again);
+- create new files, open and save files (including `Save As` action using a new file name) through native GTK4 file chooser dialogs, reopen files (close without saving and open them again);
 - quick view Markdown files in a built-in GTK4/WebKit window (with or without embedded CSS);
 - export files to other formats (HTML5, plain text and PDF);
 - use commands from menus or shortcuts for operations;
@@ -86,7 +86,7 @@ mark_editor/
 
 ## Styling
 
-Users can switch between light and dark appearance modes for all interface elements (View menu, or Toggle Theme with Ctrl+Shift+T). Theme settings are stored in `~/.config/mark_editor/theme.json` and restored on the next start. Theme switching is instant (no restart needed) via GTK's `gtk-application-prefer-dark-theme` setting.
+Users can switch between light and dark appearance modes for all interface elements (`View` menu, or `Toggle Theme`). Theme settings are stored in `~/.config/mark_editor/theme.json` and restored on the next start. Theme switching is instant (no restart needed) via GTK's `gtk-application-prefer-dark-theme` setting.
 
 ## File Formats
 
@@ -103,7 +103,7 @@ The editor uses:
 - Noto Sans, Noto Sans Mono and Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
 - Symbola for PDF output (emoji and special signs).
 
-The editor font family and size can be changed via View > Editor Font (Ctrl+Alt+F) and are persisted in `~/.config/mark_editor/theme.json`.
+The editor font family and size can be changed via `View` > `Editor Font...` and are persisted in `~/.config/mark_editor/theme.json`.
 
 ## Requirements
 
@@ -144,31 +144,31 @@ Output: `MarkEditor-0.8.4-x86_64.AppImage`
 
 ### Emoji
 
-The Format > Emoji Shortcodes submenu inserts emoji shortcodes (e.g. `:joy:`, `:heart:`, `:rocket:`) at the cursor. The available shortcodes are `:joy:`, `:smile:`, `:heart:`, `:thumbsup:`, `:thumbsdown:`, `:wink:`, `:tada:`, `:rocket:`, `:fire:`, `:star:`, `:cry:`, `:thinking:`, `:100:`, `:sparkles:`, `:eyes:`, `:bulb:`, `:warning:`, `:ok:` and `:check_mark:`. They are rendered by [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) in HTML5 output and by Symbola in PDF output.
+The `Format` > `Emoji Shortcodes` submenu inserts emoji shortcodes (e.g. `:joy:`, `:heart:`, `:rocket:`) at the cursor. The available shortcodes are `:joy:`, `:smile:`, `:heart:`, `:thumbsup:`, `:thumbsdown:`, `:wink:`, `:tada:`, `:rocket:`, `:fire:`, `:star:`, `:cry:`, `:thinking:`, `:100:`, `:sparkles:`, `:eyes:`, `:bulb:`, `:warning:`, `:ok:` and `:check_mark:`. They are rendered by [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) in HTML5 output and by Symbola in PDF output.
 
 ### Special Signs
 
-The Format > Special Signs submenu inserts punctuation and special characters at the cursor. Items show the inserted expression followed by its name. The list includes typographic quotes (`&ldquo;`, `&rdquo;`, `<<`, `>>`), arrows (`<-`, `->`, `&uarr;`, `&darr;`, `=>`), the slash `&sol;` and backslash `&bsol;`, dashes (`---`, `--`), the ellipsis `...`, the non-breaking space `&nbsp;`, and the protected symbols `(c)`, `(tm)`, `(r)`, `+/-`, `!=`, `<=>`, `<=`, `>=`. These are printed as HTML5/PDF entities in the exported documents.
+The `Format` > `Special Signs` submenu inserts punctuation and special characters at the cursor. Items show the inserted expression followed by its name. The list includes typographic quotes (`&ldquo;`, `&rdquo;`, `<<`, `>>`), arrows (`<-`, `->`, `&uarr;`, `&darr;`, `=>`), the slash `&sol;` and backslash `&bsol;`, dashes (`---`, `--`), the ellipsis `...`, the non-breaking space `&nbsp;`, and the protected symbols `(c)`, `(tm)`, `(r)`, `+/-`, `!=`, `<=>`, `<=`, `>=`. These are printed as HTML5/PDF entities in the exported documents.
 
 ### Language Markers
 
-Language markers tag a line (`{:de}`) or wrap a selection (`{:fr}…{:}`) with a language-tag prefix. The Language Marker and Language Wrapping dialogs let you pick from a drop-down list of common [BCP 47](https://en.wikipedia.org/wiki/IETF_language_tag) tags (de, de-AT, de-DE, en, en-GB, en-US, es, fr, ja, it, ko, ko-KR, pt, pt-BR, pt-PT, ru, uk, zh, zh-Hans-CN, zh-Hant, zh-Hant-HK, zh-Hant-TW) or enter any other valid BCP 47 tag in the input field below (which starts empty; `en` is preselected in the drop-down).
+Language markers tag a line (`{:de}`) or wrap a selection (`{:fr}…{:}`) with a language-tag prefix. The `Language Marker...` and `Language Wrapping...` dialogs let you pick from a drop-down list of common [BCP 47](https://en.wikipedia.org/wiki/IETF_language_tag) tags (de, de-AT, de-DE, en, en-GB, en-US, es, fr, ja, it, ko, ko-KR, pt, pt-BR, pt-PT, ru, uk, zh, zh-Hans-CN, zh-Hant, zh-Hant-HK, zh-Hant-TW) or enter any other valid BCP 47 tag in the input field below (which starts empty; `en` is preselected in the drop-down).
 
-The Format > Language Codes submenu lists the same tags with human-readable names (e.g. `de German (Generic)`, `en-US American English (United States)`) and inserts the plain language code (e.g. `de`) at the cursor with one click.
+The `Format` > `Language Codes` submenu lists the same tags with human-readable names (e.g. `de German (Generic)`, `en-US American English (United States)`) and inserts the plain language code (e.g. `de`) at the cursor with one click.
 
 ### Ruby Annotation/Furigana
 
 Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語|にほんご}`, which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
 
-Use Format > Furigana... to add a ruby reading. When text (kanji/hanzi/kana) is selected, it is prefilled as the base text and the annotation wraps exactly those selected symbols; otherwise you type the base text yourself, and the annotation is inserted at the cursor.
+Use `Format` > `Furigana...` to add a ruby reading. When text (kanji/hanzi/kana) is selected, it is prefilled as the base text and the annotation wraps exactly those selected symbols; otherwise you type the base text yourself, and the annotation is inserted at the cursor.
 
 ### Tables
 
 The editor helps you build Markdown tables with a footer and cell alignment:
 
-- Paragraph > Table... opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and footer row.
-- Paragraph > Add Table Row inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
-- Paragraph > Table Alignment inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
+- `Paragraph` > `Table...` opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and footer row.
+- `Paragraph` > `Add Table Row` inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
+- `Paragraph` > `Table Alignment` inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
 
 ### YAML Front Matter
 
@@ -187,7 +187,7 @@ published: 2026-08-09
 ---
 ```
 
-Users can add this metadata to the beginning of a document using a special dialog box (the `published` field is filled in automatically with the system date). The `lang` field uses a drop-down list of language tags (default `en`) with an editable input below, the same behavior as the Language Marker dialog.
+Users can add this metadata to the beginning of a document using a special dialog box (the `published` field is filled in automatically with the system date). The `lang` field uses a drop-down list of language tags (default `en`) with an editable input below, the same behavior as the `Language Marker...` dialog.
 
 ## Temporary Files
 
@@ -207,9 +207,9 @@ The editor uses temporary files to preserve unsaved work and to feed the built-i
 
 Temporary Markdown files (`~*.md`) are deleted when the associated file is closed — when opening or reopening another file — and when the editor window is closed via the close button or the Quit command.
 
-The quick-view HTML (`~*.html`) is rewritten with the latest content on every Quick View / Quick View (CSS) command and deleted when the quick-view
+The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Quick View` / `Quick View (CSS)` command and deleted when the quick-view
 window is closed.  Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
 
 ## How It Works
 
-See Test_Page in [Markdown](./test_page/Test_Page.md), [HTML5 with CSS3](./test_page/Test_Page.html), [PDF](./test_page/Test_Page.pdf) and [TXT](./test_page/Test_Page.txt).
+See `Test_Page` in [Markdown](./test_page/Test_Page.md), [HTML5 with CSS3](./test_page/Test_Page.html), [PDF](./test_page/Test_Page.pdf) and [TXT](./test_page/Test_Page.txt).
