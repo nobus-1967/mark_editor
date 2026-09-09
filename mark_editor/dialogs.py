@@ -336,7 +336,7 @@ class ReplaceDialog(Adw.Dialog):
         _find_and_select(self._editor, pattern)
 
     def _on_replace(self, *_args) -> None:
-        """Replace the current match and advance to the next."""
+        """Replace the currently selected match with the replacement text."""
         pattern = self._get_pattern()
         if pattern is None:
             return
@@ -451,7 +451,7 @@ class TableRowDialog(Adw.Dialog):
 
 
 class TodoListDialog(Adw.Dialog):
-    """Dialog for adding a todo-list item, optionally marked as checked."""
+    """Dialog for adding/updating the ``[ ]``/``[x]`` marker, optionally checked."""
 
     def __init__(self, callback) -> None:
         """Initialize the dialog; *callback(checked)* runs on insert."""

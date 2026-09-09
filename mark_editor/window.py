@@ -90,6 +90,23 @@ def _make_md_filters() -> Gio.ListStore:
     return filters
 
 
+def _format_table_block(lines: list[str]) -> list[str]:
+    """Reformat Markdown table *lines* with equal-width columns.
+
+    Every row (header, separator and footer) is padded so that all columns
+    share the same width and the right border is aligned.
+    """
+    rows = [line.split("|")[1:-1] for line in lines]
+    ncols = max(len(r) for r in rows)
+    widths = [max(len(r[c].strip()) for r in rows) for c in range(ncols)]
+    out = []
+    for r in rows:
+        r = (r + [""] * ncols)[:ncols]
+        cells = [r[c].strip().ljust(widths[c]) for c in range(ncols)]
+        out.append("| " + " | ".join(cells) + " |")
+    return out
+
+
 class MarkEditorWindow(Gtk.ApplicationWindow):
     """The main Mark Editor application window."""
 
@@ -215,12 +232,11 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         fmt_menu.append("Subscript", "app.subscript")
         fmt_menu.append("Inline Code", "app.inline-code")
         fmt_menu.append("Mark", "app.mark")
+        fmt_menu.append("Hyperlink...", "app.hyperlink")
         fmt_menu.append("Header ID...", "app.header-id")
         fmt_menu.append("Header Link...", "app.header-link")
-        fmt_menu.append("Hyperlink...", "app.hyperlink")
         fmt_menu.append("Footnote...", "app.footnote")
         fmt_menu.append("Date and Time...", "app.date-time")
-        fmt_menu.append("Special Mark", "app.special-mark")
         fmt_menu.append("Language Marker...", "app.language-marker")
         fmt_menu.append("Language Wrapping...", "app.language-wrapping")
 
@@ -245,6 +261,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             signs_menu.append(f"{sign} {name}", f"app.insert-sign-{safe_name}")
         fmt_menu.append_submenu("Special Signs", signs_menu)
 
+        fmt_menu.append("Special Mark", "app.special-mark")
+
         fmt_menu.append("Clear Formatting", "app.clear-formatting")
 
         menubar.append_submenu("Format", fmt_menu)
@@ -262,18 +280,19 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         para_menu.append("Blockquote", "app.blockquote")
         para_menu.append("Table...", "app.table")
         para_menu.append("Add Table Row...", "app.add-table-row")
+        para_menu.append("Balance Table", "app.balance-table")
         align_menu = Gio.Menu()
         align_menu.append(":--- left", "app.align-left")
         align_menu.append(":---: center", "app.align-center")
         align_menu.append("---: right", "app.align-right")
         para_menu.append_submenu("Table Alignment", align_menu)
         para_menu.append("Image...", "app.image")
-        para_menu.append("Line Break", "app.line-break")
         para_menu.append("Horizontal Rule", "app.horizontal-rule")
-        para_menu.append("Add Indent", "app.add-indent")
-        para_menu.append("Remove Indent", "app.remove-indent")
         para_menu.append("Comment...", "app.comment")
         para_menu.append("YAML Front Matter...", "app.yaml-front-matter")
+        para_menu.append("Line Break", "app.line-break")
+        para_menu.append("Add Indent", "app.add-indent")
+        para_menu.append("Remove Indent", "app.remove-indent")
         menubar.append_submenu("Paragraph", para_menu)
 
         # ── View ──
@@ -290,6 +309,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         help_menu = Gio.Menu()
         help_menu.append("Markdown Guide", "app.help-markdown-guide")
         help_menu.append("Full Markdown Functionality Reference", "app.help-md-ref")
+        help_menu.append("Keyboard Shortcuts CheatSheet", "app.help-cheatsheet")
         help_menu.append("About Editor", "app.help-about")
         menubar.append_submenu("Help", help_menu)
 
@@ -694,35 +714,35 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.focus()
 
     def _on_bold(self) -> None:
-        """Toggle bold formatting around the selection."""
+        """Wrap the selection in bold formatting (``**``)."""
         self._wrap_selection("**")
 
     def _on_italic(self) -> None:
-        """Toggle italic formatting around the selection."""
+        """Wrap the selection in italic formatting (``*``)."""
         self._wrap_selection("*")
 
     def _on_underline(self) -> None:
-        """Toggle underline formatting around the selection."""
+        """Wrap the selection in underline formatting (``^^``)."""
         self._wrap_selection("^^")
 
     def _on_strikethrough(self) -> None:
-        """Toggle strikethrough formatting around the selection."""
+        """Wrap the selection in strikethrough formatting (``~~``)."""
         self._wrap_selection("~~")
 
     def _on_superscript(self) -> None:
-        """Toggle superscript formatting around the selection."""
+        """Wrap the selection in superscript formatting (``^``)."""
         self._wrap_selection("^")
 
     def _on_subscript(self) -> None:
-        """Toggle subscript formatting around the selection."""
+        """Wrap the selection in subscript formatting (``~``)."""
         self._wrap_selection("~")
 
     def _on_inline_code(self) -> None:
-        """Toggle inline code formatting around the selection."""
+        """Wrap the selection in inline code formatting (`` ` ``)."""
         self._wrap_selection("`")
 
     def _on_mark(self) -> None:
-        """Toggle mark (highlight) formatting around the selection."""
+        """Wrap the selection in mark (highlight) formatting (``==``)."""
         self._wrap_selection("==")
 
     def _on_header_id(self) -> None:
@@ -930,12 +950,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             """Apply the done state as a todo marker to the current line."""
             state = "x" if checked else " "
             text = self._get_current_line_text()
-            m = re.match(r"^((?:\d+\.|-)\s+)?(\[[ xX]\])\s+", text)
+            m = re.match(r"^((?:\d+\.|\*|-)\s+)?(\[[ xX]\])\s+", text)
             if m:
                 rest = text[m.end() :]
                 self._replace_current_line(f"{m.group(1) or ''}[{state}] {rest}")
             else:
-                m = re.match(r"^(\d+\.|-)\s+", text)
+                m = re.match(r"^(\d+\.|\*|-)\s+", text)
                 if m:
                     rest = text[m.end() :]
                     self._replace_current_line(f"{m.group(0)}[{state}] {rest}")
@@ -998,6 +1018,35 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Insert a table alignment marker at the cursor or on the selection."""
         self._editor.replace_selection(marker)
         self._editor.focus()
+
+    def _on_balance_table(self) -> None:
+        """Reformat the table at the cursor with equal-width, aligned columns."""
+        editor = self._editor
+        buf = editor.get_buffer()
+        line = editor.get_current_line_number()
+
+        def is_table_row(n: int) -> bool:
+            return bool(re.match(r"^\s*\|.*\|\s*$", editor.get_line_text(n)))
+
+        if not is_table_row(line):
+            return
+        top = line
+        while top > 1 and is_table_row(top - 1):
+            top -= 1
+        bottom = line
+        while bottom < editor.get_line_count() and is_table_row(bottom + 1):
+            bottom += 1
+
+        lines = [editor.get_line_text(n) for n in range(top, bottom + 1)]
+        new_lines = _format_table_block(lines)
+        if new_lines == lines:
+            return
+        _, start = buf.get_iter_at_line(top - 1)
+        _, end = buf.get_iter_at_line(bottom)
+        buf.begin_user_action()
+        buf.delete(start, end)
+        buf.insert(start, "\n".join(new_lines) + "\n", -1)
+        buf.end_user_action()
 
     def _on_image(self) -> None:
         """Open a file chooser for an image, then prompt for alt text and title."""
@@ -1218,26 +1267,34 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         webbrowser.open("https://www.markdownguide.org/")
 
     def _on_help_md_ref(self) -> None:
-        """Download the Full Markdown Functionality Reference into the editor.
+        """Download the Full Markdown Functionality Reference into the editor."""
+        self._download_and_open("markdown2html5-base.md", "Reference")
 
-        The file is fetched into ``~/.cache/mark_editor`` and opened in the
+    def _download_and_open(self, file_name: str, label: str) -> None:
+        """Fetch *file_name* from the mark_editor repo and open it in the editor.
+
+        The file is downloaded into ``~/.cache/mark_editor`` and opened in the
         current window.
         """
         try:
             req = urllib.request.Request(
                 "https://raw.githubusercontent.com/nobus-1967/mark_editor"
-                "/main/markdown2html5-base.md",
+                f"/main/{file_name}",
                 headers={"User-Agent": f"MarkEditor/{VERSION}"},
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 text = resp.read().decode("utf-8")
         except Exception as exc:
-            show_message(self, "Reference", str(exc), "error")
+            show_message(self, label, str(exc), "error")
             return
         cache = ensure_cache_dir()
-        path = cache / "markdown2html5-base.md"
+        path = cache / file_name
         path.write_text(text, encoding="utf-8")
         self._load_file(path)
+
+    def _on_help_cheatsheet(self) -> None:
+        """Download the keyboard-shortcuts cheat sheet into the editor."""
+        self._download_and_open("cheatsheet.md", "Cheat Sheet")
 
     def _on_help_about(self) -> None:
         """Show the About dialog with version and release information."""

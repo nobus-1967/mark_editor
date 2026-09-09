@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.8.5 (GTK4)."""
+"""Tests for Mark Editor 0.8.6 (GTK4)."""
 
 import os
 import sys
@@ -61,7 +61,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.8.5")
+        self.assertEqual(VERSION, "0.8.6")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -252,6 +252,43 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         self.app._on_table_align(":---:")
         self.assertEqual(self.app._editor.get_text(), ":---:")
 
+    def test_balance_table(self):
+        """Balance Table pads every row to equal column widths."""
+        table = (
+            "| Name       | Age |\n"
+            "| :---       | :---: |\n"
+            "| Alice      | 30 |\n"
+            "| Bob        | 25 |"
+        )
+        self.app._editor.set_text(table)
+        _, cursor = self.app._editor.get_buffer().get_iter_at_line(2)
+        self.app._editor.get_buffer().place_cursor(cursor)
+        self.app._on_balance_table()
+        expected = (
+            "| Name  | Age   |\n"
+            "| :---  | :---: |\n"
+            "| Alice | 30    |\n"
+            "| Bob   | 25    |\n"
+        )
+        self.assertEqual(self.app._editor.get_text(), expected)
+        self.assertEqual(
+            len(self.app._editor.get_line_text(1).split("|")),
+            len(self.app._editor.get_line_text(4).split("|")),
+        )
+
+    def test_format_table_block(self):
+        """The table block formatter pads columns and aligns the right border."""
+        from mark_editor.window import _format_table_block
+
+        lines = ["| a | bbb |", "| :--- | :---: |", "| x | y |"]
+        formatted = _format_table_block(lines)
+        self.assertEqual(
+            formatted,
+            ["| a   | bbb |", "| :--- | :---: |", "| x   | y   |"],
+        )
+        widths = {len(line) for line in formatted}
+        self.assertEqual(widths, {len(formatted[0])})
+
     def test_zoom_in_out(self):
         """Zoom in increases the font size, zoom out restores it."""
         size = self.app.editor_font_size
@@ -273,19 +310,19 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         self.assertIn("Title", text)
         self.assertIn("Some bold and link.", text)
 
-    def test_perform_convert_html(self):
+    def test_md_to_html_convert(self):
         """md_to_html produces HTML5 heading markup."""
         self.app._editor.set_text("# Hello")
         html = md_to_html(self.app._editor.get_text())
         self.assertIn("<h1>", html)
 
-    def test_perform_convert_txt(self):
+    def test_md_to_plain_convert(self):
         """md_to_plain converts Markdown to readable text."""
         self.app._editor.set_text("# Hello")
         txt = md_to_plain(self.app._editor.get_text())
         self.assertIn("Hello", txt)
 
-    def test_save_to(self):
+    def test_editor_text_roundtrip(self):
         """Editor text writes to a file and reads back unchanged."""
         tmp = Path(tempfile.mkdtemp()) / "doc.md"
         self.app._editor.set_text("hello world")

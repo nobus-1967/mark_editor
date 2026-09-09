@@ -88,7 +88,7 @@
 | *YAML Front Matter...* | `Ctrl+Shift+Y` |
 | *Add Indent*           | `Tab`          |
 | *Remove Indent*        | `Shift+Tab`    |
-| *Line Break*           | `Ctrl+\`       |
+| *Line Break*           | `Ctrl+\\`       |
 
 ## **View Settings**
 

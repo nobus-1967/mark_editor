@@ -149,6 +149,9 @@ class MarkEditorApp(Gtk.Application):
             "add-table-row", lambda a, p: _w() and _w()._on_add_table_row()
         )
         self._add_action(
+            "balance-table", lambda a, p: _w() and _w()._on_balance_table()
+        )
+        self._add_action(
             "align-left", lambda a, p: _w() and _w()._on_table_align(":---")
         )
         self._add_action(
@@ -186,6 +189,9 @@ class MarkEditorApp(Gtk.Application):
             "help-markdown-guide", lambda a, p: _w() and _w()._on_help_markdown_guide()
         )
         self._add_action("help-md-ref", lambda a, p: _w() and _w()._on_help_md_ref())
+        self._add_action(
+            "help-cheatsheet", lambda a, p: _w() and _w()._on_help_cheatsheet()
+        )
         self._add_action("help-about", lambda a, p: _w() and _w()._on_help_about())
 
         # Emoji Shortcodes
@@ -276,6 +282,7 @@ class MarkEditorApp(Gtk.Application):
             ("app.blockquote", ["<Control><Shift>q"]),
             ("app.table", ["<Control>t"]),
             ("app.add-table-row", ["<Control><Shift>r"]),
+            ("app.balance-table", ["<Control><Shift>n"]),
             ("app.image", ["<Control><Shift>i"]),
             ("app.line-break", ["<Control>backslash"]),
             ("app.horizontal-rule", ["<Control>underscore"]),
