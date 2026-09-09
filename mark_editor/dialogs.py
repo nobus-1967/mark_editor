@@ -463,7 +463,9 @@ class TodoListDialog(Adw.Dialog):
 
         box = _make_dialog_box()
 
-        lbl = Gtk.Label(label="Add the current line as a todo-list item:")
+        lbl = Gtk.Label(
+            label="Add/update the todo marker ([ ]/[x]) on the current line:"
+        )
         lbl.set_xalign(0.0)
         box.append(lbl)
 

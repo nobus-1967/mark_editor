@@ -95,8 +95,8 @@ Without a language tag, the code renders plainly as `<pre><code>`.
 1. **Unordered:** `* Item` or `- Item` => `<ul><li>Item</li></ul>`
 2. **Ordered:** `1. Item` => `<ol><li>Item</li></ol>`
 3. **Task:**<br />
-   `* [ ] todo` => `<li><input type="checkbox" disabled> todo</li>`<br />
-   `* [x] done` => `<li><input type="checkbox" checked disabled> done</li>`
+   `- [ ] todo` => `<ul><li><input type="checkbox" disabled> todo</li></ul>`<br />
+   `1. [x] done` => `<ol><li><input type="checkbox" checked disabled> done</li></ol>`
 
 ## 7. Blockquotes
 
@@ -479,6 +479,12 @@ li {
   hyphenate-limit-chars: 6 3 3;
   word-break: normal;
   overflow-wrap: break-word;
+}
+ol li input[type="checkbox"], ul li input[type="checkbox"] {
+  vertical-align: baseline;
+  accent-color: #000000;
+  opacity: 1;
+  cursor: not-allowed;
 }
 dt {
   font-weight: bold;

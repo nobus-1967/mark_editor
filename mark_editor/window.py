@@ -924,16 +924,21 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._replace_current_line(f"- {text}")
 
     def _on_todo_list(self) -> None:
-        """Convert the current line to a todo-list item (``* [ ] …`` / ``* [x] …``)."""
+        """Add/update a ``[ ]`` / ``[x]`` todo marker on the current list item."""
 
         def on_checked(checked: bool) -> None:
-            """Apply the done state to the current line as a todo-list item."""
-            marker = "* [x] " if checked else "* [ ] "
+            """Apply the done state as a todo marker to the current line."""
+            state = "x" if checked else " "
             text = self._get_current_line_text()
-            text = _strip_list_marker(text)
-            if not self._prev_line_is_list_item():
-                self._add_blank_line_before_if_needed()
-            self._replace_current_line(f"{marker}{text}")
+            m = re.match(r"^((?:\d+\.|-)\s+)?(\[[ xX]\])\s+", text)
+            if m:
+                rest = text[m.end() :]
+                self._replace_current_line(f"{m.group(1) or ''}[{state}] {rest}")
+            else:
+                m = re.match(r"^(\d+\.|-)\s+", text)
+                if m:
+                    rest = text[m.end() :]
+                    self._replace_current_line(f"{m.group(0)}[{state}] {rest}")
             self._editor.focus()
 
         dlg = TodoListDialog(on_checked)

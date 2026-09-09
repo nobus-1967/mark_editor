@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.8.4 (GTK4)."""
+"""Tests for Mark Editor 0.8.5 (GTK4)."""
 
 import os
 import sys
@@ -61,7 +61,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.8.4")
+        self.assertEqual(VERSION, "0.8.5")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -178,9 +178,19 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         self.assertTrue(self.app._editor.get_text().startswith("- "))
 
     def test_todo_list(self):
-        """Todo List adds '* [ ] ' or '* [x] ' depending on the checked state."""
-        for checked, marker in ((False, "* [ ] "), (True, "* [x] ")):
-            self.app._editor.set_text("task")
+        """Todo List adds/updates the [ ]/[x] marker on list items only."""
+        cases = (
+            ("- task", False, "- [ ] task"),
+            ("- task", True, "- [x] task"),
+            ("* task", False, "* [ ] task"),
+            ("1. task", False, "1. [ ] task"),
+            ("- [ ] task", True, "- [x] task"),
+            ("1. [x] task", False, "1. [ ] task"),
+            ("[x] task", False, "[ ] task"),
+            ("task", False, "task"),
+        )
+        for text, checked, expected in cases:
+            self.app._editor.set_text(text)
             with unittest.mock.patch(
                 "mark_editor.window.TodoListDialog",
                 return_value=unittest.mock.MagicMock(),
@@ -188,7 +198,7 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
                 self.app._on_todo_list()
                 callback = mock_dlg.call_args.args[0]
                 callback(checked)
-            self.assertEqual(self.app._editor.get_text(), marker + "task")
+            self.assertEqual(self.app._editor.get_text(), expected, msg=(text, checked))
 
     def test_blockquote(self):
         """Applying a blockquote prefixes the line with '> '."""

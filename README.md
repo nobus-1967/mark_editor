@@ -66,7 +66,7 @@ See also [Full List of Editor's Dialogs, Commands & Submenus (with Shorcuts)](./
 
 Since version 0.6.0, the application has been rewritten from tkinter/CustomTkinter to GTK4/libadwaita.
 
-The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) (>= 0.5.1) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) (>= 0.5.1) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
+The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) (>= 0.5.2) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) (>= 0.5.2) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
 
 ### Package Structure
 
@@ -113,8 +113,8 @@ The editor font family and size can be changed via `View` > `Editor Font...` and
 - GtkSourceView 5 (>= 5.8)
 - WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
 - PyGObject >= 3.50
-- [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.5.1
-- [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) >= 0.5.1
+- [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.5.2
+- [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) >= 0.5.2
 
 ## Running the Application
 
@@ -138,7 +138,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.8.4-x86_64.AppImage`
+Output: `MarkEditor-0.8.5-x86_64.AppImage`
 
 ## Add-ons
 
