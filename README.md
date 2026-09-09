@@ -60,7 +60,7 @@ The main functions of the editor:
 
 The editor supports all markup elements listed in the [Full Markdown Functionality Reference](https://github.com/nobus-1967/markdown2html5-base).
 
-See also [Mark Editor — Keyboard Shortcuts Cheat Sheet)](./cheatsheet.md).
+See also [Mark Editor — Keyboard Shortcuts Cheat Sheet](./cheatsheet.md).
 
 ## Code Base
 
