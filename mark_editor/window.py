@@ -25,6 +25,7 @@ from mark_editor.constants import (
     EMOJIS,
     LANGUAGE_CODES,
     LANGUAGE_TAGS,
+    RELEASE,
     SPECIAL_SIGNS,
     THEMES,
     VERSION,
@@ -75,6 +76,14 @@ def _strip_list_marker(text: str) -> str:
     return re.sub(r"^(\* \[[ xX]\]\s*|(\d+\.|\*|-|>)\s*)", "", text)
 
 
+def _make_filter_store(*filters: Gtk.FileFilter) -> Gio.ListStore:
+    """Return a ListStore of the given file filters."""
+    store = Gio.ListStore.new(Gtk.FileFilter)
+    for f in filters:
+        store.append(f)
+    return store
+
+
 def _make_md_filters() -> Gio.ListStore:
     """Return a ListStore of file filters (Markdown docs and all files)."""
     md_filter = Gtk.FileFilter()
@@ -84,10 +93,7 @@ def _make_md_filters() -> Gio.ListStore:
     all_filter = Gtk.FileFilter()
     all_filter.set_name("All files")
     all_filter.add_pattern("*")
-    filters = Gio.ListStore.new(Gtk.FileFilter)
-    filters.append(md_filter)
-    filters.append(all_filter)
-    return filters
+    return _make_filter_store(md_filter, all_filter)
 
 
 def _format_table_block(lines: list[str]) -> list[str]:
@@ -516,8 +522,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             f"{'HTML5' if ext == '.html' else 'Text' if ext == '.txt' else 'PDF'} files"
         )
         f.add_pattern(f"*{ext}")
-        filters = Gio.ListStore.new(Gtk.FileFilter)
-        filters.append(f)
+        filters = _make_filter_store(f)
 
         base = self.current_file.name if self.current_file else "document"
         if base.endswith((".md", ".markdown")):
@@ -709,7 +714,10 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.focus()
 
     def _wrap_selection(self, wrapper: str) -> None:
-        """Wrap the selection with *wrapper* characters (e.g. ``**`` for bold)."""
+        """Wrap the selection in *wrapper* characters (e.g. ``**`` for bold).
+
+        With no selection, insert a marker pair at the cursor instead.
+        """
         self._editor.wrap_selection(wrapper)
         self._editor.focus()
 
@@ -837,11 +845,9 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             lang = lang.strip()
             selected = self._editor.get_selected_text()
             if selected:
-                self._editor.replace_selection(
-                    "{" + f":{lang}" + "}" + selected + "{:}"
-                )
+                self._editor.replace_selection(f"{{:{lang}}}{selected}{{:}}")
             else:
-                self._editor.insert_at_cursor("{" + f":{lang}" + "}{:}")
+                self._editor.insert_at_cursor(f"{{:{lang}}}{{:}}")
             self._editor.focus()
 
         ask_string(
@@ -920,16 +926,20 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._add_blank_line_before_if_needed()
         self._replace_current_line(text)
 
+    def _convert_to_list_item(self, marker: str) -> None:
+        """Convert the current line into a list item prefixed by *marker*."""
+        text = self._get_current_line_text()
+        text = _strip_list_marker(text)
+        if not self._prev_line_is_list_item():
+            self._add_blank_line_before_if_needed()
+        self._replace_current_line(f"{marker} {text}")
+
     def _on_ordered_list(self) -> None:
         """Turn the current line into an ordered-list item with a chosen number."""
 
         def on_number(number: int) -> None:
             """Apply the chosen item *number* to the current line."""
-            text = self._get_current_line_text()
-            text = _strip_list_marker(text)
-            if not self._prev_line_is_list_item():
-                self._add_blank_line_before_if_needed()
-            self._replace_current_line(f"{number}. {text}")
+            self._convert_to_list_item(f"{number}.")
             self._editor.focus()
 
         dlg = OrderedListDialog(on_number)
@@ -937,14 +947,13 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_unordered_list(self) -> None:
         """Convert the current line to an unordered-list item (``- …``)."""
-        text = self._get_current_line_text()
-        text = _strip_list_marker(text)
-        if not self._prev_line_is_list_item():
-            self._add_blank_line_before_if_needed()
-        self._replace_current_line(f"- {text}")
+        self._convert_to_list_item("-")
 
     def _on_todo_list(self) -> None:
-        """Add/update a ``[ ]`` / ``[x]`` todo marker on the current list item."""
+        """Add/update a ``[ ]`` / ``[x]`` marker on the current line.
+
+        Applies to a list item or an already-marked todo line.
+        """
 
         def on_checked(checked: bool) -> None:
             """Apply the done state as a todo marker to the current line."""
@@ -970,11 +979,15 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         dlg.present()
 
     def _on_code_block(self) -> None:
-        """Prompt for a language tag and wrap the line in a fenced code block."""
+        """Prompt for a language tag and add fences around the selection or line."""
 
         def on_lang(lang):
             """Handle code block language input."""
             lang = (lang or "").strip()
+            selected = self._editor.get_selected_text()
+            if selected:
+                self._editor.replace_selection(f"```{lang}\n{selected}\n```")
+                return
             text = self._get_current_line_text()
             self._add_blank_line_before_if_needed()
             self._replace_current_line(f"```{lang}\n{text}\n```")
@@ -984,11 +997,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         )
 
     def _on_blockquote(self) -> None:
-        """Prefix the current line with ``> `` to make it a blockquote."""
-        text = self._get_current_line_text()
-        text = re.sub(r"^>\s*", "", text)
-        self._add_blank_line_before_if_needed()
-        self._replace_current_line(f"> {text}")
+        """Convert the current line to a blockquote (``> …``)."""
+        self._convert_to_list_item(">")
 
     def _on_table(self) -> None:
         """Open the Table dialog to insert a Markdown table."""
@@ -1059,10 +1069,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         f2 = Gtk.FileFilter()
         f2.set_name("All files")
         f2.add_pattern("*")
-        filters = Gio.ListStore.new(Gtk.FileFilter)
-        filters.append(f)
-        filters.append(f2)
-        dialog.set_filters(filters)
+        dialog.set_filters(_make_filter_store(f, f2))
         dialog.open(self, None, self._on_image_response)
 
     def _on_image_response(self, dialog, result) -> None:
@@ -1211,17 +1218,19 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.set_mode(name)
         save_theme(name)
 
-    def _on_zoom_in(self) -> None:
-        """Increase the editor font size by two points and persist."""
-        self.editor_font_size = max(8, self.editor_font_size + 2)
+    def _zoom(self, delta: int) -> None:
+        """Change the editor font size by *delta* points and persist."""
+        self.editor_font_size = max(8, self.editor_font_size + delta)
         self._editor.set_font_size(self.editor_font_size)
         save_font(self._editor_font_family, self.editor_font_size)
 
+    def _on_zoom_in(self) -> None:
+        """Increase the editor font size by two points and persist."""
+        self._zoom(2)
+
     def _on_zoom_out(self) -> None:
         """Decrease the editor font size by two points and persist."""
-        self.editor_font_size = max(8, self.editor_font_size - 2)
-        self._editor.set_font_size(self.editor_font_size)
-        save_font(self._editor_font_family, self.editor_font_size)
+        self._zoom(-2)
 
     def _on_quick_view(self) -> None:
         """Render the document as HTML5 and show it in a quick-view window."""
@@ -1298,8 +1307,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_help_about(self) -> None:
         """Show the About dialog with version and release information."""
-        from mark_editor.constants import RELEASE
-
         dlg = AboutDialog(APP_NAME, VERSION, RELEASE)
         dlg.present()
 

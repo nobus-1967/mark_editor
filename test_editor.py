@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.8.6 (GTK4)."""
+"""Tests for Mark Editor 0.9.0 (GTK4)."""
 
 import os
 import sys
@@ -61,7 +61,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.8.6")
+        self.assertEqual(VERSION, "0.9.0")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -206,6 +206,29 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         self.app._on_blockquote()
         self.assertTrue(self.app._editor.get_text().startswith("> "))
 
+    def test_code_block_selection(self):
+        """Code Block fences a selection, otherwise wraps the current line."""
+        self.app._editor.set_text("code: x = 1")
+        self.app._editor.select_all()
+        with unittest.mock.patch(
+            "mark_editor.window.ask_string",
+            return_value=None,
+        ) as mock_ask:
+            self.app._on_code_block()
+            callback = mock_ask.call_args.args[3]
+            callback("python")
+        self.assertEqual(self.app._editor.get_text(), "```python\ncode: x = 1\n```")
+
+        self.app._editor.set_text("plain text")
+        with unittest.mock.patch(
+            "mark_editor.window.ask_string",
+            return_value=None,
+        ) as mock_ask:
+            self.app._on_code_block()
+            callback = mock_ask.call_args.args[3]
+            callback("")
+        self.assertEqual(self.app._editor.get_text(), "```\nplain text\n```")
+
     def test_wrap_selection(self):
         """Wrapping a selection surrounds it with the given marker."""
         self.app._editor.set_text("word")
@@ -309,6 +332,20 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         text = md_to_plain("# Title\n\nSome **bold** and [link](https://x.com).")
         self.assertIn("Title", text)
         self.assertIn("Some bold and link.", text)
+
+    def test_md_to_plain_table(self):
+        """md_to_plain keeps footer separators and normalizes alignment rows."""
+        source = (
+            "| Name | Qty | Price |\n"
+            "| :--- | :---: | ---: |\n"
+            "| A | 1 | 10.0 |\n"
+            "| === | === | === |\n"
+            "| Total | 1 | 10.0 |"
+        )
+        text = md_to_plain(source)
+        self.assertIn("| === | === | === |", text)
+        self.assertIn("| --- | --- | --- |", text)
+        self.assertIn("| Total | 1 | 10.0 |", text)
 
     def test_md_to_html_convert(self):
         """md_to_html produces HTML5 heading markup."""

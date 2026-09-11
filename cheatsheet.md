@@ -57,7 +57,7 @@
 | *Furigana...*          | `Ctrl+Shift+J` |
 | *Special Mark*         | `Ctrl+Shift+L` |
 
-## **Base Blocks of Text**
+## **Base Blocks of Text/Operations**
 
 | Command              | Shortcut       |
 | :---                 | :---:          |
@@ -78,7 +78,7 @@
 | *Image...*           | `Ctrl+Shift+I` |
 | *Horizontal Rule*    | `Ctrl+_`       |
 
-## **Advanced Blocks of Text**
+## **Advanced Blocks of Text/Operations**
 
 | Command                | Shortcut       |
 | :---                   | :---:          |

@@ -63,6 +63,16 @@ def _dropdown_value(combo: Gtk.DropDown | None, entry_text: str) -> str | None:
     return text or None
 
 
+def _compile_pattern(term: str, use_regex: bool) -> re.Pattern | None:
+    """Compile *term* into a regex pattern, or return None (empty/invalid)."""
+    if not term:
+        return None
+    try:
+        return re.compile(term if use_regex else re.escape(term))
+    except re.error:
+        return None
+
+
 def _find_and_select(editor, pattern: re.Pattern) -> bool:
     """Select the next occurrence of *pattern* from the cursor.
 
@@ -250,14 +260,9 @@ class FindDialog(Adw.Dialog):
 
     def _on_find_next(self, *_args) -> None:
         """Find and select the next occurrence of the search term."""
-        term = self._entry.get_text().strip()
-        if not term:
-            return
-        try:
-            pattern = re.compile(term if self._use_regex else re.escape(term))
-        except re.error:
-            return
-        _find_and_select(self._editor, pattern)
+        pattern = _compile_pattern(self._entry.get_text().strip(), self._use_regex)
+        if pattern is not None:
+            _find_and_select(self._editor, pattern)
 
     def _on_search_changed(self, entry) -> None:
         """Update the editor's search highlights as the user types."""
@@ -320,13 +325,7 @@ class ReplaceDialog(Adw.Dialog):
 
     def _get_pattern(self) -> re.Pattern | None:
         """Compile the find entry text into a regex pattern, or return None."""
-        term = self._find_entry.get_text()
-        if not term:
-            return None
-        try:
-            return re.compile(term if self._use_regex else re.escape(term))
-        except re.error:
-            return None
+        return _compile_pattern(self._find_entry.get_text(), self._use_regex)
 
     def _on_find_next(self, *_args) -> None:
         """Find and select the next match of the search pattern."""
@@ -336,7 +335,7 @@ class ReplaceDialog(Adw.Dialog):
         _find_and_select(self._editor, pattern)
 
     def _on_replace(self, *_args) -> None:
-        """Replace the currently selected match with the replacement text."""
+        """Find the next match from the cursor, then replace it."""
         pattern = self._get_pattern()
         if pattern is None:
             return
@@ -527,7 +526,7 @@ class FuriganaDialog(Adw.Dialog):
         selected = self._editor.get_selected_text()
         kanji = selected or self._kanji_entry.get_text().strip()
         if kanji and reading:
-            self._editor.replace_selection("{" + kanji + "|" + reading + "}")
+            self._editor.replace_selection(f"{{{kanji}|{reading}}}")
         self.close()
 
 
@@ -562,8 +561,7 @@ class OrderedListDialog(Adw.Dialog):
     def _on_insert(self, *_args) -> None:
         """Signal the *callback* with the chosen number and close."""
         self.close()
-        if self._callback:
-            self._callback(int(self._spin.get_value()))
+        self._callback(int(self._spin.get_value()))
 
 
 # ---------------------------------------------------------------------------

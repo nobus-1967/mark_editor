@@ -1,8 +1,7 @@
-"""Helper utilities: resource paths, theme persistence, markdown conversion."""
+"""Helper utilities: resources, themes, caching, temp files, markdown conversion."""
 
 from __future__ import annotations
 
-import contextlib
 import json
 import os
 import re
@@ -37,16 +36,29 @@ def resource_path(relative: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def load_theme() -> str:
-    """Load the saved appearance mode from ~/.config/mark_editor/theme.json."""
+def _read_config() -> dict:
+    """Read ~/.config/mark_editor/theme.json as a dict (empty on any error)."""
     try:
-        data = json.loads(THEME_FILE.read_text(encoding="utf-8"))
-        name = str(data.get("mode", DEFAULT_THEME)).lower()
-        if name in THEMES:
-            return name
+        return json.loads(THEME_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _write_config(**updates) -> None:
+    """Merge *updates* into theme.json, preserving existing keys (best effort)."""
+    try:
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        data = _read_config()
+        data.update(updates)
+        THEME_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
     except Exception:
         pass
-    return DEFAULT_THEME
+
+
+def load_theme() -> str:
+    """Load the saved appearance mode from ~/.config/mark_editor/theme.json."""
+    name = str(_read_config().get("mode", DEFAULT_THEME)).lower()
+    return name if name in THEMES else DEFAULT_THEME
 
 
 def load_font() -> tuple[str, int]:
@@ -54,43 +66,20 @@ def load_font() -> tuple[str, int]:
 
     Returns ``(family, size)`` or the defaults ``("Noto Sans Mono", 16)``.
     """
-    try:
-        data = json.loads(THEME_FILE.read_text(encoding="utf-8"))
-        family = data.get("font_family", "Noto Sans Mono")
-        size = int(data.get("font_size", 16))
-        return family, size
-    except Exception:
-        pass
-    return "Noto Sans Mono", 16
+    data = _read_config()
+    family = data.get("font_family", "Noto Sans Mono")
+    size = int(data.get("font_size", 16))
+    return family, size
 
 
 def save_theme(name: str) -> None:
     """Save the current appearance mode."""
-    try:
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        # Preserve existing font settings
-        data = {}
-        with contextlib.suppress(Exception):
-            data = json.loads(THEME_FILE.read_text(encoding="utf-8"))
-        data["mode"] = name
-        THEME_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    except Exception:
-        pass
+    _write_config(mode=name)
 
 
 def save_font(family: str, size: int) -> None:
     """Save the editor font family and size to theme.json (preserving mode)."""
-    try:
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        # Preserve existing mode setting
-        data = {}
-        with contextlib.suppress(Exception):
-            data = json.loads(THEME_FILE.read_text(encoding="utf-8"))
-        data["font_family"] = family
-        data["font_size"] = size
-        THEME_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    except Exception:
-        pass
+    _write_config(font_family=family, font_size=size)
 
 
 # ---------------------------------------------------------------------------
@@ -211,14 +200,33 @@ def md_to_pdf(text: str, path: str, *, source_dir: str | None = None) -> None:
 def md_to_plain(text: str) -> str:
     """Strip Markdown syntax to produce plain text.
 
-    Only known Markdown extension patterns inside curly braces are removed;
-    literal brace-delimited text is preserved.
+    Removes block syntax (code fences, heading/list markers, horizontal
+    rules, ``::`` markers, empty pipe rows), normalizes table alignment rows
+    (``:--``/``--:``/``:--:`` ``->`` ``--``) and preserves ``| === |`` footer
+    separators, strips known curly-brace extension markers only, removes
+    inline emphasis, and collapses blank lines.
     """
     text = re.sub(r"^```[^\n]*\n?", "", text, flags=re.MULTILINE)
     text = re.sub(r"^#+\s?", "", text, flags=re.MULTILINE)
     text = re.sub(r"^\s*([-*+>])\s+", "", text, flags=re.MULTILINE)
     text = re.sub(r"^\s*\d+\.\s+", "", text, flags=re.MULTILINE)
     text = re.sub(r"^\s*(\|\s*)+$", "", text, flags=re.MULTILINE)
+    footer_rows: list[str] = []
+
+    def _mask_footer(m: re.Match) -> str:
+        """Hide a ``| === |`` footer separator so ``=`` stripping skips it."""
+        footer_rows.append(m.group(0))
+        return f"\x00{len(footer_rows) - 1}\x00"
+
+    text = re.sub(
+        r"^\s*\|\s*([ \t]*=+[ \t]*\|)+$", _mask_footer, text, flags=re.MULTILINE
+    )
+    text = re.sub(
+        r"^\s*\|\s*([ \t]*:?-{3,}:?[ \t]*\|)+$",
+        lambda m: re.sub(r":?-{3,}:?", "---", m.group(0)),
+        text,
+        flags=re.MULTILINE,
+    )
     text = re.sub(r"^---\s*$", "", text, flags=re.MULTILINE)
     text = re.sub(r"^:::+\s*$", "", text, flags=re.MULTILINE)
     text = re.sub(r"^\[.*?\]:\s*#\s*", "", text, flags=re.MULTILINE)
@@ -231,4 +239,6 @@ def md_to_plain(text: str) -> str:
     text = re.sub(r"[*_~^`=]{1,2}", "", text)
     text = re.sub(r"[ \t]+\n", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
+    for i, row in enumerate(footer_rows):
+        text = text.replace(f"\x00{i}\x00", row)
     return text.strip() + "\n"

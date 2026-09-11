@@ -15,9 +15,11 @@ import shutil
 import subprocess
 import sys
 
-APP_NAME = "Mark Editor"
-VERSION = "0.8.6"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
+from mark_editor.constants import VERSION  # noqa: E402
+
+APP_NAME = "Mark Editor"
 PACKAGE_DIR = os.path.join(BASE_DIR, "mark_editor")
 ICON_SRC = os.path.join(BASE_DIR, "images", "mark_editor.png")
 DESKTOP_SRC = os.path.join(BASE_DIR, "mark-editor.desktop")

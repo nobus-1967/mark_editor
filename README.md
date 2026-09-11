@@ -138,7 +138,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.8.6-x86_64.AppImage`
+Output: `MarkEditor-0.9.0-x86_64.AppImage`
 
 ## Add-ons
 
@@ -167,7 +167,8 @@ Use `Format` > `Furigana...` to add a ruby reading. When text (kanji/hanzi/kana)
 The editor helps you build Markdown tables with a footer and cell alignment:
 
 - `Paragraph` > `Table...` opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and footer row.
-- `Paragraph` > `Add Table Row` inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
+- `Paragraph` > `Add Table Row...` inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
+- `Paragraph` > `Balance Table` (`Ctrl+Shift+N`) reformats the table block at the cursor so every column has equal width and the right border is aligned.
 - `Paragraph` > `Table Alignment` inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
 
 ### YAML Front Matter
@@ -208,7 +209,7 @@ The editor uses temporary files to preserve unsaved work and to feed the built-i
 Temporary Markdown files (`~*.md`) are deleted when the associated file is closed — when opening or reopening another file — and when the editor window is closed via the close button or the Quit command.
 
 The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Quick View` / `Quick View (CSS)` command and deleted when the quick-view
-window is closed.  Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
+window is closed. Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
 
 ## How It Works
 
