@@ -1,6 +1,6 @@
 # Mark Editor
 
-![mark_editor](./images/mark_editor.png)
+![mark_editor](./images/mark_editor_0_6.png))
 
 A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, ruby annotations for phonetic guides and other add-ons.
 
