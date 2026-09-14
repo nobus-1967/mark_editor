@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.9.0 (GTK4)."""
+"""Tests for Mark Editor 0.9.1 (GTK4)."""
 
 import os
 import sys
@@ -32,6 +32,12 @@ from mark_editor.helpers import (
 )
 
 
+def _line_iter(buf, line: int):
+    """Return a TextIter at the start of a 0-based *line* (GTK returns a tuple)."""
+    _, it = buf.get_iter_at_line(line)
+    return it
+
+
 class _IsolatedConfigMixin:
     """Point mark_editor's config and cache dirs at a temporary directory."""
 
@@ -61,7 +67,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.9.0")
+        self.assertEqual(VERSION, "0.9.1")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -298,6 +304,84 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
             len(self.app._editor.get_line_text(1).split("|")),
             len(self.app._editor.get_line_text(4).split("|")),
         )
+
+    def test_line_up_single(self):
+        """Line Up swaps a single line with the one above."""
+        self.app._editor.set_text("first\nsecond\nthird")
+        self.app._editor.get_buffer().place_cursor(
+            _line_iter(self.app._editor.get_buffer(), 1)
+        )
+        self.app._on_line_up()
+        self.assertEqual(self.app._editor.get_text(), "second\nfirst\nthird")
+
+    def test_line_down_single(self):
+        """Line Down swaps a single line with the one below."""
+        self.app._editor.set_text("first\nsecond\nthird")
+        self.app._editor.get_buffer().place_cursor(
+            _line_iter(self.app._editor.get_buffer(), 0)
+        )
+        self.app._on_line_down()
+        self.assertEqual(self.app._editor.get_text(), "second\nfirst\nthird")
+
+    def test_line_up_selection(self):
+        """Line Up moves a multi-line selection block up."""
+        self.app._editor.set_text("first\nsecond\nthird\nfourth")
+        buf = self.app._editor.get_buffer()
+        buf.select_range(_line_iter(buf, 1), _line_iter(buf, 3))
+        self.app._on_line_up()
+        self.assertEqual(self.app._editor.get_text(), "second\nthird\nfirst\nfourth")
+
+    def test_line_down_selection(self):
+        """Line Down moves a multi-line selection block down."""
+        self.app._editor.set_text("first\nsecond\nthird\nfourth")
+        buf = self.app._editor.get_buffer()
+        buf.select_range(_line_iter(buf, 0), _line_iter(buf, 2))
+        self.app._on_line_down()
+        self.assertEqual(self.app._editor.get_text(), "third\nfirst\nsecond\nfourth")
+
+    def test_line_up_boundary(self):
+        """Line Up cannot move selection past the first line."""
+        self.app._editor.set_text("first\nsecond")
+        buf = self.app._editor.get_buffer()
+        buf.select_range(_line_iter(buf, 0), _line_iter(buf, 1))
+        self.app._on_line_up()
+        self.assertEqual(self.app._editor.get_text(), "first\nsecond")
+
+    def test_line_down_boundary(self):
+        """Line Down cannot move selection past the last line."""
+        self.app._editor.set_text("first\nsecond")
+        buf = self.app._editor.get_buffer()
+        buf.select_range(_line_iter(buf, 1), _line_iter(buf, 2))
+        self.app._on_line_down()
+        self.assertEqual(self.app._editor.get_text(), "first\nsecond")
+
+    def test_add_indent_single(self):
+        """Add Indent prefixes the current line with two spaces."""
+        self.app._editor.set_text("text")
+        self.app._on_add_indent()
+        self.assertEqual(self.app._editor.get_text(), "  text")
+
+    def test_remove_indent_single(self):
+        """Remove Indent strips up to two leading spaces."""
+        self.app._editor.set_text("    text")
+        self.app._on_remove_indent()
+        self.assertEqual(self.app._editor.get_text(), "  text")
+
+    def test_add_indent_selection(self):
+        """Add Indent indents all selected lines."""
+        self.app._editor.set_text("first\nsecond\nthird")
+        buf = self.app._editor.get_buffer()
+        buf.select_range(_line_iter(buf, 0), _line_iter(buf, 3))
+        self.app._on_add_indent()
+        self.assertEqual(self.app._editor.get_text(), "  first\n  second\n  third")
+
+    def test_remove_indent_selection(self):
+        """Remove Indent strips spaces from all selected lines."""
+        self.app._editor.set_text("  first\n    second\n third")
+        buf = self.app._editor.get_buffer()
+        buf.select_range(_line_iter(buf, 0), _line_iter(buf, 3))
+        self.app._on_remove_indent()
+        self.assertEqual(self.app._editor.get_text(), "first\n  second\nthird")
 
     def test_format_table_block(self):
         """The table block formatter pads columns and aligns the right border."""

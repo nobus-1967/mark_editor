@@ -651,31 +651,73 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.focus()
 
     def _on_line_up(self) -> None:
-        """Swap the current line with the one above it."""
-        line = self._editor.get_current_line_number()
-        if line <= 1:
-            return
-        buf = self._editor.get_buffer()
-        cur_text = self._editor.get_line_text(line)
-        prev_text = self._editor.get_line_text(line - 1)
-        buf.begin_user_action()
-        self._editor.replace_line(line - 1, cur_text)
-        self._editor.replace_line(line, prev_text)
-        buf.end_user_action()
+        """Move the current line or selection block one line up."""
+        bounds = self._editor.get_selection_bounds()
+        if bounds:
+            start_line, end_line = self._get_selection_line_range(bounds)
+            if start_line <= 1:
+                return
+            self._move_lines(start_line, end_line, -1)
+            self._select_lines(start_line - 1, end_line - 1)
+        else:
+            line = self._editor.get_current_line_number()
+            if line <= 1:
+                return
+            self._move_lines(line, line, -1)
 
     def _on_line_down(self) -> None:
-        """Swap the current line with the one below it."""
-        line = self._editor.get_current_line_number()
+        """Move the current line or selection block one line down."""
+        bounds = self._editor.get_selection_bounds()
         total = self._editor.get_line_count()
-        if line >= total:
-            return
+        if bounds:
+            start_line, end_line = self._get_selection_line_range(bounds)
+            if end_line >= total:
+                return
+            self._move_lines(start_line, end_line, 1)
+            self._select_lines(start_line + 1, end_line + 1)
+        else:
+            line = self._editor.get_current_line_number()
+            if line >= total:
+                return
+            self._move_lines(line, line, 1)
+
+    def _get_selection_line_range(
+        self, bounds: tuple[Gtk.TextIter, Gtk.TextIter]
+    ) -> tuple[int, int]:
+        """Return the (start_line, end_line) range covered by a selection (1-based).
+
+        A selection ending at the start of a line does not include that line.
+        """
+        start, end = bounds
+        start_line = start.get_line()
+        end_line = end.get_line()
+        if end.get_line_offset() == 0 and end_line > start_line:
+            end_line -= 1
+        return start_line + 1, end_line + 1
+
+    def _move_lines(self, start_line: int, end_line: int, delta: int) -> None:
+        """Move *start_line*..*end_line* up (delta=-1) or down (delta=+1)."""
+        block = [self._editor.get_line_text(i) for i in range(start_line, end_line + 1)]
         buf = self._editor.get_buffer()
-        cur_text = self._editor.get_line_text(line)
-        next_text = self._editor.get_line_text(line + 1)
         buf.begin_user_action()
-        self._editor.replace_line(line, next_text)
-        self._editor.replace_line(line + 1, cur_text)
+        if delta < 0:
+            above = self._editor.get_line_text(start_line - 1)
+            for i, text in enumerate(block):
+                self._editor.replace_line(start_line - 1 + i, text)
+            self._editor.replace_line(end_line, above)
+        else:
+            below = self._editor.get_line_text(end_line + 1)
+            for i, text in enumerate(block):
+                self._editor.replace_line(start_line + 1 + i, text)
+            self._editor.replace_line(start_line, below)
         buf.end_user_action()
+
+    def _select_lines(self, start_line: int, end_line: int) -> None:
+        """Select the full lines *start_line*..*end_line* (1-based)."""
+        buf = self._editor.get_buffer()
+        _, start = buf.get_iter_at_line(start_line - 1)
+        _, end = buf.get_iter_at_line(end_line)
+        buf.select_range(start, end)
 
     def _on_delete_line(self) -> None:
         """Delete the entire line at the cursor position."""
@@ -1109,23 +1151,36 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Insert a horizontal rule (``***``)."""
         self._insert_block("***")
 
-    def _on_add_indent(self) -> None:
-        """Indent the current line by two spaces."""
+    def _line_range(self) -> tuple[int, int]:
+        """Return the selected line range, or the current line (1-based)."""
+        bounds = self._editor.get_selection_bounds()
+        if bounds:
+            return self._get_selection_line_range(bounds)
         line = self._editor.get_current_line_number()
+        return line, line
+
+    def _on_add_indent(self) -> None:
+        """Indent the current line or all selected lines by two spaces."""
+        start_line, end_line = self._line_range()
         buf = self._editor.get_buffer()
-        _, pos = buf.get_iter_at_line(line - 1)
         buf.begin_user_action()
-        buf.insert(pos, "  ")
+        for line in range(start_line, end_line + 1):
+            _, pos = buf.get_iter_at_line(line - 1)
+            buf.insert(pos, "  ")
         buf.end_user_action()
 
     def _on_remove_indent(self) -> None:
-        """Remove up to two leading spaces from the current line."""
-        line = self._editor.get_current_line_number()
-        text = self._editor.get_line_text(line)
-        if text.startswith("  "):
-            self._editor.replace_line(line, text[2:])
-        elif text.startswith(" "):
-            self._editor.replace_line(line, text[1:])
+        """Remove up to two leading spaces from current line or all selected lines."""
+        start_line, end_line = self._line_range()
+        buf = self._editor.get_buffer()
+        buf.begin_user_action()
+        for line in range(start_line, end_line + 1):
+            text = self._editor.get_line_text(line)
+            if text.startswith("  "):
+                self._editor.replace_line(line, text[2:])
+            elif text.startswith(" "):
+                self._editor.replace_line(line, text[1:])
+        buf.end_user_action()
 
     def _on_comment(self) -> None:
         """Prompt for text and insert a hidden comment block (``[text]: #``)."""

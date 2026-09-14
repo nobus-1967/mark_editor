@@ -1,6 +1,6 @@
 # Mark Editor
 
-![mark_editor](./images/mark_editor_0_6.png)
+![mark_editor](./images/mark_editor.png)
 
 A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, ruby annotations for phonetic guides and other add-ons.
 
@@ -138,7 +138,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.9.0-x86_64.AppImage`
+Output: `MarkEditor-0.9.1-x86_64.AppImage`
 
 ## Add-ons
 

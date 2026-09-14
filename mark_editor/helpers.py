@@ -202,9 +202,9 @@ def md_to_plain(text: str) -> str:
 
     Removes block syntax (code fences, heading/list markers, horizontal
     rules, ``::`` markers, empty pipe rows), normalizes table alignment rows
-    (``:--``/``--:``/``:--:`` ``->`` ``--``) and preserves ``| === |`` footer
-    separators, strips known curly-brace extension markers only, removes
-    inline emphasis, and collapses blank lines.
+    (``:---:`` / ``:---`` / ``---:`` to ``---``) and preserves ``| === |``
+    footer separators, strips known curly-brace extension markers only,
+    removes inline emphasis, and collapses blank lines.
     """
     text = re.sub(r"^```[^\n]*\n?", "", text, flags=re.MULTILINE)
     text = re.sub(r"^#+\s?", "", text, flags=re.MULTILINE)
