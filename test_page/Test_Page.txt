@@ -86,7 +86,7 @@ Test Russian symbols
 
 Others
 
-Furigana (Japanese kanji spelling):  はです。
+Furigana (Japanese kanji spelling):  私(わたし)は日(に)本(ほん)人(じん)です。
 
 Some typographic symbols and emoji as (tm), (c), 1/2, --, &darr;, "Hello!", <<It's me!>>, :heart:,  etc.
 
