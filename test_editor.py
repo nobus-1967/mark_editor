@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.9.1 (GTK4)."""
+"""Tests for Mark Editor 0.9.2 (GTK4)."""
 
 import os
 import sys
@@ -19,6 +19,8 @@ from mark_editor.constants import (
     VERSION,
 )
 from mark_editor.helpers import (
+    add_heading_ids,
+    add_toc,
     cleanup_temp_html,
     cleanup_temp_md,
     ensure_cache_dir,
@@ -27,6 +29,8 @@ from mark_editor.helpers import (
     load_theme,
     md_to_html,
     md_to_plain,
+    regenerate_toc,
+    remove_toc,
     save_font,
     save_theme,
 )
@@ -67,7 +71,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.9.1")
+        self.assertEqual(VERSION, "0.9.2")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -437,12 +441,6 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         html = md_to_html(self.app._editor.get_text())
         self.assertIn("<h1>", html)
 
-    def test_md_to_plain_convert(self):
-        """md_to_plain converts Markdown to readable text."""
-        self.app._editor.set_text("# Hello")
-        txt = md_to_plain(self.app._editor.get_text())
-        self.assertIn("Hello", txt)
-
     def test_editor_text_roundtrip(self):
         """Editor text writes to a file and reads back unchanged."""
         tmp = Path(tempfile.mkdtemp()) / "doc.md"
@@ -509,6 +507,87 @@ class TestTempFileCleanup(unittest.TestCase):
         self.assertFalse((d / "~doc.html").exists())
         self.assertTrue((d / "~doc.md").exists())
         self.assertTrue((d / "~notes").exists())
+
+
+class TestTableOfContents(unittest.TestCase):
+    """Verify TOC generation: IDs, links, placement, removal and regeneration."""
+
+    DOC = "# My Title\n\n## First 2\n\nText.\n\n## Second 2\n\n### Deep 3\n\nMore.\n"
+
+    def test_add_toc_headings_numbered_and_ids_added(self):
+        """Level-2+ headings get per-level ordinal IDs; H1 keeps no ID."""
+        out = add_toc(self.DOC)
+        self.assertIn("## First 2 {#h2-1}", out)
+        self.assertIn("## Second 2 {#h2-2}", out)
+        self.assertIn("### Deep 3 {#h3-1}", out)
+        self.assertNotIn("# My Title {#", out)
+
+    def test_toc_placed_after_first_h1(self):
+        """The TOC block sits right after the first Level 1 heading."""
+        out = add_toc(self.DOC)
+        self.assertLess(out.index("## Table of Contents"), out.index("## First 2"))
+        self.assertTrue(out.startswith("# My Title\n\n[TOC: Begin]: #"))
+
+    def test_toc_link_format_and_indent(self):
+        """Links list headings in order; deeper levels are not indented."""
+        out = add_toc(self.DOC)
+        self.assertIn("- [First 2](#h2-1)", out)
+        self.assertIn("- [Second 2](#h2-2)", out)
+        self.assertIn("- [Deep 3](#h3-1)", out)
+
+    def test_toc_hr_separator(self):
+        """The TOC block ends with an *** rule followed by the document."""
+        out = add_toc(self.DOC)
+        self.assertIn("[TOC: End]: #\n\n***\n", out)
+
+    def test_toc_without_h1_goes_to_start(self):
+        """Without an H1 the TOC block is inserted at the document start."""
+        out = add_toc("## A\n\n## B\n")
+        self.assertTrue(out.startswith("[TOC: Begin]: #\n## Table of Contents"))
+        self.assertIn("## A {#h2-1}", out)
+        self.assertIn("## B {#h2-2}", out)
+
+    def test_toc_after_yaml_front_matter(self):
+        """With no H1 and YAML front matter, the TOC follows the closing ---."""
+        doc = "---\ntitle: X\n---\n\n## A\n"
+        out = add_toc(doc)
+        self.assertTrue(out.startswith("---\ntitle: X\n---\n\n[TOC: Begin]: #"))
+
+    def test_existing_ids_reused(self):
+        """An existing header ID is kept and reused in the TOC link."""
+        out = add_toc(self.DOC)
+        out2 = add_toc(out)
+        self.assertEqual(out.count("## First 2 {#h2-1}"), 1)
+        self.assertIn("- [First 2](#h2-1)", out2)
+
+    def test_regenerate_renumbers_auto_ids(self):
+        """Regenerate refreshes hX-Y ordinals even without deletions."""
+        out = regenerate_toc(add_toc(self.DOC))
+        self.assertIn("### Deep 3 {#h3-1}", out)
+        self.assertIn("- [Second 2](#h2-2)", out)
+
+    def test_remove_toc_keeps_ids(self):
+        """Removing the TOC block keeps the heading IDs from earlier."""
+        out = remove_toc(add_toc(self.DOC))
+        self.assertNotIn("[TOC: Begin]", out)
+        self.assertNotIn("## Table of Contents", out)
+        self.assertIn("## First 2 {#h2-1}", out)
+
+    def test_add_ids_only_skips_h1_and_toc(self):
+        """IDs-only mode numbers level-2+ headings and ignores the TOC block."""
+        full = add_toc(self.DOC)
+        out = add_heading_ids(full)
+        self.assertNotIn("## Table of Contents {#", out)
+        self.assertNotIn("# My Title {#", out)
+        self.assertIn("## First 2 {#h2-1}", out)
+
+    def test_code_fenced_headings_ignored(self):
+        """Headings inside fenced code blocks get no ID and no TOC entry."""
+        doc = "## Real\n\n```markdown\n## Fake\n```\n"
+        out = add_toc(doc)
+        self.assertIn("## Real {#h2-1}", out)
+        self.assertNotIn("## Fake {#", out)
+        self.assertIn("- [Real](#h2-1)", out)
 
 
 class TestMarkdownConversion(unittest.TestCase):

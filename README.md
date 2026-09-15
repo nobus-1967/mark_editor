@@ -21,6 +21,7 @@ A simple Markdown editor that supports standard Markdown, GFM extensions, smart 
   - [Language Markers](#language-markers)
   - [Ruby Annotation/Furigana](#ruby-annotationfurigana)
   - [Tables](#tables)
+  - [Table of Contents](#table-of-contents)
   - [YAML Front Matter](#yaml-front-matter)
 - [Temporary Files](#temporary-files)
   - [New (unsaved) files](#new-unsaved-files)
@@ -39,6 +40,7 @@ The main functions of the editor:
 - find and replace text;
 - format text (bold, italic, underline, strikethrough, subscript, superscript, inline code, marked text);
 - add links and footnotes;
+- insert header IDs and add, generate, regenerate or remove a table of contents (TOC);
 - label parts of text as headings, paragraphs, ordered or unordered lists, blockquotes, comments, etc.;
 - add task lists (checkboxes);
 - add fenced code blocks;
@@ -138,7 +140,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.9.1-x86_64.AppImage`
+Output: `MarkEditor-0.9.2-x86_64.AppImage`
 
 ## Add-ons
 
@@ -170,6 +172,18 @@ The editor helps you build Markdown tables with a footer and cell alignment:
 - `Paragraph` > `Add Table Row...` inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
 - `Paragraph` > `Balance Table` (`Ctrl+Shift+N`) reformats the table block at the cursor so every column has equal width and the right border is aligned.
 - `Paragraph` > `Table Alignment` inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
+
+### Table of Contents
+
+The editor can add, regenerate or remove a table of contents for the headings in a document.
+
+- `Format` > `TOC...` (`Ctrl+Shift+E`) opens a dialog with a drop-down list of four operations:
+  - `Add TOC` inserts a table of contents after the first `# H1` section title (or any existing YAML front matter), or at the very start of the document if there is none.
+  - `Regenerate existing TOC` rebuilds an existing `[TOC: Begin]: #` … `[TOC: End]: #` block so the links match the current headings; headings that already have explicit IDs keep them, auto-generated IDs are renumbered.
+  - `Remove existing TOC` deletes the `[TOC: Begin]: #` … `[TOC: End]: #` block (heading links and generated header IDs are kept).
+  - `Add Header IDs only` adds the same header anchors without inserting a table of contents.
+- Headings are converted to links of the form `{#hX-Y}`, where `X` is the heading level (1–6) and `Y` the order of that heading among headings of the same level (`# H1` titles are not given IDs). The TOC lists the headings as plain Markdown links and is delimited by a `***` horizontal rule.
+- Existing `{#id}` anchors are reused, both when building the TOC and inside the regenerate operation.
 
 ### YAML Front Matter
 

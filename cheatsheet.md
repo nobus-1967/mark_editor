@@ -50,6 +50,7 @@
 | :---                   | :---:          |
 | *Header ID...*         | `Ctrl+H`       |
 | *Header Link...*       | `Ctrl+Shift+H` |
+| *TOC...*               | `Ctrl+Shift+E` |
 | *Footnote...*          | `Ctrl+Shift+U` |
 | *Date and Time...*     | `Ctrl+Shift+D` |
 | *Language Marker...*   | `Ctrl+W`       |

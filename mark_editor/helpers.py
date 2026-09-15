@@ -1,4 +1,8 @@
-"""Helper utilities: resources, themes, caching, temp files, markdown conversion."""
+"""Helper utilities for Mark Editor.
+
+Resources, themes, caching, temp files, markdown conversion and the table of
+contents generator.
+"""
 
 from __future__ import annotations
 
@@ -235,10 +239,198 @@ def md_to_plain(text: str) -> str:
     # Strip known Markdown extension curly-brace patterns only
     text = re.sub(r"\{#[^}]*\}", "", text)  # header IDs: {#id}
     text = re.sub(r"\{:[^}]*\}", "", text)  # language markers: {:lang}
-    text = re.sub(r"\{[^|}]+\|[^}]*\}", "", text)  # ruby/furigana: {text|reading}
+    text = re.sub(r"\{([^|}]+)\|([^}]*)\}", r"\1(\2)", text)  # furigana
     text = re.sub(r"[*_~^`=]{1,2}", "", text)
     text = re.sub(r"[ \t]+\n", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     for i, row in enumerate(footer_rows):
         text = text.replace(f"\x00{i}\x00", row)
     return text.strip() + "\n"
+
+
+# ---------------------------------------------------------------------------
+# Table of contents
+# ---------------------------------------------------------------------------
+
+
+TOC_BEGIN_MARKER = "[TOC: Begin]: #"
+TOC_END_MARKER = "[TOC: End]: #"
+TOC_HEADING = "## Table of Contents"
+
+_TOC_HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*$")
+_TOC_ID_RE = re.compile(r"\s*\{#[^{}]*\}\s*$")
+_TOC_ID_TEXT_RE = re.compile(r"\{#([^{}]*)\}\s*$")
+_AUTO_ID_RE = re.compile(r"h\d+-\d+")
+
+
+def _find_toc_block(lines: list[str], fold_lead: bool = True) -> tuple[int, int] | None:
+    """Return the ``[begin, end]`` line indices of the TOC block in *lines*.
+
+    The block spans from the ``[TOC: Begin]: #`` marker to the ``[TOC: End]: #``
+    marker plus its separating ``***`` rule and one following blank line. When
+    *fold_lead* is set, one adjacent blank line before the marker is included
+    too. Returns None when no marker pair is found.
+    """
+    begin = next(
+        (i for i, ln in enumerate(lines) if ln.rstrip() == TOC_BEGIN_MARKER), None
+    )
+    if begin is None:
+        return None
+    if fold_lead and begin > 0 and not lines[begin - 1].strip():
+        begin -= 1
+    end = next(
+        (
+            i
+            for i in range(begin + 1, len(lines))
+            if lines[i].rstrip() == TOC_END_MARKER
+        ),
+        None,
+    )
+    if end is None:
+        return None
+    j = end + 1
+    if j < len(lines) and not lines[j].strip():
+        j += 1
+    if j < len(lines) and lines[j].strip() == "***":
+        end = j
+        j += 1
+        if j < len(lines) and not lines[j].strip():
+            end = j
+    return begin, end
+
+
+def _process_headings(
+    lines: list[str],
+    refresh_auto: bool,
+    skip: tuple[int, int] | None = None,
+) -> tuple[list[tuple[int, str, str]], int | None]:
+    """Assign heading IDs in-place and return TOC entries and the H1 anchor.
+
+    Skips headings between *skip* (a ``(begin, end)`` line range, e.g. an
+    existing TOC block). Level 1 headings get no ID and are not listed; the
+    returned anchor is the line *after* the first Level 1 heading. Existing IDs
+    are kept (and reused in TOC links); auto IDs ``#hX-Y`` are renumbered when
+    *refresh_auto* is True.
+    """
+    counters: dict[int, int] = {}
+    entries: list[tuple[int, str, str]] = []
+    insert_idx: int | None = None
+    in_fence = False
+    for i, line in enumerate(lines):
+        if skip is not None and skip[0] <= i <= skip[1]:
+            continue
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        m = _TOC_HEADING_RE.match(line)
+        if not m:
+            continue
+        level = len(m.group(1))
+        if insert_idx is None and level == 1:
+            insert_idx = i + 1
+        if level < 2:
+            continue
+        counters[level] = counters.get(level, 0) + 1
+        title = _TOC_ID_RE.sub("", m.group(2)).strip()
+        existing = _TOC_ID_TEXT_RE.search(line)
+        if existing is not None:
+            hid = existing.group(1).strip() or f"h{level}"
+            if refresh_auto and _AUTO_ID_RE.fullmatch(hid):
+                hid = f"h{level}-{counters[level]}"
+                lines[i] = _TOC_ID_RE.sub("", line) + f" {{#{hid}}}"
+        else:
+            hid = f"h{level}-{counters[level]}"
+            lines[i] = line.rstrip() + f" {{#{hid}}}"
+        entries.append((level, title, hid))
+    return entries, insert_idx
+
+
+def _toc_block_text(entries: list[tuple[int, str, str]]) -> str:
+    """Build the marked TOC block text (title, links, separator) for *entries*."""
+    lines = [TOC_BEGIN_MARKER, TOC_HEADING, ""]
+    for _, title, hid in entries:
+        lines.append(f"- [{title}](#{hid})")
+    lines.extend(["", TOC_END_MARKER, "", "***"])
+    return "\n".join(lines)
+
+
+def _insert_toc(lines: list[str], entries, anchor: int | None) -> list[str]:
+    """Insert the TOC block into *lines* after *anchor*, front matter or start.
+
+    The block owns its blank padding (one line before the marker and one line
+    after the ``***`` rule), so inserts and replacements are spacing-stable.
+    """
+    if not entries:
+        return lines
+    if anchor is None:
+        if lines and lines[0].strip() == "---":
+            closing = next(
+                (i for i in range(1, len(lines)) if lines[i].strip() == "---"), None
+            )
+            anchor = closing + 1 if closing is not None else len(lines)
+        else:
+            anchor = 0
+    block = _toc_block_text(entries).split("\n")
+    if anchor == 0:
+        block.append("")
+        lines[anchor:anchor] = block
+        return lines
+    block = [""] + block + [""]
+    if anchor < len(lines) and not lines[anchor].strip():
+        lines[anchor : anchor + 1] = block
+    else:
+        lines[anchor:anchor] = block
+    return lines
+
+
+def remove_toc(text: str) -> str:
+    """Return *text* without the auto-generated table of contents block.
+
+    Heading IDs are left untouched.
+    """
+    lines = text.split("\n")
+    block = _find_toc_block(lines, fold_lead=False)
+    if block is None:
+        return text
+    begin, end = block
+    del lines[begin : end + 1]
+    return "\n".join(lines)
+
+
+def add_toc(text: str) -> str:
+    """Return *text* with a table of contents inserted after an existing one is removed.
+
+    Level-2+ headings are assigned ``{#hX-Y}`` IDs (only when missing), and a
+    ``## Table of Contents`` block with ``- [Text](#hX-Y)`` links is inserted
+    after the first Level 1 heading, else at the document start after any YAML
+    front matter. The block is separated from the following text by ``***``.
+    """
+    lines = text.split("\n")
+    block = _find_toc_block(lines)
+    if block is not None:
+        del lines[block[0] : block[1] + 1]
+    entries, anchor = _process_headings(lines, refresh_auto=False)
+    return "\n".join(_insert_toc(lines, entries, anchor))
+
+
+def regenerate_toc(text: str) -> str:
+    """Return *text* with the TOC rebuilt and auto ``#hX-Y`` headings renumbered."""
+    lines = text.split("\n")
+    block = _find_toc_block(lines)
+    if block is not None:
+        del lines[block[0] : block[1] + 1]
+    entries, anchor = _process_headings(lines, refresh_auto=True)
+    return "\n".join(_insert_toc(lines, entries, anchor))
+
+
+def add_heading_ids(text: str) -> str:
+    """Return *text* with ``{#hX-Y}`` IDs added to level-2+ headings that lack one.
+
+    The TOC block (if present) and Level 1 headings are left untouched.
+    """
+    lines = text.split("\n")
+    skip = _find_toc_block(lines)
+    _process_headings(lines, refresh_auto=False, skip=skip)
+    return "\n".join(lines)

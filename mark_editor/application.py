@@ -112,6 +112,7 @@ class MarkEditorApp(Gtk.Application):
         self._add_action("mark", lambda a, p: _w() and _w()._on_mark())
         self._add_action("header-id", lambda a, p: _w() and _w()._on_header_id())
         self._add_action("header-link", lambda a, p: _w() and _w()._on_header_link())
+        self._add_action("toc", lambda a, p: _w() and _w()._on_toc())
         self._add_action("hyperlink", lambda a, p: _w() and _w()._on_hyperlink())
         self._add_action("footnote", lambda a, p: _w() and _w()._on_footnote())
         self._add_action(
@@ -258,6 +259,7 @@ class MarkEditorApp(Gtk.Application):
             ("app.mark", ["<Control><Shift>m"]),
             ("app.header-id", ["<Control>h"]),
             ("app.header-link", ["<Control><Shift>h"]),
+            ("app.toc", ["<Control><Shift>e"]),
             ("app.hyperlink", ["<Control>l"]),
             ("app.footnote", ["<Control><Shift>u"]),
             ("app.language-marker", ["<Control>w"]),

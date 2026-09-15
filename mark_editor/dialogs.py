@@ -611,6 +611,56 @@ class HeaderLinkDialog(Adw.Dialog):
 
 
 # ---------------------------------------------------------------------------
+# Table of Contents
+# ---------------------------------------------------------------------------
+
+
+class TOCDialog(Adw.Dialog):
+    """Dialog for table-of-contents operations.
+
+    Operations: add the TOC, add header IDs only, regenerate (remove and
+    generate again), or remove the existing table of contents.
+    """
+
+    TOC_OPTIONS = (
+        "Add TOC",
+        "Regenerate existing TOC",
+        "Remove existing TOC",
+        "Add Header IDs only",
+    )
+
+    def __init__(self, callback) -> None:
+        """Initialize the Table of Contents dialog with a result callback."""
+        super().__init__()
+        self.set_title("Table of Contents")
+        self.set_content_width(380)
+
+        self._callback = callback
+
+        box = _make_dialog_box()
+
+        prompt = Gtk.Label(label="Select an operation:")
+        prompt.set_halign(Gtk.Align.START)
+        box.append(prompt)
+
+        self._ops = Gtk.DropDown.new_from_strings(list(self.TOC_OPTIONS))
+        self._ops.set_halign(Gtk.Align.START)
+        self._ops.set_selected(0)
+        box.append(self._ops)
+
+        ok_btn = _make_button("OK", self._on_ok, suggested=True)
+        cancel_btn = _make_button("Cancel", lambda _: self.close())
+        box.append(_make_button_box(ok_btn, cancel_btn))
+
+        self.set_child(box)
+
+    def _on_ok(self, *_args) -> None:
+        """Signal the *callback* with the chosen operation index and close."""
+        self.close()
+        self._callback(self._ops.get_selected())
+
+
+# ---------------------------------------------------------------------------
 # Footnote
 # ---------------------------------------------------------------------------
 

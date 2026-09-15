@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "0.9.1"
+VERSION = "0.9.2"
 RELEASE = datetime.now().strftime("%Y.%m")
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"

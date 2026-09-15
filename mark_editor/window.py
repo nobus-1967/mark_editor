@@ -1,4 +1,10 @@
-"""Main application window (GTK4)."""
+"""Main application window (GTK4).
+
+Builds the menubar and hamburger menus, hosts the editor and the status bar,
+handles all document lifecycle (new/open/reopen/save/convert/quick view),
+edit and formatting operations, theme/font persistence, the table-of-contents
+generator, and the quick-view windows.
+"""
 
 from __future__ import annotations
 
@@ -43,6 +49,7 @@ from mark_editor.dialogs import (
     ReplaceDialog,
     TableDialog,
     TableRowDialog,
+    TOCDialog,
     TodoListDialog,
     YAMLFrontMatterDialog,
     ask_string,
@@ -50,6 +57,8 @@ from mark_editor.dialogs import (
 )
 from mark_editor.editor import Editor
 from mark_editor.helpers import (
+    add_heading_ids,
+    add_toc,
     cleanup_temp_html,
     cleanup_temp_md,
     ensure_cache_dir,
@@ -59,6 +68,8 @@ from mark_editor.helpers import (
     md_to_html,
     md_to_pdf,
     md_to_plain,
+    regenerate_toc,
+    remove_toc,
     save_font,
     save_temp_html,
     save_temp_md,
@@ -241,6 +252,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         fmt_menu.append("Hyperlink...", "app.hyperlink")
         fmt_menu.append("Header ID...", "app.header-id")
         fmt_menu.append("Header Link...", "app.header-link")
+        fmt_menu.append("TOC...", "app.toc")
         fmt_menu.append("Footnote...", "app.footnote")
         fmt_menu.append("Date and Time...", "app.date-time")
         fmt_menu.append("Language Marker...", "app.language-marker")
@@ -817,6 +829,30 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         dlg = HeaderLinkDialog(self._insert_text)
         dlg.present()
 
+    def _on_toc(self) -> None:
+        """Open the TOC dialog to add, regenerate, remove or number a TOC."""
+
+        def on_operation(op: int) -> None:
+            """Apply the chosen *op* and report the result."""
+            text = self._editor.get_text()
+            message = "TOC created!"
+            if op == 0:  # Add TOC
+                text = add_toc(text)
+            elif op == 1:  # Regenerate existing TOC
+                text = regenerate_toc(text)
+            elif op == 3:  # Add Header IDs only
+                text = add_heading_ids(text)
+                message = "Header IDs added!"
+            else:  # Remove existing TOC
+                text = remove_toc(text)
+                message = "TOC removed!"
+            self._editor.set_text(text)
+            self._editor.focus()
+            show_message(self, "Table of Content", message)
+
+        dlg = TOCDialog(on_operation)
+        dlg.present()
+
     def _on_hyperlink(self) -> None:
         """Prompt for URL and text, then insert a Markdown hyperlink."""
         selected = self._editor.get_selected_text()
@@ -1078,6 +1114,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         line = editor.get_current_line_number()
 
         def is_table_row(n: int) -> bool:
+            """Return True when line *n* looks like a Markdown table row."""
             return bool(re.match(r"^\s*\|.*\|\s*$", editor.get_line_text(n)))
 
         if not is_table_row(line):
@@ -1183,14 +1220,27 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         buf.end_user_action()
 
     def _on_comment(self) -> None:
-        """Prompt for text and insert a hidden comment block (``[text]: #``)."""
+        """Convert the selection into ``[text]: #`` comments, else prompt for one.
+
+        With a selection each selected line is replaced by ``[line]: #``; with
+        no selection a prompted ``[text]: #`` is inserted at the cursor.
+        """
+        selected = self._editor.get_selected_text()
 
         def on_comment(comment):
             """Handle comment input."""
             if not comment:
                 return
             self._insert_block(f"[{comment}]: #")
+            self._editor.focus()
 
+        if selected:
+            body = selected.strip("\n")
+            lines = body.split("\n")
+            marked = "\n".join(f"[{ln.strip()}]: #" for ln in lines if ln.strip())
+            self._editor.replace_selection(marked + "\n")
+            self._editor.focus()
+            return
         ask_string(self, "Enter the comment text:", "Comment", on_comment)
 
     def _on_yaml_front_matter(self) -> None:
