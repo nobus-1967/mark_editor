@@ -170,14 +170,14 @@ The editor helps you build Markdown tables with a footer and cell alignment:
 
 - `Paragraph` > `Table...` opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and footer row.
 - `Paragraph` > `Add Table Row...` inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
-- `Paragraph` > `Balance Table` (`Ctrl+Shift+N`) reformats the table block at the cursor so every column has equal width and the right border is aligned.
+- `Paragraph` > `Balance Table` reformats the table block at the cursor so every column has equal width and the right border is aligned.
 - `Paragraph` > `Table Alignment` inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
 
 ### Table of Contents
 
 The editor can add, regenerate or remove a table of contents for the headings in a document.
 
-- `Format` > `TOC...` (`Ctrl+Shift+E`) opens a dialog with a drop-down list of four operations and a "TOC heading:" entry that sets the heading text (default `Table of Contents`, e.g. `Оглавление` in Russian):
+- `Format` > `TOC...` opens a dialog with a drop-down list of four operations and a "TOC heading:" entry that sets the heading text (default `Table of Contents`, e.g. `Оглавление` in Russian):
   - `Add TOC` inserts a table of contents after the first `# H1` section title (or any existing YAML front matter), or at the very start of the document if there is none.
   - `Regenerate existing TOC` rebuilds an existing `[TOC: Begin]: #` … `[TOC: End]: #` block so the links match the current headings; headings that already have explicit IDs keep them, auto-generated IDs are renumbered.
   - `Remove existing TOC` deletes the `[TOC: Begin]: #` … `[TOC: End]: #` block (heading links and generated header IDs are kept).
