@@ -1,6 +1,6 @@
 # Mark Editor
 
-![mark_editor](./images/mark_editor_0_6.png)
+![mark_editor](./images/mark_editor_0_9.png)
 
 A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, ruby annotations for phonetic guides and other add-ons.
 
@@ -68,7 +68,7 @@ See also [Mark Editor — Keyboard Shortcuts Cheat Sheet](./cheatsheet.md).
 
 Since version 0.6.0, the application has been rewritten from tkinter/CustomTkinter to GTK4/libadwaita.
 
-The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) (>= 0.5.2) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) (>= 0.5.2) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
+The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) (>= 0.5.3) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) (>= 0.5.3) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
 
 ### Package Structure
 
@@ -115,8 +115,8 @@ The editor font family and size can be changed via `View` > `Editor Font...` and
 - GtkSourceView 5 (>= 5.8)
 - WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
 - PyGObject >= 3.50
-- [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.5.2
-- [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) >= 0.5.2
+- [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.5.3
+- [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) >= 0.5.3
 
 ## Running the Application
 
@@ -140,7 +140,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.9.2-x86_64.AppImage`
+Output: `MarkEditor-0.9.3-x86_64.AppImage`
 
 ## Add-ons
 
@@ -177,12 +177,12 @@ The editor helps you build Markdown tables with a footer and cell alignment:
 
 The editor can add, regenerate or remove a table of contents for the headings in a document.
 
-- `Format` > `TOC...` (`Ctrl+Shift+E`) opens a dialog with a drop-down list of four operations:
+- `Format` > `TOC...` (`Ctrl+Shift+E`) opens a dialog with a drop-down list of four operations and a "TOC heading:" entry that sets the heading text (default `Table of Contents`, e.g. `Оглавление` in Russian):
   - `Add TOC` inserts a table of contents after the first `# H1` section title (or any existing YAML front matter), or at the very start of the document if there is none.
   - `Regenerate existing TOC` rebuilds an existing `[TOC: Begin]: #` … `[TOC: End]: #` block so the links match the current headings; headings that already have explicit IDs keep them, auto-generated IDs are renumbered.
   - `Remove existing TOC` deletes the `[TOC: Begin]: #` … `[TOC: End]: #` block (heading links and generated header IDs are kept).
   - `Add Header IDs only` adds the same header anchors without inserting a table of contents.
-- Headings are converted to links of the form `{#hX-Y}`, where `X` is the heading level (1–6) and `Y` the order of that heading among headings of the same level (`# H1` titles are not given IDs). The TOC lists the headings as plain Markdown links and is delimited by a `***` horizontal rule.
+- The TOC block opens with a blank line after the `[TOC: Begin]: #` marker, then the heading `## <heading> {#toc}`, then the links, and is closed by the `[TOC: End]: #` marker and a `***` horizontal rule.
 - Existing `{#id}` anchors are reused, both when building the TOC and inside the regenerate operation.
 
 ### YAML Front Matter

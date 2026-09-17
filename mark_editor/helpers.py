@@ -201,20 +201,133 @@ def md_to_pdf(text: str, path: str, *, source_dir: str | None = None) -> None:
     md2pdf_convert(text, path, source_dir=source_dir)
 
 
+_DEF_RE = re.compile(r"^\s*:\s+\S")
+
+_LIST_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\S")
+
+
+def _separate_lists(text: str) -> str:
+    """Insert a blank line before ordered, unordered, todo and definition lists."""
+    out: list[str] = []
+    last: int | None = None
+    in_list = False
+    for line in text.split("\n"):
+        if not line.strip():
+            in_list = False
+            out.append(line)
+            continue
+        if _LIST_RE.match(line):
+            if not in_list and last is not None and out[last].strip():
+                out.append("")
+            in_list = True
+            out.append(line)
+            last = len(out) - 1
+            continue
+        if _DEF_RE.match(line):
+            if (
+                last is not None
+                and out[last].strip()
+                and not _LIST_RE.match(out[last])
+                and not _DEF_RE.match(out[last])
+                and not out[last].strip().startswith("```")
+                and (last == 0 or out[last - 1].strip())
+            ):
+                out.insert(last, "")
+                last += 1
+            in_list = True
+            out.append(line)
+            last = len(out) - 1
+            continue
+        in_list = False
+        out.append(line)
+        last = len(out) - 1
+    return "\n".join(out)
+
+
+def _strip_blockquotes(text: str) -> str:
+    """Remove ``>`` blockquote markers, keeping a blank line before each block."""
+    out: list[str] = []
+    in_quote = False
+    for line in text.split("\n"):
+        m = re.match(r"^[ \t]*>+[ \t]?", line)
+        if m is not None:
+            if not in_quote and out and out[-1].strip():
+                out.append("")
+            in_quote = True
+            out.append(line[m.end() :])
+        else:
+            in_quote = False
+            out.append(line)
+    return "\n".join(out)
+
+
+_FOOTNOTE_RE = re.compile(r"^\[\^?[^\]]+\]:\s")
+
+
+def _compact_footnotes(text: str) -> str:
+    """Drop blank lines that sit between consecutive footnote definitions."""
+    lines = text.split("\n")
+    out: list[str] = []
+    prev = ""
+    i = 0
+    n = len(lines)
+    while i < n:
+        line = lines[i]
+        if not line.strip():
+            j = i
+            while j < n and not lines[j].strip():
+                j += 1
+            between = (
+                _FOOTNOTE_RE.match(prev) and j < n and _FOOTNOTE_RE.match(lines[j])
+            )
+            if between:
+                i = j
+                continue
+        out.append(line)
+        if line.strip():
+            prev = line
+        i += 1
+    return "\n".join(out)
+
+
+def _separate_code_blocks(text: str) -> str:
+    """Insert a blank line after each fenced code block that has content next."""
+    out: list[str] = []
+    in_fence = False
+    just_closed = False
+    for line in text.split("\n"):
+        if line.strip().startswith("```"):
+            out.append(line)
+            in_fence = not in_fence
+            just_closed = not in_fence
+            continue
+        if just_closed and line.strip():
+            out.append("")
+        just_closed = False
+        out.append(line)
+    return "\n".join(out)
+
+
 def md_to_plain(text: str) -> str:
     """Strip Markdown syntax to produce plain text.
 
-    Removes block syntax (code fences, heading/list markers, horizontal
-    rules, ``::`` markers, empty pipe rows), normalizes table alignment rows
+    Removes block syntax (code fences, heading markers, horizontal rules,
+    ``::`` markers, empty pipe rows), normalizes table alignment rows
     (``:---:`` / ``:---`` / ``---:`` to ``---``) and preserves ``| === |``
-    footer separators, strips known curly-brace extension markers only,
-    removes inline emphasis, and collapses blank lines.
+    footer separators and the ordered/unordered/todo/definition list markers
+    (``1. ``/``- ``/``* ``, with definition ``: `` converted to ``- ``), keeps
+    a blank line before blockquotes and lists (ordered, unordered, todo and
+    definition lists) and after fenced code blocks, keeps footnote definitions
+    adjacent (no blank line after them), strips known curly-brace extension
+    markers only, removes inline emphasis, and collapses blank lines.
     """
+    text = _separate_code_blocks(text)
     text = re.sub(r"^```[^\n]*\n?", "", text, flags=re.MULTILINE)
     text = re.sub(r"^#+\s?", "", text, flags=re.MULTILINE)
-    text = re.sub(r"^\s*([-*+>])\s+", "", text, flags=re.MULTILINE)
-    text = re.sub(r"^\s*\d+\.\s+", "", text, flags=re.MULTILINE)
-    text = re.sub(r"^\s*(\|\s*)+$", "", text, flags=re.MULTILINE)
+    text = _separate_lists(text)
+    text = _strip_blockquotes(text)
+    text = re.sub(r"^:[ \t]+", "- ", text, flags=re.MULTILINE)
+    text = re.sub(r"^[ \t]*(\|[ \t]*)+$", "", text, flags=re.MULTILINE)
     footer_rows: list[str] = []
 
     def _mask_footer(m: re.Match) -> str:
@@ -223,10 +336,10 @@ def md_to_plain(text: str) -> str:
         return f"\x00{len(footer_rows) - 1}\x00"
 
     text = re.sub(
-        r"^\s*\|\s*([ \t]*=+[ \t]*\|)+$", _mask_footer, text, flags=re.MULTILINE
+        r"^[ \t]*\|[ \t]*([ \t]*=+[ \t]*\|)+$", _mask_footer, text, flags=re.MULTILINE
     )
     text = re.sub(
-        r"^\s*\|\s*([ \t]*:?-{3,}:?[ \t]*\|)+$",
+        r"^[ \t]*\|[ \t]*([ \t]*:?-{3,}:?[ \t]*\|)+$",
         lambda m: re.sub(r":?-{3,}:?", "---", m.group(0)),
         text,
         flags=re.MULTILINE,
@@ -243,6 +356,7 @@ def md_to_plain(text: str) -> str:
     text = re.sub(r"[*_~^`=]{1,2}", "", text)
     text = re.sub(r"[ \t]+\n", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
+    text = _compact_footnotes(text)
     for i, row in enumerate(footer_rows):
         text = text.replace(f"\x00{i}\x00", row)
     return text.strip() + "\n"
@@ -255,7 +369,7 @@ def md_to_plain(text: str) -> str:
 
 TOC_BEGIN_MARKER = "[TOC: Begin]: #"
 TOC_END_MARKER = "[TOC: End]: #"
-TOC_HEADING = "## Table of Contents"
+TOC_HEADING_LABEL = "Table of Contents"
 
 _TOC_HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*$")
 _TOC_ID_RE = re.compile(r"\s*\{#[^{}]*\}\s*$")
@@ -347,16 +461,23 @@ def _process_headings(
     return entries, insert_idx
 
 
-def _toc_block_text(entries: list[tuple[int, str, str]]) -> str:
+def _toc_block_text(
+    entries: list[tuple[int, str, str]], heading: str = TOC_HEADING_LABEL
+) -> str:
     """Build the marked TOC block text (title, links, separator) for *entries*."""
-    lines = [TOC_BEGIN_MARKER, TOC_HEADING, ""]
+    lines = [TOC_BEGIN_MARKER, "", f"## {heading} {{#toc}}", ""]
     for _, title, hid in entries:
         lines.append(f"- [{title}](#{hid})")
     lines.extend(["", TOC_END_MARKER, "", "***"])
     return "\n".join(lines)
 
 
-def _insert_toc(lines: list[str], entries, anchor: int | None) -> list[str]:
+def _insert_toc(
+    lines: list[str],
+    entries,
+    anchor: int | None,
+    heading: str | None = None,
+) -> list[str]:
     """Insert the TOC block into *lines* after *anchor*, front matter or start.
 
     The block owns its blank padding (one line before the marker and one line
@@ -372,7 +493,7 @@ def _insert_toc(lines: list[str], entries, anchor: int | None) -> list[str]:
             anchor = closing + 1 if closing is not None else len(lines)
         else:
             anchor = 0
-    block = _toc_block_text(entries).split("\n")
+    block = _toc_block_text(entries, heading or TOC_HEADING_LABEL).split("\n")
     if anchor == 0:
         block.append("")
         lines[anchor:anchor] = block
@@ -399,30 +520,35 @@ def remove_toc(text: str) -> str:
     return "\n".join(lines)
 
 
-def add_toc(text: str) -> str:
+def add_toc(text: str, heading: str | None = None) -> str:
     """Return *text* with a table of contents inserted after an existing one is removed.
 
     Level-2+ headings are assigned ``{#hX-Y}`` IDs (only when missing), and a
-    ``## Table of Contents`` block with ``- [Text](#hX-Y)`` links is inserted
+    ``## <heading> {#toc}`` block with ``- [Text](#hX-Y)`` links is inserted
     after the first Level 1 heading, else at the document start after any YAML
-    front matter. The block is separated from the following text by ``***``.
+    front matter. *heading* defaults to ``Table of Contents``. The block is
+    separated from the following text by ``***``.
     """
     lines = text.split("\n")
     block = _find_toc_block(lines)
     if block is not None:
         del lines[block[0] : block[1] + 1]
     entries, anchor = _process_headings(lines, refresh_auto=False)
-    return "\n".join(_insert_toc(lines, entries, anchor))
+    return "\n".join(_insert_toc(lines, entries, anchor, heading))
 
 
-def regenerate_toc(text: str) -> str:
-    """Return *text* with the TOC rebuilt and auto ``#hX-Y`` headings renumbered."""
+def regenerate_toc(text: str, heading: str | None = None) -> str:
+    """Return *text* with the TOC rebuilt and auto ``#hX-Y`` headings renumbered.
+
+    *heading* sets the ``## <heading> {#toc}`` title, defaulting to
+    ``Table of Contents``.
+    """
     lines = text.split("\n")
     block = _find_toc_block(lines)
     if block is not None:
         del lines[block[0] : block[1] + 1]
     entries, anchor = _process_headings(lines, refresh_auto=True)
-    return "\n".join(_insert_toc(lines, entries, anchor))
+    return "\n".join(_insert_toc(lines, entries, anchor, heading))
 
 
 def add_heading_ids(text: str) -> str:

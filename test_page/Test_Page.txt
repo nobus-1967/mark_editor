@@ -3,17 +3,18 @@ title: Test Page
 author: nobus-1967
 description: Test Page for markdown2html5-base converter.
 keywords: markdown, html5
-published: 2026-09-15
+published: 2026-09-17
 
 Heading 1
 
 Table of Contents
-Heading 2
-Heading 3
-Heading 6: Formatting the text
-Blocks of text
-Test Russian symbols
-Others
+
+- Heading 2
+- Heading 3
+- Heading 6: Formatting the text
+- Blocks of text
+- Test Russian symbols
+- Others
 
 Heading 2
 
@@ -21,7 +22,7 @@ This is a test page.
 
 Heading 3
 
-This page was created for markdown2html5-base converter (ver. 0.5.2).
+This page was created for markdown2html5-base converter (ver. 0.5.3).
 
 Heading 6: Formatting the text
 
@@ -39,33 +40,39 @@ See also other other add-ons.
 Blocks of text
 
 Lists are ordered:
-First
-Second
-Third
+
+1. First
+2. Second
+3. Third
 
 or unordered:
-Bird
-Chat
-Dog
+
+- Bird
+- Chat
+- Dog
 
 To-Do lists are ordered:
-[ ] Todo...
-[x] Done!
+
+1. [ ] Todo...
+2. [x] Done!
 
 or unordered:
-[ ] Not complete yet...
-[x] Complete!
+
+- [ ] Not complete yet...
+- [x] Complete!
 
 Definition list:
 
 Frau
-: weiblicher erwachsener Mensch
-: Ehefrau
+- weiblicher erwachsener Mensch
+- Ehefrau
+
 This is a citation (blockquote).
 
 And code block looks like with a code language definition:
 
 print("Hello, World!")
+
 and without it:
 
 Some text.
@@ -93,5 +100,4 @@ Some typographic symbols and emoji as (tm), (c), 1/2, --, &darr;, "Hello!", <<It
 This \not italic\ is escaped by \\.
 
 [1]: This is a footnote.
-
-[2]: 2026-09-15 12:00
+[2]: 2026-09-17 12:00

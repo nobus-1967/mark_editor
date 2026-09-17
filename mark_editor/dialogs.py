@@ -648,6 +648,15 @@ class TOCDialog(Adw.Dialog):
         self._ops.set_selected(0)
         box.append(self._ops)
 
+        heading_label = Gtk.Label(label="TOC heading:")
+        heading_label.set_halign(Gtk.Align.START)
+        box.append(heading_label)
+
+        self._title_entry = Gtk.Entry()
+        self._title_entry.set_hexpand(True)
+        self._title_entry.set_text("Table of Contents")
+        box.append(self._title_entry)
+
         ok_btn = _make_button("OK", self._on_ok, suggested=True)
         cancel_btn = _make_button("Cancel", lambda _: self.close())
         box.append(_make_button_box(ok_btn, cancel_btn))
@@ -655,9 +664,9 @@ class TOCDialog(Adw.Dialog):
         self.set_child(box)
 
     def _on_ok(self, *_args) -> None:
-        """Signal the *callback* with the chosen operation index and close."""
+        """Signal the *callback* with the operation index and heading, and close."""
         self.close()
-        self._callback(self._ops.get_selected())
+        self._callback(self._ops.get_selected(), self._title_entry.get_text().strip())
 
 
 # ---------------------------------------------------------------------------
@@ -725,17 +734,11 @@ class DefinitionListDialog(Adw.Dialog):
 
         self._term_entry = Gtk.Entry()
         self._term_entry.set_hexpand(True)
-        self._def1_entry = Gtk.Entry()
-        self._def1_entry.set_hexpand(True)
-        self._def2_entry = Gtk.Entry()
-        self._def2_entry.set_hexpand(True)
+        self._defs_spin = Gtk.SpinButton.new_with_range(1, 9, 1)
+        self._defs_spin.set_value(1)
 
         box.append(
-            _make_grid(
-                ("Term:", self._term_entry),
-                ("Definition 1:", self._def1_entry),
-                ("Definition 2:", self._def2_entry),
-            )
+            _make_grid(("Term:", self._term_entry), ("Definitions:", self._defs_spin))
         )
 
         box.append(_make_insert_cancel_box(self))
@@ -745,17 +748,10 @@ class DefinitionListDialog(Adw.Dialog):
     def _on_insert(self, *_args) -> None:
         """Build the definition-list block and invoke the callback."""
         term = self._term_entry.get_text().strip()
-        defs = [
-            d
-            for d in (
-                self._def1_entry.get_text().strip(),
-                self._def2_entry.get_text().strip(),
-            )
-            if d
-        ]
-        if term and defs:
+        count = int(self._defs_spin.get_value())
+        if term:
             lines = ["", term]
-            lines.extend(f": {d}" for d in defs)
+            lines.extend(f": Definition {i}" for i in range(1, count + 1))
             self._callback("\n".join(lines))
         self.close()
 

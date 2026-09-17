@@ -832,14 +832,15 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
     def _on_toc(self) -> None:
         """Open the TOC dialog to add, regenerate, remove or number a TOC."""
 
-        def on_operation(op: int) -> None:
-            """Apply the chosen *op* and report the result."""
+        def on_operation(op: int, heading: str) -> None:
+            """Apply the chosen *op* with *heading* and report the result."""
             text = self._editor.get_text()
             message = "TOC created!"
             if op == 0:  # Add TOC
-                text = add_toc(text)
+                text = add_toc(text, heading)
             elif op == 1:  # Regenerate existing TOC
-                text = regenerate_toc(text)
+                text = regenerate_toc(text, heading)
+                message = "TOC regenerated!"
             elif op == 3:  # Add Header IDs only
                 text = add_heading_ids(text)
                 message = "Header IDs added!"

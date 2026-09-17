@@ -4,15 +4,16 @@ title: Test Page
 author: nobus-1967
 description: Test Page for markdown2html5-base converter.
 keywords: markdown, html5
-published: 2026-09-15
+published: 2026-09-17
 ---
 
-[Test Page, created for markdown2html5-base converter (ver. 0.5.2).]: #
+[Test Page, created for markdown2html5-base converter (ver. 0.5.3).]: #
 
 # Heading 1
 
 [TOC: Begin]: #
-## Table of Contents
+
+## Table of Contents {#toc}
 
 - [Heading 2](#h2-1)
 - [Heading 3](#h3-1)
@@ -31,7 +32,7 @@ This is a test page.
 
 ### Heading 3 {#h3-1}
 
-This page was created for `markdown2html5-base` converter (ver. 0.5.2).
+This page was created for `markdown2html5-base` converter (ver. 0.5.3).
 
 ###### Heading 6: Formatting the text {#h6-1}
 
@@ -115,4 +116,4 @@ This \*not italic\* is escaped by \\.
 
 [^1]: This is a footnote.
 
-[^2]: 2026-09-15 12:00
+[^2]: 2026-09-17 12:00

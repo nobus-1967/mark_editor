@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.9.2 (GTK4)."""
+"""Tests for Mark Editor 0.9.3 (GTK4)."""
 
 import os
 import sys
@@ -71,7 +71,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.9.2")
+        self.assertEqual(VERSION, "0.9.3")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -435,6 +435,40 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         self.assertIn("| --- | --- | --- |", text)
         self.assertIn("| Total | 1 | 10.0 |", text)
 
+    def test_md_to_plain_blockquote(self):
+        """md_to_plain strips quote markers and keeps a blank line before them."""
+        text = md_to_plain("Para\n> Quote one\n> Quote two\n\nAfter.")
+        self.assertIn("Para\n\nQuote one\nQuote two", text)
+        self.assertEqual(text.startswith("Quote"), False)
+
+    def test_md_to_plain_lists_blank(self):
+        """md_to_plain keeps list markers (DL becomes ``- ``) and separates."""
+        text = md_to_plain("Para\n- a\n- b\n\n1. one\n2. two\n\nTerm\n: def")
+        self.assertEqual(text, "Para\n\n- a\n- b\n\n1. one\n2. two\n\nTerm\n- def\n")
+
+    def test_md_to_plain_toc_blank_after_heading(self):
+        """md_to_plain puts a blank line after the TOC heading, not the whole block."""
+        doc = (
+            "# Title\n\n[TOC: Begin]: #\n\n## Table of Contents {#toc}\n\n"
+            "- [A](#h2-1)\n\n[TOC: End]: #\n\nBody\n"
+        )
+        text = md_to_plain(doc)
+        self.assertEqual(text, "Title\n\nTable of Contents\n\n- A\n\nBody\n")
+
+    def test_md_to_plain_code_blank_after(self):
+        """md_to_plain keeps a blank line after a fenced code block."""
+        text = md_to_plain("```python\nx = 1\n```\nAfter.")
+        self.assertEqual(text, "x  1\n\nAfter.\n")
+
+    def test_md_to_plain_footnotes_adjacent(self):
+        """md_to_plain removes blank lines between footnote definitions."""
+        text = md_to_plain(
+            "Text[^1][^2].\n\n[^1]: One.\n\n[^2]: Two.\n\nBody paragraph.\n"
+        )
+        self.assertEqual(
+            text, "Text[1][2].\n\n[1]: One.\n[2]: Two.\n\nBody paragraph.\n"
+        )
+
     def test_md_to_html_convert(self):
         """md_to_html produces HTML5 heading markup."""
         self.app._editor.set_text("# Hello")
@@ -543,7 +577,9 @@ class TestTableOfContents(unittest.TestCase):
     def test_toc_without_h1_goes_to_start(self):
         """Without an H1 the TOC block is inserted at the document start."""
         out = add_toc("## A\n\n## B\n")
-        self.assertTrue(out.startswith("[TOC: Begin]: #\n## Table of Contents"))
+        self.assertTrue(
+            out.startswith("[TOC: Begin]: #\n\n## Table of Contents {#toc}")
+        )
         self.assertIn("## A {#h2-1}", out)
         self.assertIn("## B {#h2-2}", out)
 
@@ -577,7 +613,7 @@ class TestTableOfContents(unittest.TestCase):
         """IDs-only mode numbers level-2+ headings and ignores the TOC block."""
         full = add_toc(self.DOC)
         out = add_heading_ids(full)
-        self.assertNotIn("## Table of Contents {#", out)
+        self.assertIn("## Table of Contents {#toc}", out)
         self.assertNotIn("# My Title {#", out)
         self.assertIn("## First 2 {#h2-1}", out)
 
