@@ -94,11 +94,11 @@
 
 ## **View Settings**
 
-| Command/Dialog...  | Shortcut            |
-| :---               | :---:               |
-| *Toggle Theme*     | `Ctrl+Alt+G`        |
-| *Editor Font...*   | `Ctrl+Alt+F`        |
+| Command/Dialog...  | Shortcut           |
+| :---               | :---:              |
+| *Toggle Theme*     | `Ctrl+Alt+G`       |
+| *Editor Font...*   | `Ctrl+Alt+F`       |
 | *Zoom In*          | `Ctrl+=`, `Ctrl++` |
-| *Zoom Out*         | `Ctrl+-`            |
-| *Quick View*       | `Ctrl+Alt+V`        |
-| *Quick View (CSS)* | `Ctrl+Alt+C`        |
+| *Zoom Out*         | `Ctrl+-`           |
+| *Quick View*       | `Ctrl+Alt+V`       |
+| *Quick View (CSS)* | `Ctrl+Alt+C`       |
