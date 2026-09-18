@@ -101,9 +101,10 @@ The editor's Markdown format supports basic and extended Markdown syntax from Ma
 The editor uses:
 
 - The system UI font (Cantarell / platform default) for the interface, menus and dialogs;
-- Noto Sans Mono (including Noto Sans Mono CJK JP/SC/TC/HK/KR) for text/code (editor and status bar);
-- Noto Sans, Noto Sans Mono and Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
-- Symbola for PDF output (emoji and special signs).
+- [Noto Family fonts](https://fonts.google.com/noto/fonts):
+  - Noto Sans Mono (including Noto Sans Mono CJK JP/SC/TC/HK/KR) for text/code (editor and status bar);
+  - Noto Sans, Noto Sans Mono and Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
+- [Symbola](https://github.com/zhm/symbola) for PDF output (emoji and special signs).
 
 The editor font family and size can be changed via `View` > `Editor Font...` and are persisted in `~/.config/mark_editor/theme.json`.
 
