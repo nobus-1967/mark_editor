@@ -47,6 +47,7 @@ from mark_editor.dialogs import (
     HeaderLinkDialog,
     OrderedListDialog,
     ReplaceDialog,
+    TableAlignDialog,
     TableDialog,
     TableRowDialog,
     TOCDialog,
@@ -80,6 +81,9 @@ from mark_editor.helpers import (
 def _strip_heading_marker(text: str) -> str:
     """Remove a leading Markdown heading marker (``#`` run) from *text*."""
     return re.sub(r"^#{1,6}\s*", "", text)
+
+
+_TABLE_ALIGN_RE = re.compile(r"^:?--+:?$")
 
 
 def _strip_list_marker(text: str) -> str:
@@ -298,12 +302,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         para_menu.append("Blockquote", "app.blockquote")
         para_menu.append("Table...", "app.table")
         para_menu.append("Add Table Row...", "app.add-table-row")
+        para_menu.append("Table Alignment...", "app.align-table")
         para_menu.append("Balance Table", "app.balance-table")
-        align_menu = Gio.Menu()
-        align_menu.append(":--- left", "app.align-left")
-        align_menu.append(":---: center", "app.align-center")
-        align_menu.append("---: right", "app.align-right")
-        para_menu.append_submenu("Table Alignment", align_menu)
         para_menu.append("Image...", "app.image")
         para_menu.append("Horizontal Rule", "app.horizontal-rule")
         para_menu.append("Comment...", "app.comment")
@@ -1103,10 +1103,54 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         dlg = TableRowDialog(on_count)
         dlg.present()
 
-    def _on_table_align(self, marker: str) -> None:
-        """Insert a table alignment marker at the cursor or on the selection."""
-        self._editor.replace_selection(marker)
+    def _on_table_align(self) -> None:
+        """Open the Table Alignment dialog for setting an alignment marker."""
+
+        def on_align(marker: str) -> None:
+            """Apply the chosen *marker* to the alignment cell or cursor."""
+            self._apply_table_align(marker)
+
+        dlg = TableAlignDialog(on_align)
+        dlg.present()
+
+    def _apply_table_align(self, marker: str) -> None:
+        """Set the alignment cell at the cursor to *marker* or insert it."""
+        if not self._set_alignment_value(marker):
+            self._editor.replace_selection(marker)
         self._editor.focus()
+
+    def _set_alignment_value(self, marker: str) -> bool:
+        """Replace the alignment cell under the cursor; False when none found."""
+        editor = self._editor
+        buf = editor.get_buffer()
+        line_no = editor.get_current_line_number()
+        line = editor.get_line_text(line_no)
+        col = editor.get_cursor_iter().get_line_offset()
+        cells: list[tuple[int, int]] = []
+        start = 0
+        for index, char in enumerate(line):
+            if char == "|":
+                cells.append((start, index))
+                start = index + 1
+        cell = next(
+            (
+                (a, b)
+                for a, b in cells
+                if a <= col < b and _TABLE_ALIGN_RE.match(line[a:b].strip())
+            ),
+            None,
+        )
+        if cell is None:
+            return False
+        _, iter_start = buf.get_iter_at_line(line_no - 1)
+        iter_start.forward_chars(cell[0])
+        iter_end = iter_start.copy()
+        iter_end.forward_chars(cell[1] - cell[0])
+        buf.begin_user_action()
+        buf.delete(iter_start, iter_end)
+        buf.insert(iter_start, f" {marker} ", -1)
+        buf.end_user_action()
+        return True
 
     def _on_balance_table(self) -> None:
         """Reformat the table at the cursor with equal-width, aligned columns."""

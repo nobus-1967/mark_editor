@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 0.9.3 (GTK4)."""
+"""Tests for Mark Editor 0.9.4 (GTK4)."""
 
 import os
 import sys
@@ -71,7 +71,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "0.9.3")
+        self.assertEqual(VERSION, "0.9.4")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -272,18 +272,38 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         dlg._on_insert()
         text = callback.call_args.args[0]
         self.assertIn("| Header | Header | Header |", text)
-        self.assertIn("| :---: | :---: | :---: |", text)
+        self.assertIn("| --- | --- | --- |", text)
         self.assertEqual(text.count("| Cell | Cell | Cell |"), 3)
         self.assertIn("| Footer | Footer | Footer |", text)
 
-    def test_table_align(self):
-        """Alignment markers insert at the cursor or replace a selection."""
-        self.app._on_table_align(":---")
+    def test_table_align_insert(self):
+        """Alignment marker inserts at the cursor when no marker cell is set."""
+        self.app._apply_table_align(":---")
         self.assertEqual(self.app._editor.get_text(), ":---")
         self.app._editor.set_text("old")
         self.app._editor.select_all()
-        self.app._on_table_align(":---:")
+        self.app._apply_table_align(":---:")
         self.assertEqual(self.app._editor.get_text(), ":---:")
+
+    def test_table_align_change_cell(self):
+        """Alignment marker changes the marker cell under the cursor."""
+        row = "| :--- | :---: | ---: |"
+        self.app._editor.set_text(row)
+        buf = self.app._editor.get_buffer()
+        _, cursor = buf.get_iter_at_line(0)
+        cursor.forward_chars(17)
+        buf.place_cursor(cursor)
+        self.app._apply_table_align(":---:")
+        self.assertEqual(self.app._editor.get_text(), "| :--- | :---: | :---: |")
+
+    def test_table_align_center_dialog_default(self):
+        """The Table Alignment dialog defaults to the ``---`` (none) option."""
+        from mark_editor.dialogs import TableAlignDialog
+
+        callback = unittest.mock.MagicMock()
+        dlg = TableAlignDialog(callback)
+        dlg._on_ok()
+        self.assertEqual(callback.call_args.args[0], "---")
 
     def test_balance_table(self):
         """Balance Table pads every row to equal column widths."""

@@ -60,15 +60,15 @@ The main functions of the editor:
 - use commands from menus or shortcuts for operations;
 - toggle modern light and dark themes (live, no restart needed).
 
-The editor supports all markup elements listed in the [Full Markdown Functionality Reference](https://github.com/nobus-1967/markdown2html5-base).
+The editor supports all markup elements listed in the Full Markdown Functionality Reference ([Markdown](./markdown2html5-base.md), [PDF](./markdown2html5-base.pdf)).
 
-See also [Mark Editor — Keyboard Shortcuts Cheat Sheet](./cheatsheet.md).
+See also the Keyboard Shortcuts Cheat Sheet ([Markdown](./cheatsheet.md), [PDF](./cheatsheet.pdf)).
 
 ## Code Base
 
 Since version 0.6.0, the application has been rewritten from tkinter/CustomTkinter to GTK4/libadwaita.
 
-The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) (>= 0.5.3) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) (>= 0.5.3) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
+The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
 
 ### Package Structure
 
@@ -92,7 +92,7 @@ Users can switch between light and dark appearance modes for all interface eleme
 
 ## File Formats
 
-The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the [Full Markdown Functionality Reference](./markdown2html5-base.md).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the Full Markdown Functionality Reference ([Markdown](./markdown2html5-base.md), [PDF](./markdown2html5-base.pdf)).
 
 The editor's Markdown format supports basic and extended Markdown syntax from Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
@@ -115,8 +115,8 @@ The editor font family and size can be changed via `View` > `Editor Font...` and
 - GtkSourceView 5 (>= 5.8)
 - WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
 - PyGObject >= 3.50
-- [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) >= 0.5.3
-- [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) >= 0.5.3
+- markdown2html5-base >= 0.5.3
+- markdown2pdf-base >= 0.5.3
 
 ## Running the Application
 
@@ -140,13 +140,13 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.9.3-x86_64.AppImage`
+Output: `MarkEditor-0.9.4-x86_64.AppImage`
 
 ## Add-ons
 
 ### Emoji
 
-The `Format` > `Emoji Shortcodes` submenu inserts emoji shortcodes (e.g. `:joy:`, `:heart:`, `:rocket:`) at the cursor. The available shortcodes are `:joy:`, `:smile:`, `:heart:`, `:thumbsup:`, `:thumbsdown:`, `:wink:`, `:tada:`, `:rocket:`, `:fire:`, `:star:`, `:cry:`, `:thinking:`, `:100:`, `:sparkles:`, `:eyes:`, `:bulb:`, `:warning:`, `:ok:` and `:check_mark:`. They are rendered by [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) in HTML5 output and by Symbola in PDF output.
+The `Format` > `Emoji Shortcodes` submenu inserts emoji shortcodes (e.g. `:joy:`, `:heart:`, `:rocket:`) at the cursor. The available shortcodes are `:joy:`, `:smile:`, `:heart:`, `:thumbsup:`, `:thumbsdown:`, `:wink:`, `:tada:`, `:rocket:`, `:fire:`, `:star:`, `:cry:`, `:thinking:`, `:100:`, `:sparkles:`, `:eyes:`, `:bulb:`, `:warning:`, `:ok:` and `:check_mark:`. They are rendered by `markdown2html5-base` in HTML5 output and by Symbola in PDF output.
 
 ### Special Signs
 
@@ -170,8 +170,8 @@ The editor helps you build Markdown tables with a footer and cell alignment:
 
 - `Paragraph` > `Table...` opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and footer row.
 - `Paragraph` > `Add Table Row...` inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
+- `Paragraph` > `Table Alignment...` opens a dialog with a dropdown (`none`, `left`, `center`, `right`) that sets a `| --- | --- | --- |` alignment marker (`---`, `:---`, `:---:`, `---:`). With the cursor inside a marker cell, the existing value is changed to the chosen one; otherwise the marker is inserted at the cursor or replaces the selection.
 - `Paragraph` > `Balance Table` reformats the table block at the cursor so every column has equal width and the right border is aligned.
-- `Paragraph` > `Table Alignment` inserts an alignment marker at the cursor, or replaces the current selection, for a `| --- | --- | --- |` table row: `:---` (left), `:---:` (center) or `---:` (right).
 
 ### Table of Contents
 

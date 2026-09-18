@@ -2,19 +2,19 @@
 
 ## **File Operations**
 
-| Command      | Shortcut       |
-| :---         | :---:          |
-| *New File*   | `Ctrl+N`       |
-| *Open...*    | `Ctrl+O`       |
-| *Reopen*     | `Ctrl+Shift+O` |
-| *Save*       | `Ctrl+S`       |
-| *Save As...* | `Ctrl+Shift+S` |
-| *Convert...* | `Ctrl+E`       |
-| *Quit*       | `Ctrl+Q`       |
+| Command/Dialog... | Shortcut       |
+| :---              | :---:          |
+| *New File*        | `Ctrl+N`       |
+| *Open...*         | `Ctrl+O`       |
+| *Reopen*          | `Ctrl+Shift+O` |
+| *Save*            | `Ctrl+S`       |
+| *Save As...*      | `Ctrl+Shift+S` |
+| *Convert...*      | `Ctrl+E`       |
+| *Quit*            | `Ctrl+Q`       |
 
 ## **Edit Operations**
 
-| Command            | Shortcut       |
+| Command/Dialog...  | Shortcut       |
 | :---               | :---:          |
 | *Undo*             | `Ctrl+Z`       |
 | *Redo*             | `Ctrl+Shift+Z` |
@@ -29,9 +29,9 @@
 | *Line Down*        | `Ctrl+Down`    |
 | *Delete Line*      | `Ctrl+Y`       |
 
-## **Base Format Operations**
+## **Basic Formatting Operations**
 
-| Command            | Shortcut       |
+| Command/Dialog...  | Shortcut       |
 | :---               | :---:          |
 | *Bold*             | `Ctrl+B`       |
 | *Italic*           | `Ctrl+I`       |
@@ -44,9 +44,9 @@
 | *Hyperlink...*     | `Ctrl+L`       |
 | *Clear Formatting* | `Ctrl+Shift+F` |
 
-## **Advanced Format Operations**
+## **Advanced Formatting Operations**
 
-| Command                | Shortcut       |
+| Command/Dialog...      | Shortcut       |
 | :---                   | :---:          |
 | *Header ID...*         | `Ctrl+H`       |
 | *Header Link...*       | `Ctrl+Shift+H` |
@@ -58,9 +58,9 @@
 | *Furigana...*          | `Ctrl+Shift+J` |
 | *Special Mark*         | `Ctrl+Shift+L` |
 
-## **Base Blocks of Text/Operations**
+## **Basic Operations With Text Blocks**
 
-| Command              | Shortcut       |
+| Command/Dialog...    | Shortcut       |
 | :---                 | :---:          |
 | *Heading 1*          | `Ctrl+Alt+1`   |
 | *Heading 2*          | `Ctrl+Alt+2`   |
@@ -79,25 +79,26 @@
 | *Image...*           | `Ctrl+Shift+I` |
 | *Horizontal Rule*    | `Ctrl+_`       |
 
-## **Advanced Blocks of Text/Operations**
+## **Advanced Operations With Text Blocks**
 
-| Command                | Shortcut       |
+| Command/Dialog...      | Shortcut       |
 | :---                   | :---:          |
 | *Todo List...*         | `Ctrl+Shift+C` |
+| *Table Alignment...*   | `Ctrl+Shift+T` |
 | *Balance Table*        | `Ctrl+Shift+N` |
 | *Comment...*           | `Ctrl+M`       |
 | *YAML Front Matter...* | `Ctrl+Shift+Y` |
 | *Add Indent*           | `Tab`          |
 | *Remove Indent*        | `Shift+Tab`    |
-| *Line Break*           | `Ctrl+\\`       |
+| *Line Break*           | `Ctrl+\`       |
 
 ## **View Settings**
 
-| Command            | Shortcut            |
+| Command/Dialog...  | Shortcut            |
 | :---               | :---:               |
-| *Toggle Theme*     | `Ctrl+Shift+T`      |
+| *Toggle Theme*     | `Ctrl+Alt+G`        |
 | *Editor Font...*   | `Ctrl+Alt+F`        |
-| *Zoom In*          | `Ctrl+=` , `Ctrl++` |
+| *Zoom In*          | `Ctrl+=`, `Ctrl++` |
 | *Zoom Out*         | `Ctrl+-`            |
 | *Quick View*       | `Ctrl+Alt+V`        |
 | *Quick View (CSS)* | `Ctrl+Alt+C`        |

@@ -152,15 +152,7 @@ class MarkEditorApp(Gtk.Application):
         self._add_action(
             "balance-table", lambda a, p: _w() and _w()._on_balance_table()
         )
-        self._add_action(
-            "align-left", lambda a, p: _w() and _w()._on_table_align(":---")
-        )
-        self._add_action(
-            "align-center", lambda a, p: _w() and _w()._on_table_align(":---:")
-        )
-        self._add_action(
-            "align-right", lambda a, p: _w() and _w()._on_table_align("---:")
-        )
+        self._add_action("align-table", lambda a, p: _w() and _w()._on_table_align())
         self._add_action("image", lambda a, p: _w() and _w()._on_image())
         self._add_action("line-break", lambda a, p: _w() and _w()._on_line_break())
         self._add_action(
@@ -283,6 +275,7 @@ class MarkEditorApp(Gtk.Application):
             ("app.code-block", ["<Control><Shift>k"]),
             ("app.blockquote", ["<Control><Shift>q"]),
             ("app.table", ["<Control>t"]),
+            ("app.align-table", ["<Control><Shift>t"]),
             ("app.add-table-row", ["<Control><Shift>r"]),
             ("app.balance-table", ["<Control><Shift>n"]),
             ("app.image", ["<Control><Shift>i"]),
@@ -293,7 +286,7 @@ class MarkEditorApp(Gtk.Application):
             ("app.add-indent", ["Tab"]),
             ("app.remove-indent", ["<Shift>Tab"]),
             # View
-            ("app.toggle-theme", ["<Control><Shift>t"]),
+            ("app.toggle-theme", ["<Control><Alt>g"]),
             ("app.editor-font", ["<Control><Alt>f"]),
             ("app.zoom-in", ["<Control>equal", "<Control>plus"]),
             ("app.zoom-out", ["<Control>minus"]),

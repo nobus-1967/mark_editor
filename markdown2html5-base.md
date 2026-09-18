@@ -13,20 +13,21 @@ This reference covers all `markdown2html5-base` features.
 * [4. Fenced Code Blocks](#4-fenced-code-blocks)
 * [5. Horizontal Rules](#5-horizontal-rules)
 * [6. Lists](#6-lists)
-* [7. Blockquotes](#7-blockquotes)
-* [8. Tables](#8-tables)
-* [9. Definition Lists](#9-definition-lists)
-* [10. Footnotes](#10-footnotes)
-* [11. Language Markers](#11-language-markers)
-* [12. Ruby Annotations](#12-ruby-annotations)
-* [13. Emoji Shortcodes](#13-emoji-shortcodes)
-* [14. Typography and Legal Marks](#14-typography-and-legal-marks)
-* [15. Hard Line Breaks](#15-hard-line-breaks)
-* [16. HTML Comments](#16-html-comments)
-* [17. YAML Front Matter](#17-yaml-front-matter)
-* [18. Backslash Escaping](#18-backslash-escaping)
-* [19. Paragraphs](#19-paragraphs)
-* [20. CSS Styles](#20-css-styles)
+* [7. TOC (Table of Contents)](#7-toc-table-of-contents)
+* [8. Blockquotes](#8-blockquotes)
+* [9. Tables](#9-tables)
+* [10. Definition Lists](#10-definition-lists)
+* [11. Footnotes](#11-footnotes)
+* [12. Language Markers](#12-language-markers)
+* [13. Ruby Annotations](#13-ruby-annotations)
+* [14. Emoji Shortcodes](#14-emoji-shortcodes)
+* [15. Typography and Legal Marks](#15-typography-and-legal-marks)
+* [16. Hard Line Breaks](#16-hard-line-breaks)
+* [17. HTML Comments](#17-html-comments)
+* [18. YAML Front Matter](#18-yaml-front-matter)
+* [19. Backslash Escaping](#19-backslash-escaping)
+* [20. Paragraphs](#20-paragraphs)
+* [21. CSS Styles](#21-css-styles)
 
 ## Programmatic Usage
 
@@ -98,11 +99,34 @@ Without a language tag, the code renders plainly as `<pre><code>`.
    `- [ ] todo` => `<ul><li><input type="checkbox" disabled> todo</li></ul>`<br />
    `1. [x] done` => `<ol><li><input type="checkbox" checked disabled> done</li></ol>`
 
-## 7. Blockquotes
+## 7. TOC (Table of Contents)
+
+The Table of Contents (TOC) combines the styles of Heading 2, unordered lists, and links.
+
+```text
+## Table of Contents {#toc}
+
+- [1. Headings (H1-H6)](#1-headings-h1-h6)
+- [2. Inline Text Styling](#2-inline-text-styling)
+- [3. Links and Images](#3-links-and-images)
+```
+
+=>
+
+```html
+<h2 id="toc">Table of Contents</h2>
+<ul>
+  <li><a href="#1-headings-h1-h6">1. Headings (H1-H6)</a></li>
+  <li><a href="#2-inline-text-styling">2. Inline Text Styling</a></li>
+  <li><a href="#3-links-and-images">3. Links and Images</a></li>
+</ul>
+```
+
+## 8. Blockquotes
 
 `> text` => `<blockquote><p>text</p></blockquote>`: blank lines within a blockquote split into separate `<p>` tags.
 
-## 8. Tables
+## 9. Tables
 
 Supports `<thead>`, `<tbody>`, `<tfoot>`, and alignment:
 
@@ -162,7 +186,7 @@ Footer: a row of `=` signs below the separator columns, after the body rows, ren
 </table>
 ```
 
-## 9. Definition Lists
+## 10. Definition Lists
 
 ```markdown
 Term
@@ -180,13 +204,13 @@ Term
 </dl>
 ```
 
-## 10. Footnotes
+## 11. Footnotes
 
 Reference: `[^1]` => `<sup id="fnref:1"><a href="#fn:1" class="footnote-ref">1</a></sup>`
 
 Definition: `[^1]: Text` at bottom => rendered in `<div class="footnotes"><ol>...</ol></div>`
 
-## 11. Language Markers
+## 12. Language Markers
 
 Annotate blocks or inline text with a language using a valid BCP 47 tag (e.g. `de`, `fr`, `zh-Hans`).
 
@@ -224,11 +248,11 @@ A French phrase {:fr}"L'État c'est moi"{:} is traditionally attributed to King 
 <p>A French phrase <span lang="fr">“L‘État c’est moi”</span> is traditionally attributed to King Louis XIV of France</p>
 ```
 
-## 12. Ruby Annotations
+## 13. Ruby Annotations
 
 `{日本語|にほんご}` => `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`
 
-## 13. Emoji Shortcodes
+## 14. Emoji Shortcodes
 
 * `:joy:` 😂
 * `:smile:` 😄
@@ -250,7 +274,7 @@ A French phrase {:fr}"L'État c'est moi"{:} is traditionally attributed to King 
 * `:ok:` 👌
 * `:check_mark:` ✔️
 
-## 14. Typography and Legal Marks
+## 15. Typography and Legal Marks
 
 | Name                        | Input       | HTML Output          |
 | --------------------------- | ----------- | -------------------- |
@@ -286,15 +310,15 @@ A French phrase {:fr}"L'État c'est moi"{:} is traditionally attributed to King 
 | Ellipsis                    | `...`       | `&hellip;`           |
 | Non-Breaking Space          | `&nbsp;`    | `&nbsp;`             |
 
-## 15. Hard Line Breaks
+## 16. Hard Line Breaks
 
 End line with two spaces or backslash: `<br />`
 
-## 16. HTML Comments
+## 17. HTML Comments
 
 `[comment]: #` => `<!--comment-->`
 
-## 17. YAML Front Matter
+## 18. YAML Front Matter
 
 If the file begins with a YAML front matter block between `---` lines, the converter emits a complete HTML5 document with the metadata in `<head>` and the body content between `<body>` tags. Without front matter, the output stays a bare HTML fragment. The `--css` option (or `include_css=True`) embeds the default `<style>` block regardless of whether front matter is present.
 
@@ -336,22 +360,22 @@ published: 2026-08-09
 
 Any other keys are ignored, and if the file has no front matter at all, the output remains a bare fragment (unless `--css`/`include_css=True` is used, in which case it becomes a full document).
 
-## 18. Backslash Escaping
+## 19. Backslash Escaping
 
 Escape any special char: `\*`, `\#`, `\[`, etc.
 
 Escapable: \ ` * _ { } [ ] ( ) # + - . ! | ~ ^ = : < >
 
-## 19. Paragraphs
+## 20. Paragraphs
 
 Consecutive text lines merge into `<p>`. Blank lines separate paragraphs.
 
 Empty line after list close => `<!-- -->` preserves whitespace.
 
-## 20. CSS Styles
+## 21. CSS Styles
 
 The converter (with `--css` option or `include_css=True`) embeds a default `<style>` block in `<head>` that provides viewing-friendly styling, regardless of YAML front matter.
-This predefined CSS rules includes:
+The predefined CSS rules include:
 ```css
 body {
   padding: 20px;
@@ -383,6 +407,7 @@ h2 {
   overflow-wrap: break-word;
   text-wrap: balance;
 }
+h2#toc { font-style: italic; }
 h3 {
   margin-top: 1.2em;
   margin-bottom: 0.6em;
@@ -436,7 +461,7 @@ p {
 }
 hr {
   height: 4px;
-  margin: 20px 0;
+  margin-top: 32pt;
   border: none;
   background-color: #000000;
 }
@@ -550,7 +575,7 @@ div.code-lang {
   font-weight: bold;
 }
 table {
-  margin: 20px 0;
+  margin-top: 32pt;
   border-collapse: collapse;
 }
 th { padding: 10px 12px; border: 1px solid #000000; font-weight: bold; }

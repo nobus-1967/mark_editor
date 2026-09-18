@@ -408,7 +408,7 @@ class TableDialog(Adw.Dialog):
         use_footer = self._footer_check.get_active()
 
         header = "| " + " | ".join(["Header"] * cols) + " |"
-        align = "| " + " | ".join(":---:" for _ in range(cols)) + " |"
+        align = "| " + " | ".join(["---"] * cols) + " |"
         lines = ["", header, align]
         for _ in range(rows):
             lines.append("| " + " | ".join(["Cell"] * cols) + " |")
@@ -417,6 +417,47 @@ class TableDialog(Adw.Dialog):
             lines.append("| " + " | ".join(["Footer"] * cols) + " |")
         self._callback("\n".join(lines))
         self.close()
+
+
+class TableAlignDialog(Adw.Dialog):
+    """Dialog for choosing a Markdown table alignment marker."""
+
+    ALIGN_OPTIONS = (
+        "none",
+        "left",
+        "center",
+        "right",
+    )
+    ALIGN_VALUES = ("---", ":---", ":---:", "---:")
+
+    def __init__(self, callback) -> None:
+        """Initialize the dialog; *callback(marker)* runs on a valid choice."""
+        super().__init__()
+        self.set_title("Table Alignment")
+        self.set_content_width(320)
+
+        self._callback = callback
+
+        box = _make_dialog_box()
+
+        lbl = Gtk.Label(label="Select alignment:")
+        lbl.set_xalign(0.0)
+        box.append(lbl)
+
+        self._align = Gtk.DropDown.new_from_strings(list(self.ALIGN_OPTIONS))
+        self._align.set_selected(0)
+        box.append(self._align)
+
+        ok_btn = _make_button("OK", self._on_ok, suggested=True)
+        cancel_btn = _make_button("Cancel", lambda _: self.close())
+        box.append(_make_button_box(ok_btn, cancel_btn))
+
+        self.set_child(box)
+
+    def _on_ok(self, *_args) -> None:
+        """Signal *callback* with the chosen alignment marker and close."""
+        self.close()
+        self._callback(self.ALIGN_VALUES[self._align.get_selected()])
 
 
 class TableRowDialog(Adw.Dialog):
