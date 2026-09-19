@@ -1,0 +1,38 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+extend-exclude = ["venv", "AppDir"]
+
+[tool.ruff.lint]
+# Select a curated set of rules; ignore intentional patterns such as
+# broad exception handling and silent config-file reads.
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "D",    # pydocstyle (docstrings)
+]
+ignore = [
+    "BLE001",  # intentional: robust config-file handling
+    "S110",    # intentional: silent best-effort reads/writes
+    "EXE001",  # test script is run via unittest, not as a standalone binary
+    "E402",    # required GTK idiom: gi.require_version() precedes gi.repository imports
+]
+
+[tool.ruff.lint.per-file-ignores]
+"test_editor.py" = [
+    "BLE001",  # GTK availability probing is intentionally broad
+    "S110",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+extend-exclude = "venv|AppDir"

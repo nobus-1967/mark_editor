@@ -1,0 +1,235 @@
+# Mark Editor
+
+![mark_editor](./assets/images/mark_editor_1_0.png)
+
+A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, ruby annotations for phonetic guides and other add-ons.
+
+## Table of Contents
+
+- [Functions](#functions)
+- [Code Base](#code-base)
+  - [Package Structure](#package-structure)
+- [Styling](#styling)
+- [File Formats](#file-formats)
+- [Fonts](#fonts)
+- [Requirements](#requirements)
+- [Running the Application](#running-the-application)
+- [Building AppImage](#building-appimage)
+- [Add-ons](#add-ons)
+  - [Emoji](#emoji)
+  - [Special Signs](#special-signs)
+  - [Language Markers](#language-markers)
+  - [Ruby Annotation/Furigana](#ruby-annotationfurigana)
+  - [Tables](#tables)
+  - [Table of Contents](#table-of-contents)
+  - [YAML Front Matter](#yaml-front-matter)
+- [Temporary Files](#temporary-files)
+  - [New (unsaved) files](#new-unsaved-files)
+  - [Saved/opened files](#savedopened-files)
+  - [Cleanup](#cleanup)
+- [How It Works](#how-it-works)
+- [License](#license)
+
+## Functions
+
+The main functions of the editor:
+
+- select all text;
+- edit (cut/copy/paste);
+- delete lines (blocks of text);
+- undo/redo operations;
+- find and replace text;
+- format text (bold, italic, underline, strikethrough, subscript, superscript, inline code, marked text);
+- add links and footnotes;
+- insert header IDs and add, generate, regenerate or remove a table of contents (TOC);
+- label parts of text as headings, paragraphs, ordered or unordered lists, blockquotes, comments, etc.;
+- add task lists (checkboxes);
+- add fenced code blocks;
+- add tables with footers and cell alignment;
+- add links to images;
+- add horizontal rules;
+- add language markers (from a drop-down list of common tags or a custom BCP 47 tag);
+- insert ruby annotations (furigana in Japanese texts);
+- insert comments (hidden in HTML5/PDF output);
+- define YAML Front Matter tags;
+- clear formatting;
+- add emoji;
+- do some typographic replacements;
+- create new files, open and save files (including `Save As` action using a new file name) through native GTK4 file chooser dialogs, reopen files (close without saving and open them again);
+- quick view Markdown files in a built-in GTK4/WebKit window (with or without embedded CSS);
+- export files to other formats (HTML5, plain text and PDF);
+- use commands from menus or shortcuts for operations;
+- toggle modern light and dark themes (live, no restart needed).
+
+The editor supports all markup elements listed in the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
+
+See also the `Keyboard Shortcuts Cheat Sheet` ([Markdown](./assets/docs/cheatsheet.md), [PDF](./assets/docs/cheatsheet.pdf)).
+
+## Code Base
+
+Since version 0.6.0, the application has been rewritten from tkinter/CustomTkinter to GTK4/libadwaita.
+
+The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
+
+### Package Structure
+
+```
+mark_editor/
+  __init__.py        # Package marker
+  main.py            # Entry point
+  application.py     # Gtk.Application with actions and keyboard shortcuts
+  window.py          # Main Gtk.ApplicationWindow + HeaderBar
+  editor.py          # GtkSourceView-based editor with line numbers
+  dialogs.py         # All dialog classes (Find, Replace, Table, etc.)
+  viewer.py          # GTK4/WebKit quick-view window
+  constants.py       # Application constants
+  helpers.py         # Resource paths, theme/font persistence, markdown utils
+  marks.css          # Custom CSS stylesheet
+```
+
+## Styling
+
+Users can switch between light and dark appearance modes for all interface elements (`View` menu, or `Toggle Theme`). Theme settings are stored in `~/.config/mark_editor/theme.json` and restored on the next start. Theme switching is instant (no restart needed) via GTK's `gtk-application-prefer-dark-theme` setting.
+
+## File Formats
+
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
+
+The editor's Markdown format supports basic and extended Markdown syntax from Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
+
+## Fonts
+
+The editor uses:
+
+- The system UI font (Cantarell / platform default) for the interface, menus and dialogs;
+- [Noto Family fonts](https://fonts.google.com/noto/fonts):
+  - Noto Sans Mono (including Noto Sans Mono CJK JP/SC/TC/HK/KR) for text/code (editor and status bar);
+  - Noto Sans, Noto Sans Mono and Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
+- [Symbola](https://github.com/zhm/symbola) for PDF output (emoji and special signs).
+
+The editor font family and size can be changed via `View` > `Editor Font...` and are persisted in `~/.config/mark_editor/theme.json`.
+
+## Requirements
+
+- Python >= 3.10
+- GTK 4 (>= 4.12)
+- libadwaita 1 (>= 1.4)
+- GtkSourceView 5 (>= 5.8)
+- WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
+- PyGObject >= 3.50
+- markdown2html5-base >= 0.6.0
+- markdown2pdf-base >= 0.6.0
+
+## Running the Application
+
+```bash
+# Download and unpack the source code
+git clone https://github.com/nobus-1967/mark_editor.git
+cd mark_editor/application
+
+# Run the application
+python3 -m mark_editor.main
+```
+
+## Building AppImage
+
+```bash
+# Download appimagetool (if not present)
+curl -sL https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
+chmod +x appimagetool
+
+# Build
+python3 build_appimage.py
+```
+
+Output: `MarkEditor-1.0.0-x86_64.AppImage`
+
+## Add-ons
+
+### Emoji
+
+The `Format` > `Emoji Shortcodes` submenu inserts emoji shortcodes (e.g. `:joy:`, `:heart:`, `:rocket:`) at the cursor. The available shortcodes are `:joy:`, `:smile:`, `:heart:`, `:thumbsup:`, `:thumbsdown:`, `:wink:`, `:tada:`, `:rocket:`, `:fire:`, `:star:`, `:cry:`, `:thinking:`, `:100:`, `:sparkles:`, `:eyes:`, `:bulb:`, `:warning:`, `:ok:` and `:check_mark:`. They are rendered by `markdown2html5-base` in HTML5 output and by Symbola in PDF output.
+
+### Special Signs
+
+The `Format` > `Special Signs` submenu inserts punctuation and special characters at the cursor. Items show the inserted expression followed by its name. The list includes typographic quotes (`&ldquo;`, `&rdquo;`, `<<`, `>>`), arrows (`<-`, `->`, `&uarr;`, `&darr;`, `=>`), the slash `&sol;` and backslash `&bsol;`, dashes (`---`, `--`), the ellipsis `...`, the non-breaking space `&nbsp;`, and the protected symbols `(c)`, `(tm)`, `(r)`, `+/-`, `!=`, `<=>`, `<=`, `>=`. These are printed as HTML5/PDF entities in the exported documents.
+
+### Language Markers
+
+Language markers tag a line (`{:de}`) or wrap a selection (`{:fr}…{:}`) with a language-tag prefix. The `Language Marker...` and `Language Wrapping...` dialogs let you pick from a drop-down list of common [BCP 47](https://en.wikipedia.org/wiki/IETF_language_tag) tags (de, de-AT, de-DE, en, en-GB, en-US, es, fr, ja, it, ko, ko-KR, pt, pt-BR, pt-PT, ru, uk, zh, zh-Hans-CN, zh-Hant, zh-Hant-HK, zh-Hant-TW) or enter any other valid BCP 47 tag in the input field below (which starts empty; `en` is preselected in the drop-down).
+
+The `Format` > `Language Codes` submenu lists the same tags with human-readable names (e.g. `de German (Generic)`, `en-US American English (United States)`) and inserts the plain language code (e.g. `de`) at the cursor with one click.
+
+### Ruby Annotation/Furigana
+
+Ruby annotation (Japanese furigana) is a reading aid consisting of smaller symbols such as Japanese kana/Chinese hanzi, etc. printed above either kanji/hanzi or other characters to indicate their pronunciation. It is one type of ruby text and the pattern is `{日本語|にほんご}`, which is equal to `<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>`.
+
+Use `Format` > `Furigana...` to add a ruby reading. When text (kanji/hanzi/kana) is selected, it is prefilled as the base text and the annotation wraps exactly those selected symbols; otherwise you type the base text yourself, and the annotation is inserted at the cursor.
+
+### Tables
+
+The editor helps you build Markdown tables with a footer and cell alignment:
+
+- `Paragraph` > `Table...` opens a dialog where you choose the number of columns (1–20) and rows (1–50) and whether to add a footer. It inserts a header row, an alignment row, the body cells and an optional `===` footer separator and footer row.
+- `Paragraph` > `Add Table Row...` inserts a pipe row of cells below the current line; a dialog with a spin button (default 3) lets you choose the number of cells.
+- `Paragraph` > `Table Alignment...` opens a dialog with a dropdown (`none`, `left`, `center`, `right`) that sets a `| --- | --- | --- |` alignment marker (`---`, `:---`, `:---:`, `---:`). With the cursor inside a marker cell, the existing value is changed to the chosen one; otherwise the marker is inserted at the cursor or replaces the selection.
+- `Paragraph` > `Balance Table` reformats the table block at the cursor so every column has equal width and the right border is aligned.
+
+### Table of Contents
+
+The editor can add, regenerate or remove a table of contents for the headings in a document.
+
+- `Format` > `TOC...` opens a dialog with a drop-down list of four operations and a "TOC heading:" entry that sets the heading text (default `Table of Contents`, e.g. `Оглавление` in Russian):
+  - `Add TOC` inserts a table of contents after the first `# H1` section title (or any existing YAML front matter), or at the very start of the document if there is none.
+  - `Regenerate existing TOC` rebuilds an existing `[TOC: Begin]: #` … `[TOC: End]: #` block so the links match the current headings; headings that already have explicit IDs keep them, auto-generated IDs are renumbered.
+  - `Remove existing TOC` deletes the `[TOC: Begin]: #` … `[TOC: End]: #` block (heading links and generated header IDs are kept).
+  - `Add Header IDs only` adds the same header anchors without inserting a table of contents.
+- The TOC block opens with a blank line after the `[TOC: Begin]: #` marker, then the heading `## <heading> {#toc}`, then the links, and is closed by the `[TOC: End]: #` marker and a `***` horizontal rule.
+- Existing `{#id}` anchors are reused, both when building the TOC and inside the regenerate operation.
+
+### YAML Front Matter
+
+YAML Front Matter is a block of metadata written in YAML, placed at the very top of a text or Markdown file. It is enclosed by triple dashes (---) on the first line and a closing set of triple dashes or dots. It stores some tags (language definition for the whole document, information about author, title, publication date, short description and keywords) without showing them in the main text.
+
+Example of YAML Front Matter:
+
+```yaml
+---
+lang: en
+title: My Document
+author: Jane Doe
+description: A short description.
+keywords: python, markdown, html5
+published: 2026-08-09
+---
+```
+
+Users can add this metadata to the beginning of a document using a special dialog box (the `published` field is filled in automatically with the system date). The `lang` field uses a drop-down list of language tags (default `en`) with an editable input below, the same behavior as the `Language Marker...` dialog.
+
+## Temporary Files
+
+The editor uses temporary files to preserve unsaved work and to feed the built-in quick view:
+
+### New (unsaved) files
+
+- Processing: `~/.cache/mark_editor/Temp.md` — autosaved buffer content, kept as a session backup.
+- Quick view: `~/.cache/mark_editor/Temp.html` — temporary HTML for the quick-view window.
+
+### Saved/opened files
+
+- Processing: `<directory>/~<filename>.md` — autosaved copy of the buffer, placed next to the source file.
+- Quick view: `<directory>/~<stem>.html` — HTML preview with the same stem but a `.html` extension.
+
+### Cleanup
+
+Temporary Markdown files (`~*.md`) are deleted when the associated file is closed — when opening or reopening another file — and when the editor window is closed via the close button or the Quit command.
+
+The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Quick View` / `Quick View (CSS)` command and deleted when the quick-view window is closed. Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
+
+## How It Works
+
+See `Test_Page` in [Markdown](./assets/test_page/Test_Page.md), [HTML5](./assets/test_page/Test_Page.html), [HTML5 with CSS3](./assets/test_page/Test_Page_CSS.html), [PDF](./assets/test_page/Test_Page.pdf) and [TXT](./assets/test_page/Test_Page.txt).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

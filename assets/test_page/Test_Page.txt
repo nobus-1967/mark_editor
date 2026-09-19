@@ -1,0 +1,109 @@
+lang: en
+title: Test Page
+author: nobus-1967
+description: Test Page for markdown2html5-base converter.
+keywords: markdown, html5
+published: 2026-09-18
+
+Heading 1
+
+Table of Contents
+
+- Heading 2
+- Heading 3
+- Heading 6: Formatting the text
+- Blocks of text
+- Test Russian symbols
+- Others
+
+Heading 2
+
+This is a test page.
+
+Heading 3
+
+This page was created for markdown2html5-base converter (ver. 0.6.0).
+
+Heading 6: Formatting the text
+
+This is a paragraph. Any text may be bold, italic, underlined, strikethrough (deleted).
+
+The text may also be marked (highlighted). And this is a piece of something looks like an inline code inside a regular paragraph.
+
+You can use superscript (X2) or subscript (H2O) symbols.
+
+And you can add hyperlinks like Markdown Guide, footnotes[1] (LINE BREAK)
+and date/time.[2]
+
+See also other other add-ons.
+
+Blocks of text
+
+Lists are ordered:
+
+1. First
+2. Second
+3. Third
+
+or unordered:
+
+- Bird
+- Chat
+- Dog
+
+To-Do lists are ordered:
+
+1. [ ] Todo...
+2. [x] Done!
+
+or unordered:
+
+- [ ] Not complete yet...
+- [x] Complete!
+
+and also nested:
+
+- Parent
+  - Child
+    1. Grandchild
+
+Definition list:
+
+Frau
+- weiblicher erwachsener Mensch
+- Ehefrau
+
+This is a citation (blockquote).
+
+And code block looks like with a code language definition:
+
+print("Hello, World!")
+
+and without it:
+
+Some text.
+
+| Product | Qty | Price |
+| --- | --- | --- |
+| Apples | 2 | $3.00 |
+| Bananas | 3 | $1.50 |
+| Cherries | 1 | $4.00 |
+| === | === | === |
+| Total | 6 | $8.50 |
+
+Markdown Image
+
+Test Russian symbols
+
+  А этот текст на русском! Ещё текст...
+
+Others
+
+Furigana (Japanese kanji spelling):  私(わたし)は日(に)本(ほん)人(じん)です。
+
+Some typographic symbols and emoji as (tm), (c), 1/2, --, &darr;, "Hello!", <<It's me!>>, :heart:,  etc.
+
+This \not italic\ is escaped by \\.
+
+[1]: This is a footnote.
+[2]: 2026-09-18 12:00
