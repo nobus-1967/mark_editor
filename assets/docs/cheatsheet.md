@@ -1,6 +1,6 @@
-# **Mark Editor — Keyboard Shortcuts Cheat Sheet**
+# Mark Editor: Keyboard Shortcuts Cheat Sheet
 
-## **File Operations**
+## File Operations
 
 | Command/Dialog... | Shortcut       |
 | :---              | :---:          |
@@ -12,7 +12,7 @@
 | *Convert...*      | `Ctrl+E`       |
 | *Quit*            | `Ctrl+Q`       |
 
-## **Edit Operations**
+## Edit Operations
 
 | Command/Dialog...  | Shortcut       |
 | :---               | :---:          |
@@ -29,7 +29,7 @@
 | *Line Down*        | `Ctrl+Down`    |
 | *Delete Line*      | `Ctrl+Y`       |
 
-## **Basic Formatting Operations**
+## Basic Formatting Operations
 
 | Command/Dialog...  | Shortcut       |
 | :---               | :---:          |
@@ -44,7 +44,7 @@
 | *Hyperlink...*     | `Ctrl+L`       |
 | *Clear Formatting* | `Ctrl+Shift+F` |
 
-## **Advanced Formatting Operations**
+## Advanced Formatting Operations
 
 | Command/Dialog...      | Shortcut       |
 | :---                   | :---:          |
@@ -58,7 +58,7 @@
 | *Furigana...*          | `Ctrl+Shift+J` |
 | *Special Mark*         | `Ctrl+Shift+L` |
 
-## **Basic Operations With Text Blocks**
+## Basic Operations With Text Blocks
 
 | Command/Dialog...    | Shortcut       |
 | :---                 | :---:          |
@@ -79,7 +79,7 @@
 | *Image...*           | `Ctrl+Shift+I` |
 | *Horizontal Rule*    | `Ctrl+_`       |
 
-## **Advanced Operations With Text Blocks**
+## Advanced Operations With Text Blocks
 
 | Command/Dialog...      | Shortcut       |
 | :---                   | :---:          |
@@ -92,7 +92,7 @@
 | *Remove Indent*        | `Shift+Tab`    |
 | *Line Break*           | `Ctrl+\`       |
 
-## **View Settings**
+## View Settings
 
 | Command/Dialog...  | Shortcut           |
 | :---               | :---:              |
@@ -102,3 +102,4 @@
 | *Zoom Out*         | `Ctrl+-`           |
 | *Quick View*       | `Ctrl+Alt+V`       |
 | *Quick View (CSS)* | `Ctrl+Alt+C`       |
+| *Shortcuts*        | `Ctrl+?`           |

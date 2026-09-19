@@ -1427,7 +1427,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_help_md_ref(self) -> None:
         """Download the Full Markdown Functionality Reference into the editor."""
-        self._download_and_open("markdown2html5-base.md", "Reference")
+        self._download_and_open("assets/docs/markdown2html5-base.md", "Reference")
 
     def _download_and_open(self, file_name: str, label: str) -> None:
         """Fetch *file_name* from the mark_editor repo and open it in the editor.
@@ -1453,7 +1453,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_help_cheatsheet(self) -> None:
         """Download the keyboard-shortcuts cheat sheet into the editor."""
-        self._download_and_open("cheatsheet.md", "Cheat Sheet")
+        self._download_and_open("assets/docs/cheatsheet.md", "Cheat Sheet")
 
     def _on_help_about(self) -> None:
         """Show the About dialog with version and release information."""
