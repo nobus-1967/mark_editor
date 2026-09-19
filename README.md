@@ -228,7 +228,7 @@ The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Q
 
 ## How It Works
 
-See `Test_Page` in [Markdown](./assets/test_page/Test_Page.md), [HTML5 with CSS3](./assets/test_page/Test_Page.html), [PDF](./assets/test_page/Test_Page.pdf) and [TXT](./assets/test_page/Test_Page.txt).
+See `Test_Page` in [Markdown](./assets/test_page/Test_Page.md), [HTML5](./assets/test_page/Test_Page.html), [HTML5 with CSS3](./assets/test_page/Test_Page_CSS.html), [PDF](./assets/test_page/Test_Page.pdf) and [TXT](./assets/test_page/Test_Page.txt).
 
 ## License
 
