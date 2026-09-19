@@ -21,7 +21,7 @@ from mark_editor.constants import VERSION  # noqa: E402
 
 APP_NAME = "Mark Editor"
 PACKAGE_DIR = os.path.join(BASE_DIR, "mark_editor")
-ICON_SRC = os.path.join(BASE_DIR, "images", "mark_editor.png")
+ICON_SRC = os.path.join(BASE_DIR, "assets", "images", "mark_editor.png")
 DESKTOP_SRC = os.path.join(BASE_DIR, "mark-editor.desktop")
 BUILD_DIR = os.path.join(BASE_DIR, "AppDir")
 OUTPUT = os.path.join(BASE_DIR, f"MarkEditor-{VERSION}-x86_64.AppImage")

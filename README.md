@@ -1,6 +1,6 @@
 # Mark Editor
 
-![mark_editor](./images/mark_editor_0_9.png)
+![mark_editor](./assets/images/mark_editor_1_0.png)
 
 A simple Markdown editor that supports standard Markdown, GFM extensions, smart typography, table footers, hidden comments, language markers, ruby annotations for phonetic guides and other add-ons.
 
@@ -28,6 +28,7 @@ A simple Markdown editor that supports standard Markdown, GFM extensions, smart 
   - [Saved/opened files](#savedopened-files)
   - [Cleanup](#cleanup)
 - [How It Works](#how-it-works)
+- [License](#license)
 
 ## Functions
 
@@ -60,9 +61,9 @@ The main functions of the editor:
 - use commands from menus or shortcuts for operations;
 - toggle modern light and dark themes (live, no restart needed).
 
-The editor supports all markup elements listed in the Full Markdown Functionality Reference ([Markdown](./markdown2html5-base.md), [PDF](./markdown2html5-base.pdf)).
+The editor supports all markup elements listed in the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
 
-See also the Keyboard Shortcuts Cheat Sheet ([Markdown](./cheatsheet.md), [PDF](./cheatsheet.pdf)).
+See also the `Keyboard Shortcuts Cheat Sheet` ([Markdown](./assets/docs/cheatsheet.md), [PDF](./assets/docs/cheatsheet.pdf)).
 
 ## Code Base
 
@@ -92,7 +93,7 @@ Users can switch between light and dark appearance modes for all interface eleme
 
 ## File Formats
 
-The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the Full Markdown Functionality Reference ([Markdown](./markdown2html5-base.md), [PDF](./markdown2html5-base.pdf)).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
 
 The editor's Markdown format supports basic and extended Markdown syntax from Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
@@ -141,7 +142,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-0.9.4-x86_64.AppImage`
+Output: `MarkEditor-1.0.0-x86_64.AppImage`
 
 ## Add-ons
 
@@ -223,9 +224,12 @@ The editor uses temporary files to preserve unsaved work and to feed the built-i
 
 Temporary Markdown files (`~*.md`) are deleted when the associated file is closed — when opening or reopening another file — and when the editor window is closed via the close button or the Quit command.
 
-The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Quick View` / `Quick View (CSS)` command and deleted when the quick-view
-window is closed. Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
+The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Quick View` / `Quick View (CSS)` command and deleted when the quick-view window is closed. Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
 
 ## How It Works
 
-See `Test_Page` in [Markdown](./test_page/Test_Page.md), [HTML5 with CSS3](./test_page/Test_Page.html), [PDF](./test_page/Test_Page.pdf) and [TXT](./test_page/Test_Page.txt).
+See `Test_Page` in [Markdown](./assets/test_page/Test_Page.md), [HTML5](./assets/test_page/Test_Page.html), [HTML5 with CSS3](./assets/test_page/Test_Page_CSS.html), [PDF](./assets/test_page/Test_Page.pdf) and [TXT](./assets/test_page/Test_Page.txt).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
