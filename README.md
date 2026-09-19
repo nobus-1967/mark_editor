@@ -117,8 +117,8 @@ The editor font family and size can be changed via `View` > `Editor Font...` and
 - GtkSourceView 5 (>= 5.8)
 - WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
 - PyGObject >= 3.50
-- markdown2html5-base >= 0.5.3
-- markdown2pdf-base >= 0.5.3
+- markdown2html5-base >= 0.6.0
+- markdown2pdf-base >= 0.6.0
 
 ## Running the Application
 
