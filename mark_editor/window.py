@@ -508,7 +508,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             "HTML5 file (.html)",
             "HTML5 file with CSS3 (.html)",
             "Plain text file (.txt)",
-            "PDF file (.pdf)",
+            "PDF file portrait (.pdf)",
+            "PDF file landscape (.pdf)",
         ]
         dlg = ChoiceDialog(
             prompt="Choose the target format:", items=formats, initial=formats[0]
@@ -528,6 +529,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             ext, include_css = ".txt", False
         else:
             ext, include_css = ".pdf", False
+        page_layout = "landscape" if "landscape" in choice else "portrait"
 
         f = Gtk.FileFilter()
         f.set_name(
@@ -547,11 +549,13 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         dialog.save(
             self,
             None,
-            lambda d, r: self._perform_convert_response(d, r, ext, include_css),
+            lambda d, r: self._perform_convert_response(
+                d, r, ext, include_css, page_layout
+            ),
         )
 
     def _perform_convert_response(
-        self, dialog, result, ext: str, include_css: bool
+        self, dialog, result, ext: str, include_css: bool, page_layout: str = "portrait"
     ) -> None:
         """Handle the result of the Convert file dialog and perform the export."""
         try:
@@ -572,7 +576,9 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
                     if self.current_file is not None
                     else None
                 )
-                md_to_pdf(content, str(path), source_dir=src_dir)
+                md_to_pdf(
+                    content, str(path), source_dir=src_dir, page_layout=page_layout
+                )
         except Exception as exc:
             show_message(self, "Convert", str(exc), "error")
             return

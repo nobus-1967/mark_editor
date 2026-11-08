@@ -57,7 +57,7 @@ The main functions of the editor:
 - do some typographic replacements;
 - create new files, open and save files (including `Save As` action using a new file name) through native GTK4 file chooser dialogs, reopen files (close without saving and open them again);
 - quick view Markdown files in a built-in GTK4/WebKit window (with or without embedded CSS);
-- export files to other formats (HTML5, plain text and PDF);
+- export files to other formats (HTML5, plain text and PDF in portrait or landscape);
 - use commands from menus or shortcuts for operations;
 - toggle modern light and dark themes (live, no restart needed).
 
@@ -93,7 +93,7 @@ Users can switch between light and dark appearance modes for all interface eleme
 
 ## File Formats
 
-The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf) formats. For CSS styles, see the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf, portrait or landscape) formats. For CSS styles, see the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
 
 The editor's Markdown format supports basic and extended Markdown syntax from Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
@@ -117,8 +117,8 @@ The editor font family and size can be changed via `View` > `Editor Font...` and
 - GtkSourceView 5 (>= 5.8)
 - WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
 - PyGObject >= 3.50
-- markdown2html5-base >= 0.6.0
-- markdown2pdf-base >= 0.6.0
+- markdown2html5-base >= 0.6.1
+- markdown2pdf-base >= 0.6.4
 
 ## Running the Application
 
@@ -142,7 +142,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-1.0.0-x86_64.AppImage`
+Output: `MarkEditor-1.0.1-x86_64.AppImage`
 
 ## Add-ons
 
@@ -228,7 +228,7 @@ The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Q
 
 ## How It Works
 
-See `Test_Page` in [Markdown](./assets/test_page/Test_Page.md), [HTML5](./assets/test_page/Test_Page.html), [HTML5 with CSS3](./assets/test_page/Test_Page_CSS.html), [PDF](./assets/test_page/Test_Page.pdf) and [TXT](./assets/test_page/Test_Page.txt).
+See `Test_Page` in [Markdown](./assets/test_page/Test_Page.md), [HTML5](./assets/test_page/Test_Page.html), [HTML5 with CSS3](./assets/test_page/Test_Page_CSS.html), [PDF (portrait)](./assets/test_page/Test_Page.pdf) and [PDF (landscape)](./assets/test_page/Test_Page_Landscape.pdf),[TXT](./assets/test_page/Test_Page.txt).
 
 ## License
 

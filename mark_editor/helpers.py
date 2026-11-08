@@ -190,15 +190,22 @@ def md_to_html(text: str, *, include_css: bool = False) -> str:
     return get_converter().convert(text, include_css=include_css)
 
 
-def md_to_pdf(text: str, path: str, *, source_dir: str | None = None) -> None:
+def md_to_pdf(
+    text: str,
+    path: str,
+    *,
+    source_dir: str | None = None,
+    page_layout: str = "portrait",
+) -> None:
     """Convert Markdown *text* to PDF and save to *path* via pandoc/xelatex.
 
     ``source_dir`` is the directory used to resolve relative image paths;
     it falls back to the output file's own directory when omitted.
+    ``page_layout`` is ``"portrait"`` (default) or ``"landscape"``.
     """
     if source_dir is None:
         source_dir = os.path.dirname(os.path.abspath(path))
-    md2pdf_convert(text, path, source_dir=source_dir)
+    md2pdf_convert(text, path, source_dir=source_dir, page_layout=page_layout)
 
 
 _DEF_RE = re.compile(r"^\s*:\s+\S")

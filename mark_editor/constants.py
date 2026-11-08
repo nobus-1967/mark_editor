@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "1.0.0"
-RELEASE = datetime.now().strftime("%Y.%m")
+VERSION = "1.0.1"
+RELEASE = "2026.11"
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
 THEME_FILE = CONFIG_DIR / "theme.json"
