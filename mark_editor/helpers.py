@@ -9,11 +9,11 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
 from markdown2html5_base import MarkdownToHTML
-from markdown2pdf_base import convert as md2pdf_convert
 
 from mark_editor.constants import (
     CACHE_DIR,
@@ -24,20 +24,11 @@ from mark_editor.constants import (
     THEMES,
 )
 
-# ---------------------------------------------------------------------------
-# Resource paths
-# ---------------------------------------------------------------------------
-
 
 def resource_path(relative: str) -> str:
     """Return an absolute path for a bundled resource (PyInstaller aware)."""
     base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base, relative)
-
-
-# ---------------------------------------------------------------------------
-# Theme persistence
-# ---------------------------------------------------------------------------
 
 
 def _read_config() -> dict:
@@ -86,20 +77,10 @@ def save_font(family: str, size: int) -> None:
     _write_config(font_family=family, font_size=size)
 
 
-# ---------------------------------------------------------------------------
-# Cache directory
-# ---------------------------------------------------------------------------
-
-
 def ensure_cache_dir() -> Path:
     """Create and return ~/.cache/mark_editor."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     return CACHE_DIR
-
-
-# ---------------------------------------------------------------------------
-# Temp file management
-# ---------------------------------------------------------------------------
 
 
 def get_temp_md_path(current_file: Path | None) -> Path:
@@ -170,9 +151,10 @@ def cleanup_temp_html(directory: Path) -> None:
     _delete_tilde_files(directory, ".html")
 
 
-# ---------------------------------------------------------------------------
-# Markdown helpers
-# ---------------------------------------------------------------------------
+def clear_pending_text() -> None:
+    """Delete the cached unsaved-buffer file used for session restore."""
+    (ensure_cache_dir() / TEMP_MD).unlink(missing_ok=True)
+
 
 _converter: MarkdownToHTML | None = None
 
@@ -185,27 +167,66 @@ def get_converter() -> MarkdownToHTML:
     return _converter
 
 
-def md_to_html(text: str, *, include_css: bool = False) -> str:
-    """Convert Markdown *text* to HTML5 using markdown2html5-base."""
-    return get_converter().convert(text, include_css=include_css)
+def md_to_html(text: str, *, page_layout: str = "portrait") -> str:
+    """Convert Markdown *text* to styled HTML5 using markdown2html5-base.
+
+    ``page_layout`` is ``"portrait"`` (default) or ``"landscape"`` and selects
+    the matching print CSS; every document embeds its styles.
+    """
+    return get_converter().convert(text, page_layout=page_layout)
 
 
 def md_to_pdf(
     text: str,
     path: str,
     *,
-    source_dir: str | None = None,
+    source_file: Path | None = None,
     page_layout: str = "portrait",
 ) -> None:
-    """Convert Markdown *text* to PDF and save to *path* via pandoc/xelatex.
+    """Save Markdown *text* as PDF through a temporary styled HTML5 file.
 
-    ``source_dir`` is the directory used to resolve relative image paths;
-    it falls back to the output file's own directory when omitted.
-    ``page_layout`` is ``"portrait"`` (default) or ``"landscape"``.
+    The HTML file is named after *source_file* (or ``document`` for an unsaved
+    buffer). If that name is taken, ``~~<stem>.html`` is used. It lives beside
+    the source so relative image links resolve and is deleted after headless
+    Chromium prints *path*.
     """
-    if source_dir is None:
-        source_dir = os.path.dirname(os.path.abspath(path))
-    md2pdf_convert(text, path, source_dir=source_dir, page_layout=page_layout)
+    output = Path(path).resolve()
+    if source_file is None:
+        directory = output.parent
+        stem = "document"
+    else:
+        directory = source_file.parent.resolve()
+        stem = source_file.stem
+    html_path = directory / f"{stem}.html"
+    if html_path.exists():
+        html_path = directory / f"~~{stem}.html"
+        if html_path.exists():
+            raise FileExistsError(f"Temporary HTML file already exists: {html_path}")
+
+    try:
+        html_path.write_text(
+            md_to_html(text, page_layout=page_layout), encoding="utf-8"
+        )
+        subprocess.run(
+            [
+                "chromium",
+                "--headless",
+                f"--print-to-pdf={output}",
+                str(html_path),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError("Chromium is required for PDF export") from exc
+    except subprocess.CalledProcessError as exc:
+        message = exc.stderr.strip() or exc.stdout.strip()
+        raise RuntimeError(
+            message or f"Chromium failed with code {exc.returncode}"
+        ) from exc
+    finally:
+        html_path.unlink(missing_ok=True)
 
 
 _DEF_RE = re.compile(r"^\s*:\s+\S")
@@ -367,11 +388,6 @@ def md_to_plain(text: str) -> str:
     for i, row in enumerate(footer_rows):
         text = text.replace(f"\x00{i}\x00", row)
     return text.strip() + "\n"
-
-
-# ---------------------------------------------------------------------------
-# Table of contents
-# ---------------------------------------------------------------------------
 
 
 TOC_BEGIN_MARKER = "[TOC: Begin]: #"

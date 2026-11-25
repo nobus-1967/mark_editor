@@ -101,5 +101,4 @@
 | *Zoom In*          | `Ctrl+=`, `Ctrl++` |
 | *Zoom Out*         | `Ctrl+-`           |
 | *Quick View*       | `Ctrl+Alt+V`       |
-| *Quick View (CSS)* | `Ctrl+Alt+C`       |
 | *Shortcuts*        | `Ctrl+?`           |

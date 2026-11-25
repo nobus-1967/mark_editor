@@ -62,6 +62,7 @@ from mark_editor.helpers import (
     add_toc,
     cleanup_temp_html,
     cleanup_temp_md,
+    clear_pending_text,
     ensure_cache_dir,
     load_font,
     load_temp_md,
@@ -128,6 +129,12 @@ def _format_table_block(lines: list[str]) -> list[str]:
     return out
 
 
+def _file_signature(path: Path) -> tuple[int, int]:
+    """Return the modification time and size used to detect disk changes."""
+    stat = path.stat()
+    return stat.st_mtime_ns, stat.st_size
+
+
 class MarkEditorWindow(Gtk.ApplicationWindow):
     """The main Mark Editor application window."""
 
@@ -144,19 +151,16 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self.is_modified = False
         self._idle_update_pending = False
         self._quick_view_windows: list[QuickViewWindow] = []
+        self._file_signature: tuple[int, int] | None = None
+        self._external_check_id: int | None = None
 
         self._build_ui()
         self._restore_pending_text()
         self._update_title()
         self.connect("close-request", self._on_close_request)
 
-    # ------------------------------------------------------------------
-    # UI construction
-    # ------------------------------------------------------------------
-
     def _build_ui(self) -> None:
         """Assemble the main window layout: header bar, menu, editor, status bar."""
-        # ── Header bar (set_titlebar) ──
         header = Gtk.HeaderBar()
         menu_model = self._build_menu_model()
         menu_btn = Gtk.MenuButton()
@@ -166,24 +170,20 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         header.pack_end(menu_btn)
         self.set_titlebar(header)
 
-        # ── Main vertical box ──
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         vbox.set_vexpand(True)
         vbox.set_hexpand(True)
 
-        # ── Menu bar ──
         menubar_model = self._build_menubar_model()
         self._menubar = Gtk.PopoverMenuBar.new_from_model(menubar_model)
         self._menubar.set_hexpand(True)
         vbox.append(self._menubar)
 
-        # ── Editor ──
         self._editor = Editor(mode=self._theme_mode)
         self._editor.set_vexpand(True)
         self._editor.set_hexpand(True)
         vbox.append(self._editor)
 
-        # ── Status bar ──
         self._status_label = Gtk.Label(label="Ln 1, Col 1")
         self._status_label.set_xalign(1.0)
         self._status_label.set_margin_start(12)
@@ -195,28 +195,20 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
         self.set_child(vbox)
 
-        # Apply saved font settings
         self._editor.set_font_family(self._editor_font_family)
         self._editor.set_font_size(self.editor_font_size)
 
-        # Apply dark class to status bar if saved theme is dark
         if self._theme_mode == "dark":
             self._status_label.add_css_class("dark")
 
-        # Connect editor signals
         buf = self._editor.get_buffer()
         buf.connect("modified-changed", self._on_editor_modified)
         buf.connect("changed", self._on_editor_changed)
-
-    # ------------------------------------------------------------------
-    # Menu models (GMenu)
-    # ------------------------------------------------------------------
 
     def _build_menubar_model(self) -> Gio.Menu:
         """Return the full menu-bar model (File/Edit/Format/Paragraph/View/Help)."""
         menubar = Gio.Menu()
 
-        # ── File ──
         file_menu = Gio.Menu()
         file_menu.append("New File", "app.new")
         file_menu.append("Open...", "app.open")
@@ -227,7 +219,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         file_menu.append("Quit", "app.quit")
         menubar.append_submenu("File", file_menu)
 
-        # ── Edit ──
         edit_menu = Gio.Menu()
         edit_menu.append("Undo", "app.undo")
         edit_menu.append("Redo", "app.redo")
@@ -243,7 +234,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         edit_menu.append("Delete Line", "app.delete-line")
         menubar.append_submenu("Edit", edit_menu)
 
-        # ── Format ──
         fmt_menu = Gio.Menu()
         fmt_menu.append("Bold", "app.bold")
         fmt_menu.append("Italic", "app.italic")
@@ -262,7 +252,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         fmt_menu.append("Language Marker...", "app.language-marker")
         fmt_menu.append("Language Wrapping...", "app.language-wrapping")
 
-        # ── Language Codes submenu ──
         lang_codes_menu = Gio.Menu()
         for code, desc in LANGUAGE_CODES:
             lang_codes_menu.append(f"{code} {desc}", f"app.insert-lang-{code}")
@@ -270,13 +259,11 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
         fmt_menu.append("Furigana...", "app.furigana")
 
-        # ── Emoji Shortcodes submenu ──
         emoji_menu = Gio.Menu()
         for emoji in EMOJIS:
             emoji_menu.append(f":{emoji}:", f"app.insert-emoji-{emoji}")
         fmt_menu.append_submenu("Emoji Shortcodes", emoji_menu)
 
-        # ── Special Signs submenu ──
         signs_menu = Gio.Menu()
         for name, sign in SPECIAL_SIGNS:
             safe_name = name.replace(" ", "-")
@@ -289,7 +276,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
         menubar.append_submenu("Format", fmt_menu)
 
-        # ── Paragraph ──
         para_menu = Gio.Menu()
         for level in range(1, 7):
             para_menu.append(f"Heading {level}", f"app.heading-{level}")
@@ -313,17 +299,14 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         para_menu.append("Remove Indent", "app.remove-indent")
         menubar.append_submenu("Paragraph", para_menu)
 
-        # ── View ──
         view_menu = Gio.Menu()
         view_menu.append("Toggle Theme", "app.toggle-theme")
         view_menu.append("Editor Font...", "app.editor-font")
         view_menu.append("Zoom In", "app.zoom-in")
         view_menu.append("Zoom Out", "app.zoom-out")
         view_menu.append("Quick View", "app.quick-view")
-        view_menu.append("Quick View (CSS)", "app.quick-view-css")
         menubar.append_submenu("View", view_menu)
 
-        # ── Help ──
         help_menu = Gio.Menu()
         help_menu.append("Markdown Guide", "app.help-markdown-guide")
         help_menu.append("Full Markdown Functionality Reference", "app.help-md-ref")
@@ -351,14 +334,9 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
         section3 = Gio.Menu()
         section3.append("Toggle Theme", "app.toggle-theme")
-        section3.append("Quick View (CSS)", "app.quick-view-css")
         section3.append("About Editor", "app.help-about")
         menu.append_section(None, section3)
         return menu
-
-    # ------------------------------------------------------------------
-    # Title bar & status
-    # ------------------------------------------------------------------
 
     def _update_title(self) -> None:
         """Refresh the title to reflect the file name and modification state."""
@@ -375,10 +353,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             self._status_label.set_text(f"Ln {line}, Col {col}")
         except Exception:
             pass
-
-    # ------------------------------------------------------------------
-    # Change tracking
-    # ------------------------------------------------------------------
 
     def _on_editor_modified(self, buf: GtkSource.Buffer) -> None:
         """Handle the buffer's modified-changed signal."""
@@ -397,20 +371,17 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Perform the idle callback: update status bar and auto-save temp file."""
         self._idle_update_pending = False
         self._update_status()
-        # Auto-save to temp file
         text = self._editor.get_text()
         save_temp_md(text, self.current_file)
         return False
-
-    # ------------------------------------------------------------------
-    # File operations
-    # ------------------------------------------------------------------
 
     def _on_new(self) -> None:
         """Clear the editor and reset to an empty untitled document."""
         self._editor.clear()
         self.current_file = None
         self.is_modified = False
+        self._file_signature = None
+        self._stop_external_check()
         self._update_title()
         self._editor.focus()
 
@@ -427,9 +398,9 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             file = dialog.open_finish(result)
         except GLib.Error:
             return
-        self._load_file(Path(file.get_path()))
+        self.load_file(Path(file.get_path()))
 
-    def _load_file(self, path: Path) -> None:
+    def load_file(self, path: Path) -> None:
         """Load *path* into the editor, cleaning up the previous file's temps."""
         try:
             text = path.read_text(encoding="utf-8")
@@ -442,7 +413,36 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         if old_file:
             cleanup_temp_md(old_file.parent)
         self.is_modified = False
+        self._file_signature = _file_signature(path)
+        self._start_external_check()
         self._update_title()
+
+    def _start_external_check(self) -> None:
+        """Start watching the current file for changes made outside the editor."""
+        if self._external_check_id is None:
+            self._external_check_id = GLib.timeout_add_seconds(
+                1, self._check_external_change
+            )
+
+    def _stop_external_check(self) -> None:
+        """Stop watching the current file for external changes."""
+        if self._external_check_id is not None:
+            GLib.source_remove(self._external_check_id)
+            self._external_check_id = None
+
+    def _check_external_change(self) -> bool:
+        """Reload the current file when another program changes it on disk."""
+        if self.current_file is None:
+            self._external_check_id = None
+            return False
+        try:
+            signature = _file_signature(self.current_file)
+        except OSError:
+            self._external_check_id = None
+            return False
+        if signature != self._file_signature:
+            self.load_file(self.current_file)
+        return True
 
     def _on_reopen(self) -> None:
         """Reload the current file from disk, discarding unsaved changes."""
@@ -455,6 +455,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             return
         self._editor.set_text(text)
         self.is_modified = False
+        self._file_signature = _file_signature(self.current_file)
+        self._start_external_check()
         self._update_title()
         cleanup_temp_md(self.current_file.parent)
         show_message(self, "Reopen file", "File reopened!")
@@ -474,6 +476,8 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             self.current_file = path
             self.is_modified = False
             self._editor.set_modified(False)
+            self._file_signature = _file_signature(path)
+            self._start_external_check()
             self._update_title()
         except Exception as exc:
             show_message(self, "Save file", str(exc), "error")
@@ -506,7 +510,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Show the format chooser then a file dialog for export."""
         formats = [
             "HTML5 file (.html)",
-            "HTML5 file with CSS3 (.html)",
+            "HTML5 file (landscape) (.html)",
             "Plain text file (.txt)",
             "PDF file portrait (.pdf)",
             "PDF file landscape (.pdf)",
@@ -521,14 +525,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Show the file-save dialog after the user picks an export format."""
         if not choice:
             return
-        if choice.startswith("HTML5 file with"):
-            ext, include_css = ".html", True
-        elif choice.startswith("HTML5"):
-            ext, include_css = ".html", False
+        if choice.startswith("HTML5"):
+            ext = ".html"
         elif choice.startswith("Plain"):
-            ext, include_css = ".txt", False
+            ext = ".txt"
         else:
-            ext, include_css = ".pdf", False
+            ext = ".pdf"
         page_layout = "landscape" if "landscape" in choice else "portrait"
 
         f = Gtk.FileFilter()
@@ -549,13 +551,11 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         dialog.save(
             self,
             None,
-            lambda d, r: self._perform_convert_response(
-                d, r, ext, include_css, page_layout
-            ),
+            lambda d, r: self._perform_convert_response(d, r, ext, page_layout),
         )
 
     def _perform_convert_response(
-        self, dialog, result, ext: str, include_css: bool, page_layout: str = "portrait"
+        self, dialog, result, ext: str, page_layout: str = "portrait"
     ) -> None:
         """Handle the result of the Convert file dialog and perform the export."""
         try:
@@ -566,18 +566,16 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         try:
             content = self._editor.get_text()
             if ext == ".html":
-                html = md_to_html(content, include_css=include_css)
+                html = md_to_html(content, page_layout=page_layout)
                 path.write_text(html, encoding="utf-8")
             elif ext == ".txt":
                 path.write_text(md_to_plain(content), encoding="utf-8")
             else:
-                src_dir = (
-                    str(self.current_file.parent)
-                    if self.current_file is not None
-                    else None
-                )
                 md_to_pdf(
-                    content, str(path), source_dir=src_dir, page_layout=page_layout
+                    content,
+                    str(path),
+                    source_file=self.current_file,
+                    page_layout=page_layout,
                 )
         except Exception as exc:
             show_message(self, "Convert", str(exc), "error")
@@ -585,13 +583,14 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         show_message(self, "Convert", "Conversion complete!")
 
     def _cleanup_temp_files(self) -> None:
-        """Delete the current document's temporary ~*.md and ~*.html files."""
+        """Delete temporary files and the cached unsaved-buffer file."""
         if self.current_file:
             cleanup_temp_md(self.current_file.parent)
             cleanup_temp_html(self.current_file.parent)
         else:
             cleanup_temp_md(ensure_cache_dir())
             cleanup_temp_html(ensure_cache_dir())
+        clear_pending_text()
 
     def _close_quick_view_windows(self) -> None:
         """Close all open quick-view windows (deleting their ~*.html files)."""
@@ -605,6 +604,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_close_request(self, _widget) -> bool:
         """Clean up temp files when the editor window is closed."""
+        self._stop_external_check()
         self._close_quick_view_windows()
         self._cleanup_temp_files()
         return False
@@ -613,10 +613,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Clean up temp files and close the application window."""
         self._on_close_request(None)
         self.close()
-
-    # ------------------------------------------------------------------
-    # Edit operations
-    # ------------------------------------------------------------------
 
     def _on_undo(self) -> None:
         """Undo the last editing action."""
@@ -763,10 +759,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Open the Find & Replace dialog."""
         dlg = ReplaceDialog(self._editor)
         dlg.present()
-
-    # ------------------------------------------------------------------
-    # Format operations
-    # ------------------------------------------------------------------
 
     def _insert_text(self, text: str) -> None:
         """Insert *text* at the cursor and return focus to the editor."""
@@ -963,10 +955,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         text = self._editor.get_text()
         cleaned = md_to_plain(text)
         self._editor.set_text(cleaned)
-
-    # ------------------------------------------------------------------
-    # Paragraph operations
-    # ------------------------------------------------------------------
 
     def _get_current_line_text(self) -> str:
         """Return the text of the line at the cursor (without the trailing newline)."""
@@ -1324,10 +1312,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._editor.insert_at_cursor(text + "\n")
         self._editor.focus()
 
-    # ------------------------------------------------------------------
-    # View operations
-    # ------------------------------------------------------------------
-
     def _on_toggle_theme(self) -> None:
         """Switch between light and dark appearance modes."""
         new = "dark" if self._theme_mode == "light" else "light"
@@ -1389,27 +1373,17 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         self._zoom(-2)
 
     def _on_quick_view(self) -> None:
-        """Render the document as HTML5 and show it in a quick-view window."""
-        self._quick_view(include_css=False)
-
-    def _on_quick_view_css(self) -> None:
-        """Render the document with embedded CSS in a quick-view window."""
-        self._quick_view(include_css=True)
-
-    def _quick_view(self, include_css: bool) -> None:
-        """Render the document as HTML5 and show it in a quick-view window.
+        """Render the document as styled HTML5 in a quick-view window.
 
         A temp HTML file is generated, then opened in a new GTK4/WebKit
         window.  The temp HTML is rewritten on every quick view and deleted
         when the quick-view window closes.
         """
         content = self._editor.get_text()
-        # For saved files, save temp MD with ~ prefix first
         if self.current_file:
             save_temp_md(content, self.current_file)
-        # Create HTML temp file
         try:
-            html = md_to_html(content, include_css=include_css)
+            html = md_to_html(content)
             html_path = save_temp_html(html, self.current_file)
         except Exception as exc:
             show_message(self, "Quick View", str(exc), "error")
@@ -1417,15 +1391,12 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
         from mark_editor.viewer import QuickViewWindow
 
-        title = "Quick View (CSS)" if include_css else "Quick View"
-        window = QuickViewWindow(html_path.as_uri(), title=title, html_path=html_path)
+        window = QuickViewWindow(
+            html_path.as_uri(), title="Quick View", html_path=html_path
+        )
         self._quick_view_windows.append(window)
         window.connect("close-request", self._on_quick_view_window_closed)
         window.connect("destroy", self._on_quick_view_window_closed)
-
-    # ------------------------------------------------------------------
-    # Help
-    # ------------------------------------------------------------------
 
     def _on_help_markdown_guide(self) -> None:
         """Open the Markdown Guide website in the default browser."""
@@ -1462,7 +1433,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
             return
         path = cache / file_name.rsplit("/", 1)[-1]
         path.write_text(text, encoding="utf-8")
-        self._load_file(path)
+        self.load_file(path)
 
     def _on_help_cheatsheet(self) -> None:
         """Download the keyboard-shortcuts cheat sheet into the editor."""
@@ -1472,10 +1443,6 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         """Show the About dialog with version and release information."""
         dlg = AboutDialog(APP_NAME, VERSION, RELEASE)
         dlg.present()
-
-    # ------------------------------------------------------------------
-    # Theme restore
-    # ------------------------------------------------------------------
 
     def _restore_pending_text(self) -> None:
         """Restore any unsaved text from the previous session (cached temp file)."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+from pathlib import Path
 
 import gi
 
@@ -26,6 +27,7 @@ class MarkEditorApp(Gtk.Application):
         )
         self.connect("activate", self._on_activate)
         self.connect("startup", self._on_startup)
+        self.connect("open", self._on_open_files)
 
     def _on_startup(self, _app) -> None:
         """Load the CSS stylesheet, register actions and keyboard shortcuts."""
@@ -43,7 +45,6 @@ class MarkEditorApp(Gtk.Application):
 
     def _on_activate(self, app) -> None:
         """Apply the saved theme and present the main window."""
-        # Apply saved theme
         mode = load_theme()
         settings = Gtk.Settings.get_default()
         if mode == "dark":
@@ -57,9 +58,14 @@ class MarkEditorApp(Gtk.Application):
         self._window = win
         win.present()
 
-    # ------------------------------------------------------------------
-    # Actions
-    # ------------------------------------------------------------------
+    def _on_open_files(self, _app, files, _n_files, _hint) -> None:
+        """Load the first file supplied by the file manager or command line."""
+        window = getattr(self, "_window", None)
+        if window is None:
+            self._on_activate(self)
+            window = self._window
+        if window and files:
+            window.load_file(Path(files[0].get_path()))
 
     def _add_action(self, name: str, callback) -> None:
         """Register a stateless ``Gio.SimpleAction`` on this application."""
@@ -74,7 +80,6 @@ class MarkEditorApp(Gtk.Application):
             """Return the current window instance."""
             return getattr(self, "_window", None)
 
-        # File
         self._add_action("new", lambda a, p: _w() and _w()._on_new())
         self._add_action("open", lambda a, p: _w() and _w()._on_open())
         self._add_action("reopen", lambda a, p: _w() and _w()._on_reopen())
@@ -83,7 +88,6 @@ class MarkEditorApp(Gtk.Application):
         self._add_action("convert", lambda a, p: _w() and _w()._on_convert())
         self._add_action("quit", lambda a, p: _w() and _w()._on_quit())
 
-        # Edit
         self._add_action("undo", lambda a, p: _w() and _w()._on_undo())
         self._add_action("redo", lambda a, p: _w() and _w()._on_redo())
         self._add_action("cut", lambda a, p: _w() and _w()._on_cut())
@@ -99,7 +103,6 @@ class MarkEditorApp(Gtk.Application):
         self._add_action("line-down", lambda a, p: _w() and _w()._on_line_down())
         self._add_action("delete-line", lambda a, p: _w() and _w()._on_delete_line())
 
-        # Format
         self._add_action("bold", lambda a, p: _w() and _w()._on_bold())
         self._add_action("italic", lambda a, p: _w() and _w()._on_italic())
         self._add_action("underline", lambda a, p: _w() and _w()._on_underline())
@@ -128,7 +131,6 @@ class MarkEditorApp(Gtk.Application):
             "clear-formatting", lambda a, p: _w() and _w()._on_clear_formatting()
         )
 
-        # Paragraph
         for level in range(1, 7):
             lv = level
             self._add_action(
@@ -167,17 +169,12 @@ class MarkEditorApp(Gtk.Application):
             "yaml-front-matter", lambda a, p: _w() and _w()._on_yaml_front_matter()
         )
 
-        # View
         self._add_action("toggle-theme", lambda a, p: _w() and _w()._on_toggle_theme())
         self._add_action("editor-font", lambda a, p: _w() and _w()._on_editor_font())
         self._add_action("zoom-in", lambda a, p: _w() and _w()._on_zoom_in())
         self._add_action("zoom-out", lambda a, p: _w() and _w()._on_zoom_out())
         self._add_action("quick-view", lambda a, p: _w() and _w()._on_quick_view())
-        self._add_action(
-            "quick-view-css", lambda a, p: _w() and _w()._on_quick_view_css()
-        )
 
-        # Help
         self._add_action(
             "help-markdown-guide", lambda a, p: _w() and _w()._on_help_markdown_guide()
         )
@@ -187,7 +184,6 @@ class MarkEditorApp(Gtk.Application):
         )
         self._add_action("help-about", lambda a, p: _w() and _w()._on_help_about())
 
-        # Emoji Shortcodes
         for emoji in EMOJIS:
             e = emoji
             self._add_action(
@@ -195,7 +191,6 @@ class MarkEditorApp(Gtk.Application):
                 lambda a, p, v=f":{e}:": _w() and _w()._insert_text(v),
             )
 
-        # Language Codes
         for code, _desc in LANGUAGE_CODES:
             c = code
             self._add_action(
@@ -203,7 +198,6 @@ class MarkEditorApp(Gtk.Application):
                 lambda a, p, v=c: _w() and _w()._insert_text(v),
             )
 
-        # Special Signs
         for name, sign in SPECIAL_SIGNS:
             safe_name = name.replace(" ", "-")
             s = sign
@@ -212,14 +206,9 @@ class MarkEditorApp(Gtk.Application):
                 lambda a, p, v=s: _w() and _w()._insert_text(v),
             )
 
-    # ------------------------------------------------------------------
-    # Keyboard shortcuts
-    # ------------------------------------------------------------------
-
     def _setup_shortcuts(self) -> None:
         """Bind keyboard accelerators to all application actions."""
         shortcuts = [
-            # File
             ("app.new", ["<Control>n"]),
             ("app.open", ["<Control>o"]),
             ("app.reopen", ["<Control><Shift>o"]),
@@ -227,7 +216,6 @@ class MarkEditorApp(Gtk.Application):
             ("app.save-as", ["<Control><Shift>s"]),
             ("app.convert", ["<Control>e"]),
             ("app.quit", ["<Control>q"]),
-            # Edit
             ("app.undo", ["<Control>z"]),
             ("app.redo", ["<Control><Shift>z"]),
             ("app.cut", ["<Control>x"]),
@@ -240,7 +228,6 @@ class MarkEditorApp(Gtk.Application):
             ("app.line-up", ["<Control>Up"]),
             ("app.line-down", ["<Control>Down"]),
             ("app.delete-line", ["<Control>y"]),
-            # Format
             ("app.bold", ["<Control>b"]),
             ("app.italic", ["<Control>i"]),
             ("app.underline", ["<Control>u"]),
@@ -260,7 +247,6 @@ class MarkEditorApp(Gtk.Application):
             ("app.date-time", ["<Control><Shift>d"]),
             ("app.special-mark", ["<Control><Shift>l"]),
             ("app.clear-formatting", ["<Control><Shift>f"]),
-            # Paragraph
             ("app.heading-1", ["<Alt><Control>1"]),
             ("app.heading-2", ["<Alt><Control>2"]),
             ("app.heading-3", ["<Alt><Control>3"]),
@@ -285,13 +271,11 @@ class MarkEditorApp(Gtk.Application):
             ("app.yaml-front-matter", ["<Control><Shift>y"]),
             ("app.add-indent", ["Tab"]),
             ("app.remove-indent", ["<Shift>Tab"]),
-            # View
             ("app.toggle-theme", ["<Control><Alt>g"]),
             ("app.editor-font", ["<Control><Alt>f"]),
             ("app.zoom-in", ["<Control>equal", "<Control>plus"]),
             ("app.zoom-out", ["<Control>minus"]),
             ("app.quick-view", ["<Control><Alt>v"]),
-            ("app.quick-view-css", ["<Control><Alt>c"]),
         ]
 
         for action_name, accels in shortcuts:

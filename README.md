@@ -55,9 +55,9 @@ The main functions of the editor:
 - clear formatting;
 - add emoji;
 - do some typographic replacements;
-- create new files, open and save files (including `Save As` action using a new file name) through native GTK4 file chooser dialogs, reopen files (close without saving and open them again);
-- quick view Markdown files in a built-in GTK4/WebKit window (with or without embedded CSS);
-- export files to other formats (HTML5, plain text and PDF in portrait or landscape);
+- create new files, open and save files (including `Save As` action using a new file name) through native GTK4 file chooser dialogs, pass a file path on the command line or open it from the file manager, and automatically reload files changed externally;
+- quick view Markdown files in a built-in GTK4/WebKit window with embedded CSS3 styles;
+- export files to other formats (HTML5 in portrait or landscape, plain text and PDF in portrait or landscape);
 - use commands from menus or shortcuts for operations;
 - toggle modern light and dark themes (live, no restart needed).
 
@@ -69,7 +69,7 @@ See also the `Keyboard Shortcuts Cheat Sheet` ([Markdown](./assets/docs/cheatshe
 
 Since version 0.6.0, the application has been rewritten from tkinter/CustomTkinter to GTK4/libadwaita.
 
-The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It depends on the following Python libraries: [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) converts Markdown text into HTML5; [markdown2pdf-base](https://github.com/nobus-1967/markdown2pdf-base) converts and saves files as PDF using [pandoc](https://pandoc.org/) (xelatex).
+The editor is a Python 3 package (`mark_editor/`) using [GTK4](https://gtk.org/), [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and [GtkSourceView 5](https://gnome.pages.gitlab.gnome.org/gtksourceview/). It uses [markdown2html5-base](https://github.com/nobus-1967/markdown2html5-base) to convert Markdown into styled HTML5 and [Chromium](https://www.chromium.org/) in headless mode to print that HTML into PDF.
 
 ### Package Structure
 
@@ -93,7 +93,7 @@ Users can switch between light and dark appearance modes for all interface eleme
 
 ## File Formats
 
-The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html) with/without the default CSS3 styles, plain text (.txt) and PDF (.pdf, portrait or landscape) formats. For CSS styles, see the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html, portrait or landscape, with default CSS3 styles embedded), plain text (.txt) and PDF (.pdf, portrait or landscape) formats. PDF export writes a temporary HTML5 file named after the source document (or `~~<name>.html` if that name is taken), prints it with headless Chromium, then removes the HTML file. For CSS styles, see the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
 
 The editor's Markdown format supports basic and extended Markdown syntax from Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
@@ -104,8 +104,7 @@ The editor uses:
 - The system UI font (Cantarell / platform default) for the interface, menus and dialogs;
 - [Noto Family fonts](https://fonts.google.com/noto/fonts):
   - Noto Sans Mono (including Noto Sans Mono CJK JP/SC/TC/HK/KR) for text/code (editor and status bar);
-  - Noto Sans, Noto Sans Mono and Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output;
-- [Symbola](https://github.com/zhm/symbola) for PDF output (emoji and special signs).
+  - Noto Sans, Noto Sans Mono and Noto Serif CJK (JP/SC/TC/HK/KR) for HTML5/PDF output.
 
 The editor font family and size can be changed via `View` > `Editor Font...` and are persisted in `~/.config/mark_editor/theme.json`.
 
@@ -117,8 +116,8 @@ The editor font family and size can be changed via `View` > `Editor Font...` and
 - GtkSourceView 5 (>= 5.8)
 - WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
 - PyGObject >= 3.50
-- markdown2html5-base >= 0.6.1
-- markdown2pdf-base >= 0.6.4
+- markdown2html5-base >= 1.0.0
+- Chromium (headless PDF printing)
 
 ## Running the Application
 
@@ -129,6 +128,9 @@ cd mark_editor/application
 
 # Run the application
 python3 -m mark_editor.main
+
+# Or open a Markdown file directly
+python3 -m mark_editor.main document.md
 ```
 
 ## Building AppImage
@@ -142,13 +144,13 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-1.0.1-x86_64.AppImage`
+Output: `MarkEditor-1.1.0-x86_64.AppImage`
 
 ## Add-ons
 
 ### Emoji
 
-The `Format` > `Emoji Shortcodes` submenu inserts emoji shortcodes (e.g. `:joy:`, `:heart:`, `:rocket:`) at the cursor. The available shortcodes are `:joy:`, `:smile:`, `:heart:`, `:thumbsup:`, `:thumbsdown:`, `:wink:`, `:tada:`, `:rocket:`, `:fire:`, `:star:`, `:cry:`, `:thinking:`, `:100:`, `:sparkles:`, `:eyes:`, `:bulb:`, `:warning:`, `:ok:` and `:check_mark:`. They are rendered by `markdown2html5-base` in HTML5 output and by Symbola in PDF output.
+The `Format` > `Emoji Shortcodes` submenu inserts emoji shortcodes (e.g. `:joy:`, `:heart:`, `:rocket:`) at the cursor. The available shortcodes are `:joy:`, `:smile:`, `:heart:`, `:thumbsup:`, `:thumbsdown:`, `:wink:`, `:tada:`, `:rocket:`, `:fire:`, `:star:`, `:cry:`, `:thinking:`, `:100:`, `:sparkles:`, `:eyes:`, `:bulb:`, `:warning:`, `:ok:` and `:check_mark:`. They are rendered by `markdown2html5-base` in HTML5 output and by Chromium when printing PDFs.
 
 ### Special Signs
 
@@ -224,11 +226,11 @@ The editor uses temporary files to preserve unsaved work and to feed the built-i
 
 Temporary Markdown files (`~*.md`) are deleted when the associated file is closed — when opening or reopening another file — and when the editor window is closed via the close button or the Quit command.
 
-The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Quick View` / `Quick View (CSS)` command and deleted when the quick-view window is closed. Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
+The quick-view HTML (`~*.html`) is rewritten with the latest content on every `Quick View` command and deleted when the quick-view window is closed. Open quick-view windows (and their HTML files) are also closed when the editor window itself is closed.
 
 ## How It Works
 
-See `Test_Page` in [Markdown](./assets/test_page/Test_Page.md), [HTML5](./assets/test_page/Test_Page.html), [HTML5 with CSS3](./assets/test_page/Test_Page_CSS.html), [PDF (portrait)](./assets/test_page/Test_Page.pdf) and [PDF (landscape)](./assets/test_page/Test_Page_Landscape.pdf),[TXT](./assets/test_page/Test_Page.txt).
+See `Test_Page` in [Markdown](./assets/test_page/Test_Page.md), [HTML5](./assets/test_page/Test_Page.html), [PDF (portrait)](./assets/test_page/Test_Page.pdf) and [PDF (landscape)](./assets/test_page/Test_Page_Landscape.pdf),[TXT](./assets/test_page/Test_Page.txt).
 
 ## License
 

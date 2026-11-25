@@ -61,10 +61,6 @@ class Editor(Gtk.Box):
 
         self._apply_colors(mode)
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     def get_buffer(self) -> GtkSource.Buffer:
         """Return the underlying GtkSource.Buffer."""
         return self._buffer

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 1.0.1 (GTK4)."""
+"""Tests for Mark Editor 1.1.0 (GTK4)."""
 
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -23,17 +24,20 @@ from mark_editor.helpers import (
     add_toc,
     cleanup_temp_html,
     cleanup_temp_md,
+    clear_pending_text,
     ensure_cache_dir,
     get_converter,
     load_font,
     load_theme,
     md_to_html,
+    md_to_pdf,
     md_to_plain,
     regenerate_toc,
     remove_toc,
     save_font,
     save_theme,
 )
+from mark_editor.window import _file_signature
 
 
 def _line_iter(buf, line: int):
@@ -71,7 +75,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "1.0.1")
+        self.assertEqual(VERSION, "1.1.0")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -493,7 +497,17 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         """md_to_html produces HTML5 heading markup."""
         self.app._editor.set_text("# Hello")
         html = md_to_html(self.app._editor.get_text())
-        self.assertIn("<h1>", html)
+        self.assertIn("<h1", html)
+
+    def test_md_to_html_page_layout(self):
+        """md_to_html selects portrait or landscape print CSS."""
+        portrait = md_to_html("# Hello")
+        landscape = md_to_html("# Hello", page_layout="landscape")
+        self.assertIn("<style>", portrait)
+        self.assertIn("/* Portrait PDF/Print */", portrait)
+        self.assertNotIn("/* Landscape PDF/Print */", portrait)
+        self.assertIn("/* Landscape PDF/Print */", landscape)
+        self.assertNotIn("/* Portrait PDF/Print */", landscape)
 
     def test_editor_text_roundtrip(self):
         """Editor text writes to a file and reads back unchanged."""
@@ -502,8 +516,8 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         tmp.write_text(self.app._editor.get_text(), encoding="utf-8")
         self.assertEqual(tmp.read_text(encoding="utf-8"), "hello world")
 
-    def test_quick_view_without_css(self):
-        """Quick view renders HTML5 output without embedded CSS."""
+    def test_quick_view(self):
+        """Quick view renders HTML5 output with embedded CSS."""
         self.app._editor.set_text("# Hello")
         with unittest.mock.patch(
             "mark_editor.window.QuickViewWindow",
@@ -511,22 +525,7 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         ) as mock_view:
             self.app._on_quick_view()
         html = (ensure_cache_dir() / "Temp.html").read_text(encoding="utf-8")
-        self.assertIn("<h1>", html)
-        self.assertNotIn("<style>", html)
-        self.assertEqual(
-            mock_view.call_args.kwargs["html_path"], ensure_cache_dir() / "Temp.html"
-        )
-
-    def test_quick_view_with_css(self):
-        """Quick view with CSS renders HTML5 output with embedded styles."""
-        self.app._editor.set_text("# Hello")
-        with unittest.mock.patch(
-            "mark_editor.window.QuickViewWindow",
-            return_value=unittest.mock.MagicMock(),
-        ) as mock_view:
-            self.app._on_quick_view_css()
-        html = (ensure_cache_dir() / "Temp.html").read_text(encoding="utf-8")
-        self.assertIn("<h1>", html)
+        self.assertIn("<h1", html)
         self.assertIn("<style>", html)
         self.assertEqual(
             mock_view.call_args.kwargs["html_path"], ensure_cache_dir() / "Temp.html"
@@ -561,6 +560,25 @@ class TestTempFileCleanup(unittest.TestCase):
         self.assertFalse((d / "~doc.html").exists())
         self.assertTrue((d / "~doc.md").exists())
         self.assertTrue((d / "~notes").exists())
+
+    def test_clear_pending_text(self):
+        """clear_pending_text removes the cached unsaved-buffer file."""
+        import mark_editor.helpers as mh
+
+        directory = Path(tempfile.mkdtemp())
+        pending = directory / "Temp.md"
+        pending.write_text("old", encoding="utf-8")
+        with unittest.mock.patch.object(mh, "CACHE_DIR", directory):
+            clear_pending_text()
+        self.assertFalse(pending.exists())
+
+    def test_file_signature_tracks_changes(self):
+        """_file_signature changes when a file is modified on disk."""
+        path = Path(tempfile.mkdtemp()) / "doc.md"
+        path.write_text("x", encoding="utf-8")
+        before = _file_signature(path)
+        path.write_text("changed contents", encoding="utf-8")
+        self.assertNotEqual(_file_signature(path), before)
 
 
 class TestTableOfContents(unittest.TestCase):
@@ -652,7 +670,97 @@ class TestMarkdownConversion(unittest.TestCase):
     def test_converter_importable(self):
         """get_converter returns a converter that emits HTML5 heading markup."""
         html = get_converter().convert("# Title")
-        self.assertIn("<h1>", html)
+        self.assertIn("<h1", html)
+
+
+class TestPDFConversion(unittest.TestCase):
+    """Verify the two-step HTML5-to-PDF export pipeline."""
+
+    def setUp(self):
+        """Create a source Markdown file and output path for each test."""
+        self.directory = Path(tempfile.mkdtemp())
+        self.source = self.directory / "report.md"
+        self.source.write_text("# Hello", encoding="utf-8")
+        self.output = self.directory / "report.pdf"
+        self.html = self.directory / "report.html"
+
+    def test_md_to_pdf_uses_chromium_and_removes_temp_html(self):
+        """Chromium prints a temporary landscape HTML file that is then deleted."""
+        observed = {}
+
+        def fake_run(args, **kwargs):
+            observed["args"] = args
+            html_path = Path(args[-1])
+            observed["html"] = html_path.read_text(encoding="utf-8")
+            observed["exists"] = html_path.exists()
+            return unittest.mock.MagicMock()
+
+        with unittest.mock.patch(
+            "mark_editor.helpers.subprocess.run", side_effect=fake_run
+        ) as run:
+            md_to_pdf(
+                "# Hello",
+                str(self.output),
+                source_file=self.source,
+                page_layout="landscape",
+            )
+
+        run.assert_called_once()
+        args = observed["args"]
+        self.assertEqual(args[0], "chromium")
+        self.assertEqual(args[1], "--headless")
+        self.assertEqual(args[2], f"--print-to-pdf={self.output.resolve()}")
+        self.assertEqual(args[3], str(self.html))
+        self.assertTrue(observed["exists"])
+        self.assertIn("<h1", observed["html"])
+        self.assertIn("/* Landscape PDF/Print */", observed["html"])
+        self.assertFalse(self.html.exists())
+
+    def test_md_to_pdf_cleans_html_after_chromium_failure(self):
+        """A failed Chromium run still removes the temporary HTML file."""
+        error = subprocess.CalledProcessError(
+            1, "chromium", output="", stderr="print failed"
+        )
+        with (
+            unittest.mock.patch(
+                "mark_editor.helpers.subprocess.run", side_effect=error
+            ),
+            self.assertRaisesRegex(RuntimeError, "print failed"),
+        ):
+            md_to_pdf("# Hello", str(self.output), source_file=self.source)
+        self.assertFalse(self.html.exists())
+
+    def test_md_to_pdf_uses_fallback_temp_name(self):
+        """A colliding HTML export is preserved; PDF uses ~~name.html instead."""
+        self.html.write_text("user data", encoding="utf-8")
+        fallback = self.directory / "~~report.html"
+        observed = {}
+
+        def fake_run(args, **kwargs):
+            html_path = Path(args[-1])
+            observed["path"] = html_path
+            observed["exists"] = html_path.exists()
+            return unittest.mock.MagicMock()
+
+        with unittest.mock.patch(
+            "mark_editor.helpers.subprocess.run", side_effect=fake_run
+        ):
+            md_to_pdf("# Hello", str(self.output), source_file=self.source)
+
+        self.assertEqual(observed["path"], fallback)
+        self.assertTrue(observed["exists"])
+        self.assertFalse(fallback.exists())
+        self.assertEqual(self.html.read_text(encoding="utf-8"), "user data")
+
+    def test_md_to_pdf_keeps_existing_fallback_html(self):
+        """If both temp names exist, neither is overwritten or deleted."""
+        fallback = self.directory / "~~report.html"
+        self.html.write_text("user data", encoding="utf-8")
+        fallback.write_text("fallback data", encoding="utf-8")
+        with self.assertRaises(FileExistsError):
+            md_to_pdf("# Hello", str(self.output), source_file=self.source)
+        self.assertEqual(self.html.read_text(encoding="utf-8"), "user data")
+        self.assertEqual(fallback.read_text(encoding="utf-8"), "fallback data")
 
 
 if __name__ == "__main__":

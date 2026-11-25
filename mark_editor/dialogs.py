@@ -13,10 +13,6 @@ from gi.repository import Adw, Gtk
 
 from mark_editor.constants import LANGUAGE_TAGS
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 
 def _make_dialog_box(spacing: int = 8) -> Gtk.Box:
     """Create a vertical dialog content box with standard margins."""
@@ -135,11 +131,6 @@ def _make_grid(
     return grid
 
 
-# ---------------------------------------------------------------------------
-# Message / input helpers
-# ---------------------------------------------------------------------------
-
-
 def show_message(
     parent: Gtk.Window, title: str, message: str, icon: str = "info"
 ) -> None:
@@ -216,11 +207,6 @@ def ask_string(
 
     dialog.set_child(box)
     dialog.present(parent)
-
-
-# ---------------------------------------------------------------------------
-# Find / Replace
-# ---------------------------------------------------------------------------
 
 
 class FindDialog(Adw.Dialog):
@@ -365,11 +351,6 @@ class ReplaceDialog(Adw.Dialog):
         """Clear search highlights and close the dialog."""
         self._editor.clear_search()
         super().close()
-
-
-# ---------------------------------------------------------------------------
-# Table
-# ---------------------------------------------------------------------------
 
 
 class TableDialog(Adw.Dialog):
@@ -605,11 +586,6 @@ class OrderedListDialog(Adw.Dialog):
         self._callback(int(self._spin.get_value()))
 
 
-# ---------------------------------------------------------------------------
-# Header Link
-# ---------------------------------------------------------------------------
-
-
 class HeaderLinkDialog(Adw.Dialog):
     """Dialog for inserting a cross-reference link to a document heading."""
 
@@ -649,11 +625,6 @@ class HeaderLinkDialog(Adw.Dialog):
         if hid:
             self._callback(f"[{text}](#{hid})")
         self.close()
-
-
-# ---------------------------------------------------------------------------
-# Table of Contents
-# ---------------------------------------------------------------------------
 
 
 class TOCDialog(Adw.Dialog):
@@ -710,11 +681,6 @@ class TOCDialog(Adw.Dialog):
         self._callback(self._ops.get_selected(), self._title_entry.get_text().strip())
 
 
-# ---------------------------------------------------------------------------
-# Footnote
-# ---------------------------------------------------------------------------
-
-
 class FootnoteDialog(Adw.Dialog):
     """Dialog for inserting a footnote reference and optional definition."""
 
@@ -755,11 +721,6 @@ class FootnoteDialog(Adw.Dialog):
         self.close()
 
 
-# ---------------------------------------------------------------------------
-# Definition List
-# ---------------------------------------------------------------------------
-
-
 class DefinitionListDialog(Adw.Dialog):
     """Dialog for inserting a Markdown definition-list block."""
 
@@ -795,11 +756,6 @@ class DefinitionListDialog(Adw.Dialog):
             lines.extend(f": Definition {i}" for i in range(1, count + 1))
             self._callback("\n".join(lines))
         self.close()
-
-
-# ---------------------------------------------------------------------------
-# YAML Front Matter
-# ---------------------------------------------------------------------------
 
 
 class YAMLFrontMatterDialog(Adw.Dialog):
@@ -859,11 +815,6 @@ class YAMLFrontMatterDialog(Adw.Dialog):
         self.close()
 
 
-# ---------------------------------------------------------------------------
-# Date / Time
-# ---------------------------------------------------------------------------
-
-
 class DateTimeDialog(Adw.Dialog):
     """Dialog for inserting a formatted date and/or time stamp."""
 
@@ -910,11 +861,6 @@ class DateTimeDialog(Adw.Dialog):
         self.close()
 
 
-# ---------------------------------------------------------------------------
-# Choice (format selector)
-# ---------------------------------------------------------------------------
-
-
 class ChoiceDialog(Adw.Dialog):
     """Dialog for selecting an item from a drop-down list."""
 
@@ -953,11 +899,6 @@ class ChoiceDialog(Adw.Dialog):
         if idx is not None and idx < model.get_n_items():
             self.result = model.get_string(idx)
         self.close()
-
-
-# ---------------------------------------------------------------------------
-# About
-# ---------------------------------------------------------------------------
 
 
 class AboutDialog(Adw.Dialog):

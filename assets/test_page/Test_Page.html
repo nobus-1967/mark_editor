@@ -6,11 +6,344 @@
     <meta name="description" content="Test Page for markdown2html5-base converter." />
     <meta name="keywords" content="markdown, html5" />
     <title>Test Page</title>
-    <meta name="published" content="2026-09-29" />
+    <meta name="published" content="2026-11-25" />
+    <style>
+/* Base Rules */
+:root {
+  --bg-page: #ffffff;
+  --bg-subtle: #f5f5f5;
+  --bg-row-even: #fafafa;
+  --text-main: #000000;
+  --text-muted: #525252;
+  --border-color: #000000;
+  --border-subtle: #e0e0e0;
+  --accent-mark: #ffff00;
+  --font-serif: "Noto Serif", "Liberation Serif", "Times New Roman", serif;
+  --font-sans: "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  --font-mono: "Noto Sans Mono", "Liberation Mono", monospace;
+  --radius-sm: 4px;
+  --space-base: 24px;
+  --code-padding-x: 16px;
+  --print-header: none;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: var(--space-base) var(--space-base) var(--space-base) calc(var(--space-base) * 2);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-main);
+  background-color: var(--bg-page);
+}
+h1, h2, h3, h4, h5, h6 {
+  margin: 1.3em 0 0.5em;
+  font-family: var(--font-sans);
+  font-weight: bold;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+h1 { font-size: 28px; margin-top: 0; }
+h2 { font-size: 24px; }
+h2#toc { font-style: italic; }
+h3 { font-size: 20px; }
+h4 { font-size: 18px; }
+h5 { font-size: 16px; }
+h6 { font-size: 16px; font-style: italic; }
+p {
+  margin: 0.9em 0;
+  overflow-wrap: break-word;
+}
+hr {
+  height: 2px;
+  margin: 24px 0;
+  border: none;
+  background-color: var(--border-color);
+}
+blockquote {
+  margin: 1.2em 0;
+  padding: 12px 20px;
+  border-left: 4px solid var(--border-color);
+  background-color: var(--bg-subtle);
+  font-style: italic;
+  overflow-wrap: break-word;
+}
+blockquote > :first-child { margin-top: 0; }
+blockquote > :last-child { margin-bottom: 0; }
+mark {
+  padding: 2px 5px;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent-mark);
+  color: var(--text-main);
+}
+a:link { color: #0000cd; text-underline-offset: 2px; }
+a:visited { color: #9400d3; }
+a:hover, a:focus { outline: none; color: #000080; }
+a:active { color: #dc143c; }
+ol, ul {
+  margin: 1em 0;
+  padding-left: 0;
+  list-style: none;
+  overflow-wrap: break-word;
+}
+li > ol, li > ul {
+  margin: 0.4em 0 0.5em;
+  padding-left: 22px;
+}
+li > ol:last-child, li > ul:last-child {
+  margin-bottom: 0;
+}
+ol {
+  counter-reset: custom-counter;
+}
+li {
+  position: relative;
+  padding-left: 26px;
+  margin-bottom: 0.4em;
+  overflow-wrap: break-word;
+}
+li:last-child {
+  margin-bottom: 0;
+}
+ul > li::before {
+  content: "•";
+  position: absolute;
+  left: 8px;
+  top: 0;
+}
+ul ul > li::before { content: "◦"; }
+ul ul ul > li::before { content: "▪"; }
+ul.task-list > li,
+ul > li:has(input[type="checkbox"]) {
+  padding-left: 4px;
+}
+ul.task-list > li::before,
+ul > li:has(input[type="checkbox"])::before {
+  display: none;
+}
+ol > li {
+  counter-increment: custom-counter;
+}
+ol > li::before {
+  content: counter(custom-counter) ".";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-variant-numeric: tabular-nums;
+}
+ol ol > li::before { content: counter(custom-counter, lower-alpha) "."; }
+ol ol ol > li::before { content: counter(custom-counter, lower-roman) "."; }
+ol li input[type="checkbox"],
+ul li input[type="checkbox"] {
+  position: static;
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin: 0 8px 0 0;
+  vertical-align: -2px;
+  accent-color: var(--text-main);
+}
+dl { margin: 1.2em 0; }
+dt {
+  margin-top: 0.9em;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+dd {
+  margin: 0.25em 0 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--border-subtle);
+  font-style: italic;
+  overflow-wrap: break-word;
+}
+code {
+  padding: 2px 5px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+div.code-lang {
+  display: block;
+  width: fit-content;
+  position: relative;
+  z-index: 2;
+  margin: 1.2em calc(var(--code-padding-x) + 1px) -10px auto;
+  padding: 3px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  font-weight: bold;
+  line-height: 1;
+  background-color: var(--text-main);
+  color: var(--bg-page);
+}
+pre {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  margin: 1.2em 0;
+  padding: 16px var(--code-padding-x);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-subtle);
+  overflow-x: auto;
+}
+div.code-lang + pre {
+  margin-top: 0;
+  padding-top: 22px;
+}
+pre > code {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  line-height: 1.45;
+  background-color: transparent;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+table {
+  width: 100%;
+  margin: 1.5em 0;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+}
+th, td {
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid var(--border-color);
+  overflow-wrap: anywhere;
+}
+thead tr {
+  background-color: var(--text-main);
+  color: var(--bg-page);
+}
+thead th {
+  font-family: var(--font-sans);
+  font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--bg-row-even);
+}
+tfoot tr {
+  background-color: var(--bg-subtle);
+  font-style: italic;
+}
+figure {
+  display: block;
+  margin: 1.2em 0;
+}
+figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+figcaption {
+  margin-top: 6px;
+  font-size: 0.9em;
+  font-style: italic;
+  color: var(--text-muted);
+  overflow-wrap: break-word;
+}
+ruby { ruby-position: over; ruby-align: space-around; }
+rt { letter-spacing: 0.05em; font-size: 0.55em; white-space: nowrap; }
+rp { display: none; }
+span[lang="ja"] { font-family: "Noto Serif CJK JP", "Source Han Serif JP", serif; }
+span[lang="zh-CN"], span[lang="zh-Hans"] { font-family: "Noto Serif CJK SC", "Source Han Serif SC", serif; }
+span[lang="zh-TW"], span[lang="zh-Hant"] { font-family: "Noto Serif CJK TC", "Source Han Serif TC", serif; }
+span[lang="zh-HK"] { font-family: "Noto Serif CJK HK", "Source Han Serif HK", serif; }
+span[lang="ko"] { font-family: "Noto Serif CJK KR", "Source Han Serif KR", serif; }
+
+/* Portrait PDF/Print */
+@page {
+  size: A4 portrait;
+  margin: 22mm 15mm 20mm 25mm;
+  @top-center {
+    content: var(--print-header);
+    font-family: var(--font-sans);
+    font-size: 8.5pt;
+    color: var(--text-muted);
+    vertical-align: bottom;
+    padding-bottom: 6pt;
+    border-bottom: 0.5pt solid var(--border-subtle);
+  }
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--font-sans);
+    font-size: 8.5pt;
+    color: var(--text-muted);
+    vertical-align: top;
+    padding-top: 6pt;
+  }
+}
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body {
+    padding: 0;
+    font-size: 11pt;
+    line-height: 1.45;
+    color: #000000;
+    background-color: #ffffff;
+  }
+  h1 { font-size: 20pt; }
+  h2 { font-size: 17pt; }
+  h3 { font-size: 14.5pt; }
+  h4 { font-size: 12.5pt; }
+  h5, h6 { font-size: 11pt; }
+  h1, h2, h3, h4, h5, h6, dt, div.code-lang {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  blockquote, figure, pre, tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  p, li {
+    orphans: 3;
+    widows: 3;
+  }
+  pre {
+    overflow: visible;
+  }
+  pre > code {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+  a:link, a:visited {
+    color: #000000;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+}
+    </style>
   </head>
   <body>
-<!--Test Page, created for markdown2html5-base converter (ver. 0.6.1).-->
-<h1>Heading 1</h1>
+<!--Test Page, created for markdown2html5-base converter (ver. 1.0.0).-->
+<h1 id="heading-1">Heading 1</h1>
 <!--TOC: Begin-->
 <h2 id="toc">Table of Contents</h2>
 <ul>
@@ -27,7 +360,7 @@
 <h2 id="h2-1">Heading 2</h2>
 <p>This is a test page.</p>
 <h3 id="h3-1">Heading 3</h3>
-<p>This page was created for <code>markdown2html5-base</code> converter (ver. 0.6.1).</p>
+<p>This page was created for <code>markdown2html5-base</code> converter (ver. 1.0.0).</p>
 <h6 id="h6-1">Heading 6: Formatting the text</h6>
 <p>This is a paragraph. Any text may be <strong>bold</strong>, <em>italic</em>, <u>underlined</u>, <s>strikethrough (deleted)</s>.</p>
 <p>The text may also be <mark>marked (highlighted)</mark>. And this is <code>a piece of something looks like an inline code</code> inside a regular paragraph.</p>
@@ -85,7 +418,7 @@ and date/time.<sup id="fnref:2"><a href="#fn:2" class="footnote-ref">2</a></sup>
   <p>This is a citation (blockquote).</p>
 </blockquote>
 <p>And code block looks like with a code language definition:</p>
-<div class="code-lang">&sol;python&sol;</div><pre><code>print("Hello, World!")</code></pre>
+<div class="code-lang">python</div><pre><code>print("Hello, World!")</code></pre>
 <p>and without it:</p>
 <pre><code>Some text.</code></pre>
 <table>
@@ -136,8 +469,23 @@ and date/time.<sup id="fnref:2"><a href="#fn:2" class="footnote-ref">2</a></sup>
   <hr>
   <ol>
     <li id="fn:1">This is a footnote. <a href="#fnref:1" class="footnote-backref">&uarr;</a></li>
-    <li id="fn:2">2026-09-29 12:00 <a href="#fnref:2" class="footnote-backref">&uarr;</a></li>
+    <li id="fn:2">2026-11-25 12:00 <a href="#fnref:2" class="footnote-backref">&uarr;</a></li>
   </ol>
 </div>
+    <script>
+      (() => {
+        const author = document.querySelector('meta[name="author"]')?.content.trim() || '';
+        const title = document.title.trim() || '';
+        const published = document.querySelector('meta[name="published"], meta[name="date"]')?.content.trim() || '';
+
+        const base = [author, title].filter(Boolean).join(', ');
+        const headerText = published ? (base ? `${base} (${published})` : published) : base;
+
+        if (headerText) {
+          const safeText = headerText.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+          document.documentElement.style.setProperty('--print-header', `"${safeText}"`);
+        }
+      })();
+    </script>
   </body>
 </html>
