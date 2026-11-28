@@ -57,8 +57,9 @@ The main functions of the editor:
 - do some typographic replacements;
 - create new files, open and save files (including `Save As` action using a new file name) through native GTK4 file chooser dialogs, pass a file path on the command line or open it from the file manager, and automatically reload files changed externally;
 - quick view Markdown files in a built-in GTK4/WebKit window with embedded CSS3 styles;
-- export files to other formats (HTML5 in portrait or landscape, plain text and PDF in portrait or landscape);
+- export files to other formats (HTML5 in portrait, plain text and PDF in portrait or landscape);
 - use commands from menus or shortcuts for operations;
+- show **About** with version `1.1.1 (2026.11)`;
 - toggle modern light and dark themes (live, no restart needed).
 
 The editor supports all markup elements listed in the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
@@ -93,7 +94,7 @@ Users can switch between light and dark appearance modes for all interface eleme
 
 ## File Formats
 
-The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html, portrait or landscape, with default CSS3 styles embedded), plain text (.txt) and PDF (.pdf, portrait or landscape) formats. PDF export writes a temporary HTML5 file named after the source document (or `~~<name>.html` if that name is taken), prints it with headless Chromium, then removes the HTML file. For CSS styles, see the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
+The editor can save files in its own version of Markdown (.md) format and export them to HTML5 (.html, portrait, with default CSS3 styles embedded), plain text (.txt) and PDF (.pdf, portrait or landscape) formats. PDF export writes a temporary HTML5 file named after the source document (or `~~<name>.html` if that name is taken), prints it with `chromium --headless --no-pdf-header-footer --print-to-pdf=<output.pdf> <input.html>`, then removes the HTML file. For CSS styles, see the `Full Markdown Functionality Reference` ([Markdown](./assets/docs/markdown2html5-base.md), [PDF](./assets/docs/markdown2html5-base.pdf)).
 
 The editor's Markdown format supports basic and extended Markdown syntax from Matt Cone's [Markdown Guide](https://www.markdownguide.org/) and more (language markers, furigana, YAML Front Matter).
 
@@ -116,7 +117,7 @@ The editor font family and size can be changed via `View` > `Editor Font...` and
 - GtkSourceView 5 (>= 5.8)
 - WebKitGTK 6.0 (GIR typelib `WebKit-6.0`) for the in-app quick-view window
 - PyGObject >= 3.50
-- markdown2html5-base >= 1.0.0
+- markdown2html5-base >= 1.1.0
 - Chromium (headless PDF printing)
 
 ## Running the Application
@@ -144,7 +145,7 @@ chmod +x appimagetool
 python3 build_appimage.py
 ```
 
-Output: `MarkEditor-1.1.0-x86_64.AppImage`
+Output: `MarkEditor-1.1.1-x86_64.AppImage`
 
 ## Add-ons
 

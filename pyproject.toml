@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mark-editor"
-version = "1.1.0"
+version = "1.1.1"
 description = "A simple Markdown editor built with GTK4 and libadwaita"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
   "PyGObject>=3.50",
-  "markdown2html5-base>=1.0.0",
+  "markdown2html5-base>=1.1.0",
   "chromium",
 ]
 

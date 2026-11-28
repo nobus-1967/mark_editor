@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 from mark_editor.constants import (
     APP_NAME,
+    CONVERT_FORMATS,
     EMOJIS,
     LANGUAGE_CODES,
     LANGUAGE_TAGS,
@@ -98,6 +99,30 @@ def _make_filter_store(*filters: Gtk.FileFilter) -> Gio.ListStore:
     for f in filters:
         store.append(f)
     return store
+
+
+def conversion_settings(choice: str) -> tuple[str, str]:
+    """Map a Convert... format choice to ``(extension, page_layout)``."""
+    if choice.startswith("HTML5"):
+        ext = ".html"
+    elif choice.startswith("Plain"):
+        ext = ".txt"
+    else:
+        ext = ".pdf"
+    page_layout = "landscape" if "landscape" in choice else "portrait"
+    return ext, page_layout
+
+
+def _write_export(
+    ext: str, content: str, path: Path, source_file: Path | None, page_layout: str
+) -> None:
+    """Write Markdown *content* to *path* in the requested export format."""
+    if ext == ".html":
+        path.write_text(md_to_html(content, page_layout=page_layout), encoding="utf-8")
+    elif ext == ".txt":
+        path.write_text(md_to_plain(content), encoding="utf-8")
+    else:
+        md_to_pdf(content, str(path), source_file=source_file, page_layout=page_layout)
 
 
 def _make_md_filters() -> Gio.ListStore:
@@ -508,30 +533,18 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
 
     def _on_convert(self) -> None:
         """Show the format chooser then a file dialog for export."""
-        formats = [
-            "HTML5 file (.html)",
-            "HTML5 file (landscape) (.html)",
-            "Plain text file (.txt)",
-            "PDF file portrait (.pdf)",
-            "PDF file landscape (.pdf)",
-        ]
+        formats = list(CONVERT_FORMATS)
         dlg = ChoiceDialog(
             prompt="Choose the target format:", items=formats, initial=formats[0]
         )
-        dlg.connect("closed", lambda _: self._convert_after_choice(dlg.result, formats))
+        dlg.connect("closed", lambda _: self._convert_after_choice(dlg.result))
         dlg.present()
 
-    def _convert_after_choice(self, choice: str | None, formats: list[str]) -> None:
+    def _convert_after_choice(self, choice: str | None) -> None:
         """Show the file-save dialog after the user picks an export format."""
         if not choice:
             return
-        if choice.startswith("HTML5"):
-            ext = ".html"
-        elif choice.startswith("Plain"):
-            ext = ".txt"
-        else:
-            ext = ".pdf"
-        page_layout = "landscape" if "landscape" in choice else "portrait"
+        ext, page_layout = conversion_settings(choice)
 
         f = Gtk.FileFilter()
         f.set_name(
@@ -565,18 +578,7 @@ class MarkEditorWindow(Gtk.ApplicationWindow):
         path = Path(file.get_path())
         try:
             content = self._editor.get_text()
-            if ext == ".html":
-                html = md_to_html(content, page_layout=page_layout)
-                path.write_text(html, encoding="utf-8")
-            elif ext == ".txt":
-                path.write_text(md_to_plain(content), encoding="utf-8")
-            else:
-                md_to_pdf(
-                    content,
-                    str(path),
-                    source_file=self.current_file,
-                    page_layout=page_layout,
-                )
+            _write_export(ext, content, path, self.current_file, page_layout)
         except Exception as exc:
             show_message(self, "Convert", str(exc), "error")
             return

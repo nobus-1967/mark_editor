@@ -5,8 +5,15 @@ from __future__ import annotations
 from pathlib import Path
 
 APP_NAME = "Mark Editor"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 RELEASE = "2026.11"
+
+CONVERT_FORMATS: tuple[str, ...] = (
+    "HTML5 file (.html)",
+    "Plain text file (.txt)",
+    "PDF file portrait (.pdf)",
+    "PDF file landscape (.pdf)",
+)
 
 CONFIG_DIR = Path.home() / ".config" / "mark_editor"
 THEME_FILE = CONFIG_DIR / "theme.json"

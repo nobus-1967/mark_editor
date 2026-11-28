@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for Mark Editor 1.1.0 (GTK4)."""
+"""Tests for Mark Editor 1.1.1 (GTK4)."""
 
 import os
 import subprocess
@@ -14,12 +14,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from mark_editor.constants import (
     APP_NAME,
+    CONVERT_FORMATS,
     DEFAULT_THEME,
     RELEASE,
     THEMES,
     VERSION,
 )
 from mark_editor.helpers import (
+    _pdf_html_path,
     add_heading_ids,
     add_toc,
     cleanup_temp_html,
@@ -37,7 +39,7 @@ from mark_editor.helpers import (
     save_font,
     save_theme,
 )
-from mark_editor.window import _file_signature
+from mark_editor.window import _file_signature, conversion_settings
 
 
 def _line_iter(buf, line: int):
@@ -75,7 +77,7 @@ class TestAppMetadata(unittest.TestCase):
 
     def test_version(self):
         """VERSION matches the current release."""
-        self.assertEqual(VERSION, "1.1.0")
+        self.assertEqual(VERSION, "1.1.1")
 
     def test_release(self):
         """RELEASE is auto-derived as the current year.month."""
@@ -88,6 +90,34 @@ class TestAppMetadata(unittest.TestCase):
         self.assertIn("light", THEMES)
         self.assertIn("dark", THEMES)
         self.assertEqual(DEFAULT_THEME, "light")
+
+
+class TestConvertFormats(unittest.TestCase):
+    """Verify export choices and their extension/layout mapping."""
+
+    def test_convert_formats(self):
+        """HTML5 landscape is removed; PDF landscape remains."""
+        self.assertEqual(
+            list(CONVERT_FORMATS),
+            [
+                "HTML5 file (.html)",
+                "Plain text file (.txt)",
+                "PDF file portrait (.pdf)",
+                "PDF file landscape (.pdf)",
+            ],
+        )
+
+    def test_conversion_settings(self):
+        """Each choice maps to the right extension and page layout."""
+        expected = [
+            (".html", "portrait"),
+            (".txt", "portrait"),
+            (".pdf", "portrait"),
+            (".pdf", "landscape"),
+        ]
+        self.assertEqual(
+            [conversion_settings(choice) for choice in CONVERT_FORMATS], expected
+        )
 
 
 class TestFontStorage(_IsolatedConfigMixin, unittest.TestCase):
@@ -504,10 +534,8 @@ class TestEditor(_IsolatedConfigMixin, unittest.TestCase):
         portrait = md_to_html("# Hello")
         landscape = md_to_html("# Hello", page_layout="landscape")
         self.assertIn("<style>", portrait)
-        self.assertIn("/* Portrait PDF/Print */", portrait)
-        self.assertNotIn("/* Landscape PDF/Print */", portrait)
-        self.assertIn("/* Landscape PDF/Print */", landscape)
-        self.assertNotIn("/* Portrait PDF/Print */", landscape)
+        self.assertNotIn('data-orientation="landscape"', portrait)
+        self.assertIn('data-orientation="landscape"', landscape)
 
     def test_editor_text_roundtrip(self):
         """Editor text writes to a file and reads back unchanged."""
@@ -707,13 +735,19 @@ class TestPDFConversion(unittest.TestCase):
 
         run.assert_called_once()
         args = observed["args"]
-        self.assertEqual(args[0], "chromium")
-        self.assertEqual(args[1], "--headless")
-        self.assertEqual(args[2], f"--print-to-pdf={self.output.resolve()}")
-        self.assertEqual(args[3], str(self.html))
+        self.assertEqual(
+            args,
+            [
+                "chromium",
+                "--headless",
+                "--no-pdf-header-footer",
+                f"--print-to-pdf={self.output.resolve()}",
+                str(self.html),
+            ],
+        )
         self.assertTrue(observed["exists"])
         self.assertIn("<h1", observed["html"])
-        self.assertIn("/* Landscape PDF/Print */", observed["html"])
+        self.assertIn('data-orientation="landscape"', observed["html"])
         self.assertFalse(self.html.exists())
 
     def test_md_to_pdf_cleans_html_after_chromium_failure(self):
@@ -761,6 +795,17 @@ class TestPDFConversion(unittest.TestCase):
             md_to_pdf("# Hello", str(self.output), source_file=self.source)
         self.assertEqual(self.html.read_text(encoding="utf-8"), "user data")
         self.assertEqual(fallback.read_text(encoding="utf-8"), "fallback data")
+
+    def test_pdf_html_path_collision(self):
+        """PDF export falls back to a ~~-prefixed HTML file when needed."""
+        self.html.write_text("user data", encoding="utf-8")
+        fallback = self.directory / "~~report.html"
+        self.assertEqual(
+            _pdf_html_path(self.output, self.source), fallback
+        )
+        fallback.write_text("fallback data", encoding="utf-8")
+        with self.assertRaises(FileExistsError):
+            _pdf_html_path(self.output, self.source)
 
 
 if __name__ == "__main__":
